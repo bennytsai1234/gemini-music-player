@@ -48,7 +48,8 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":player"))
     implementation(project(":data"))
-    implementation(project(":core"))
+    implementation(project(":core:designsystem"))
+    implementation(project(":core:common"))
     implementation(project(":domain"))
 
     // Hilt

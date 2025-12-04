@@ -12,7 +12,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
-import com.sigma.music.core.datastore.UserPreferencesRepository
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.sigma.music.data.repository.UserPreferencesRepository
 import com.sigma.music.core.designsystem.SigmaTheme
 import com.sigma.music.ui.navigation.MusicNavigation
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,7 +44,16 @@ class MainActivity : ComponentActivity() {
         checkPermissions()
 
         setContent {
-            SigmaTheme(userPreferencesRepository = userPreferencesRepository) {
+            val themeMode by userPreferencesRepository.themeMode.collectAsState(initial = UserPreferencesRepository.THEME_SYSTEM)
+            val isSystemDark = isSystemInDarkTheme()
+            
+            val darkTheme = when (themeMode) {
+                 UserPreferencesRepository.THEME_LIGHT -> false
+                 UserPreferencesRepository.THEME_DARK -> true
+                 else -> isSystemDark
+            }
+
+            SigmaTheme(darkTheme = darkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     MainScreen()
                 }

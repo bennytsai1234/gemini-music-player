@@ -1,4 +1,4 @@
-package com.sigma.music.core.parser
+package com.sigma.music.core.common.parser
 
 import com.sigma.music.domain.model.LyricLine
 

@@ -30,7 +30,8 @@ android {
 
 dependencies {
     implementation(project(":domain"))
-    implementation(project(":core"))
+    implementation(project(":core:common"))
+    implementation(libs.androidx.datastore.preferences)
 
     // Hilt
     implementation(libs.hilt.android)

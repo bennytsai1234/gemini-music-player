@@ -10,14 +10,11 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.sigma.music.core.datastore.UserPreferencesRepository
 import com.sigma.music.core.designsystem.Typography
 
 // We primarily focus on Dark Theme for this music player
@@ -50,27 +47,17 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun SigmaTheme(
-    userPreferencesRepository: UserPreferencesRepository,
-    // Optional: Allow overriding for specific screens
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // We disable dynamic color by default to enforce our brand style
     content: @Composable () -> Unit
 ) {
-    val themeMode by userPreferencesRepository.themeMode.collectAsState(initial = UserPreferencesRepository.THEME_SYSTEM)
-    
-    val effectiveDarkTheme = when (themeMode) {
-        UserPreferencesRepository.THEME_LIGHT -> false
-        UserPreferencesRepository.THEME_DARK -> true
-        else -> darkTheme
-    }
-
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (effectiveDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        effectiveDarkTheme -> DarkColorScheme
+        darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
@@ -81,7 +68,7 @@ fun SigmaTheme(
             // Set status bar color to match background for immersive feel
             window.statusBarColor = colorScheme.background.toArgb()
             window.navigationBarColor = colorScheme.surface.toArgb() // Or background
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !effectiveDarkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 

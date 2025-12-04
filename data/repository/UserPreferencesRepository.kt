@@ -1,4 +1,4 @@
-package com.sigma.music.core.datastore
+package com.sigma.music.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore

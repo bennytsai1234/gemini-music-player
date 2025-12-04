@@ -50,8 +50,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.sigma.music.core.datastore.UserPreferencesRepository
-import com.sigma.music.core.util.StorageUtils
+import com.sigma.music.data.repository.UserPreferencesRepository
+import com.sigma.music.core.common.util.StorageUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

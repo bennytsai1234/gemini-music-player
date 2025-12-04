@@ -1,6 +1,6 @@
 package com.sigma.music.data.repository
 
-import com.sigma.music.core.parser.LrcParser
+import com.sigma.music.core.common.parser.LrcParser
 import com.sigma.music.domain.model.LyricLine
 import com.sigma.music.domain.repository.LyricsRepository
 import kotlinx.coroutines.Dispatchers

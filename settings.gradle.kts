@@ -14,4 +14,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Gemini Music"
-include(":app", ":core", ":data", ":domain", ":player", ":ui")
+include(":app", ":core:common", ":core:designsystem", ":data", ":domain", ":player", ":ui")

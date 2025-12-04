@@ -2,7 +2,7 @@ package com.sigma.music.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sigma.music.core.datastore.UserPreferencesRepository
+import com.sigma.music.data.repository.UserPreferencesRepository
 import com.sigma.music.domain.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
