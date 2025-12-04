@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.sigma.music.player"
+    namespace = "com.gemini.music.player"
     compileSdk = 36
 
     defaultConfig {

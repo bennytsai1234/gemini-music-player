@@ -1,4 +1,4 @@
-package com.sigma.music.domain.model
+package com.gemini.music.domain.model
 
 enum class RepeatMode(val value: Int) {
     OFF(0),

@@ -1,4 +1,4 @@
-package com.sigma.music.ui.navigation
+package com.gemini.music.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -6,11 +6,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
-import com.sigma.music.ui.albumdetail.AlbumDetailScreen
-import com.sigma.music.ui.home.HomeScreen
-import com.sigma.music.ui.nowplaying.NowPlayingScreen
-import com.sigma.music.ui.search.SearchScreen
-import com.sigma.music.ui.settings.SettingsScreen
+import com.gemini.music.ui.albumdetail.AlbumDetailScreen
+import com.gemini.music.ui.home.HomeScreen
+import com.gemini.music.ui.nowplaying.NowPlayingScreen
+import com.gemini.music.ui.search.SearchScreen
+import com.gemini.music.ui.settings.SettingsScreen
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")

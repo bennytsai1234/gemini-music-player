@@ -1,9 +1,9 @@
-package com.sigma.music.data.source
+package com.gemini.music.data.source
 
 import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
-import com.sigma.music.domain.model.Song
+import com.gemini.music.domain.model.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

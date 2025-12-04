@@ -1,4 +1,4 @@
-package com.sigma.music.ui.nowplaying
+package com.gemini.music.ui.nowplaying
 
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedContent
@@ -72,9 +72,9 @@ import androidx.compose.runtime.collectAsState
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.sigma.music.domain.model.LyricLine
-import com.sigma.music.domain.model.RepeatMode
-import com.sigma.music.ui.component.WaveformSeekBar
+import com.gemini.music.domain.model.LyricLine
+import com.gemini.music.domain.model.RepeatMode
+import com.gemini.music.ui.component.WaveformSeekBar
 
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 

@@ -1,7 +1,7 @@
-package com.sigma.music.domain.usecase
+package com.gemini.music.domain.usecase
 
-import com.sigma.music.domain.model.Album
-import com.sigma.music.domain.repository.MusicRepository
+import com.gemini.music.domain.model.Album
+import com.gemini.music.domain.repository.MusicRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

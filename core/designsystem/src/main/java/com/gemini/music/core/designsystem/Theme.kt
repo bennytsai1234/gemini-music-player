@@ -1,4 +1,4 @@
-package com.sigma.music.core.designsystem
+package com.gemini.music.core.designsystem
 
 import android.app.Activity
 import android.os.Build
@@ -15,29 +15,29 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.sigma.music.core.designsystem.Typography
+import com.gemini.music.core.designsystem.GeminiTypography
 
 // We primarily focus on Dark Theme for this music player
 private val DarkColorScheme = darkColorScheme(
-    primary = SigmaPrimary,
+    primary = GeminiPrimary,
     onPrimary = Color.White,
-    primaryContainer = SigmaPrimaryDark,
+    primaryContainer = GeminiPrimaryDark,
     onPrimaryContainer = Color.White,
-    secondary = SigmaAccent,
+    secondary = GeminiAccent,
     onSecondary = Color.Black,
-    background = SigmaBlack,
-    onBackground = SigmaTextPrimary,
-    surface = SigmaDarkGray,
-    onSurface = SigmaTextPrimary,
-    surfaceVariant = SigmaSurface,
-    onSurfaceVariant = SigmaTextSecondary,
-    error = SigmaError,
-    outline = SigmaTextDisabled
+    background = GeminiBlack,
+    onBackground = GeminiTextPrimary,
+    surface = GeminiDarkGray,
+    onSurface = GeminiTextPrimary,
+    surfaceVariant = GeminiSurface,
+    onSurfaceVariant = GeminiTextSecondary,
+    error = GeminiError,
+    outline = GeminiTextDisabled
 )
 
 // Fallback Light Scheme (Ideally user should stick to dark for music apps)
 private val LightColorScheme = lightColorScheme(
-    primary = SigmaPrimary,
+    primary = GeminiPrimary,
     onPrimary = Color.White,
     background = Color(0xFFF5F5F5),
     surface = Color.White,
@@ -46,7 +46,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun SigmaTheme(
+fun GeminiTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // We disable dynamic color by default to enforce our brand style
@@ -74,7 +74,7 @@ fun SigmaTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Uses default for now, can customize later
+        typography = GeminiTypography, // Uses default for now, can customize later
         content = content
     )
 }

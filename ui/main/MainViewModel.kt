@@ -1,13 +1,13 @@
-package com.sigma.music.ui.main
+package com.gemini.music.ui.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sigma.music.domain.model.MusicState
-import com.sigma.music.domain.usecase.GetMusicStateUseCase
-import com.sigma.music.domain.usecase.GetPlaybackProgressUseCase
-import com.sigma.music.domain.usecase.PlayQueueItemUseCase
-import com.sigma.music.domain.usecase.RemoveQueueItemUseCase
-import com.sigma.music.domain.usecase.TogglePlayPauseUseCase
+import com.gemini.music.domain.model.MusicState
+import com.gemini.music.domain.usecase.GetMusicStateUseCase
+import com.gemini.music.domain.usecase.GetPlaybackProgressUseCase
+import com.gemini.music.domain.usecase.PlayQueueItemUseCase
+import com.gemini.music.domain.usecase.RemoveQueueItemUseCase
+import com.gemini.music.domain.usecase.TogglePlayPauseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

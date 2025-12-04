@@ -1,4 +1,4 @@
-package com.sigma.music.ui.component
+package com.gemini.music.ui.component
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -38,7 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.sigma.music.domain.model.Song
+import com.gemini.music.domain.model.Song
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

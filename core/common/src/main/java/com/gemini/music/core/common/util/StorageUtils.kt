@@ -1,4 +1,4 @@
-package com.sigma.music.core.common.util
+package com.gemini.music.core.common.util
 
 import android.net.Uri
 import android.os.Environment

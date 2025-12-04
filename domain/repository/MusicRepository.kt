@@ -1,8 +1,8 @@
-package com.sigma.music.domain.repository
+package com.gemini.music.domain.repository
 
-import com.sigma.music.domain.model.Album
-import com.sigma.music.domain.model.Artist
-import com.sigma.music.domain.model.Song
+import com.gemini.music.domain.model.Album
+import com.gemini.music.domain.model.Artist
+import com.gemini.music.domain.model.Song
 import kotlinx.coroutines.flow.Flow
 
 /**

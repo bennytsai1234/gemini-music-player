@@ -1,6 +1,6 @@
-package com.sigma.music.core.common.parser
+package com.gemini.music.core.common.parser
 
-import com.sigma.music.domain.model.LyricLine
+import com.gemini.music.domain.model.LyricLine
 
 object LrcParser {
     // \[(\d{2}):(\d{2})\.(\d{2,3})]

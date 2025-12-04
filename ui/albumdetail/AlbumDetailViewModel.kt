@@ -1,16 +1,16 @@
-package com.sigma.music.ui.albumdetail
+package com.gemini.music.ui.albumdetail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sigma.music.domain.model.Album
-import com.sigma.music.domain.model.Song
-import com.sigma.music.domain.usecase.GetAlbumByIdUseCase
-import com.sigma.music.domain.usecase.GetSongsByAlbumIdUseCase
-import com.sigma.music.domain.usecase.PlayAlbumUseCase
-import com.sigma.music.domain.usecase.PlaySongUseCase
-import com.sigma.music.domain.usecase.ShuffleAndPlayAlbumUseCase
-import com.sigma.music.ui.navigation.Screen
+import com.gemini.music.domain.model.Album
+import com.gemini.music.domain.model.Song
+import com.gemini.music.domain.usecase.GetAlbumByIdUseCase
+import com.gemini.music.domain.usecase.GetSongsByAlbumIdUseCase
+import com.gemini.music.domain.usecase.PlayAlbumUseCase
+import com.gemini.music.domain.usecase.PlaySongUseCase
+import com.gemini.music.domain.usecase.ShuffleAndPlayAlbumUseCase
+import com.gemini.music.ui.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

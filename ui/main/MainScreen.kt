@@ -1,4 +1,4 @@
-package com.sigma.music.ui.main
+package com.gemini.music.ui.main
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.tween
@@ -31,13 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.sigma.music.ui.component.MiniPlayer
-import com.sigma.music.ui.component.PlayerSheetValue
-import com.sigma.music.ui.component.SwipeablePlayerSheet
-import com.sigma.music.ui.navigation.MusicNavigation
-import com.sigma.music.ui.navigation.Screen
-import com.sigma.music.ui.nowplaying.NowPlayingScreen
-import com.sigma.music.ui.nowplaying.QueueSheet
+import com.gemini.music.ui.component.MiniPlayer
+import com.gemini.music.ui.component.PlayerSheetValue
+import com.gemini.music.ui.component.SwipeablePlayerSheet
+import com.gemini.music.ui.navigation.MusicNavigation
+import com.gemini.music.ui.navigation.Screen
+import com.gemini.music.ui.nowplaying.NowPlayingScreen
+import com.gemini.music.ui.nowplaying.QueueSheet
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)

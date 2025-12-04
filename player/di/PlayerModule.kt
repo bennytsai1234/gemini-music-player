@@ -1,4 +1,4 @@
-package com.sigma.music.player.di
+package com.gemini.music.player.di
 
 import android.content.Context
 import androidx.media3.common.AudioAttributes

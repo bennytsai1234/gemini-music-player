@@ -1,4 +1,4 @@
-package com.sigma.music.player.manager
+package com.gemini.music.player.manager
 
 import android.content.ComponentName
 import android.content.Context
@@ -11,11 +11,11 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.sigma.music.domain.model.MusicState
-import com.sigma.music.domain.model.RepeatMode
-import com.sigma.music.domain.model.Song
-import com.sigma.music.domain.repository.MusicController
-import com.sigma.music.player.service.SigmaAudioService
+import com.gemini.music.domain.model.MusicState
+import com.gemini.music.domain.model.RepeatMode
+import com.gemini.music.domain.model.Song
+import com.gemini.music.domain.repository.MusicController
+import com.gemini.music.player.service.GeminiAudioService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +41,7 @@ class MusicServiceConnection @Inject constructor(
     override val musicState: StateFlow<MusicState> = _musicState.asStateFlow()
 
     init {
-        val sessionToken = SessionToken(context, ComponentName(context, SigmaAudioService::class.java))
+        val sessionToken = SessionToken(context, ComponentName(context, GeminiAudioService::class.java))
         controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
         
         controllerFuture.addListener({

@@ -1,6 +1,6 @@
-package com.sigma.music.domain.repository
+package com.gemini.music.domain.repository
 
-import com.sigma.music.domain.model.LyricLine
+import com.gemini.music.domain.model.LyricLine
 
 interface LyricsRepository {
     suspend fun getLyrics(audioPath: String): List<LyricLine>

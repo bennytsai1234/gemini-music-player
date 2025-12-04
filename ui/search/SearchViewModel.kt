@@ -1,10 +1,10 @@
-package com.sigma.music.ui.search
+package com.gemini.music.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sigma.music.domain.model.Song
-import com.sigma.music.domain.usecase.GetSongsUseCase
-import com.sigma.music.domain.usecase.PlaySongUseCase
+import com.gemini.music.domain.model.Song
+import com.gemini.music.domain.usecase.GetSongsUseCase
+import com.gemini.music.domain.usecase.PlaySongUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

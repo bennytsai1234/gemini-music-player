@@ -1,14 +1,14 @@
-package com.sigma.music.data.repository
+package com.gemini.music.data.repository
 
 
-import com.sigma.music.data.database.SongDao
-import com.sigma.music.data.database.asDomainModel
-import com.sigma.music.data.database.asEntity
-import com.sigma.music.data.source.LocalAudioSource
-import com.sigma.music.domain.model.Album
-import com.sigma.music.domain.model.Artist
-import com.sigma.music.domain.model.Song
-import com.sigma.music.domain.repository.MusicRepository
+import com.gemini.music.data.database.SongDao
+import com.gemini.music.data.database.asDomainModel
+import com.gemini.music.data.database.asEntity
+import com.gemini.music.data.source.LocalAudioSource
+import com.gemini.music.domain.model.Album
+import com.gemini.music.domain.model.Artist
+import com.gemini.music.domain.model.Song
+import com.gemini.music.domain.repository.MusicRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

@@ -1,4 +1,4 @@
-package com.sigma.music.ui.nowplaying
+package com.gemini.music.ui.nowplaying
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,10 +39,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.sigma.music.domain.model.Song
+import com.gemini.music.domain.model.Song
 
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import com.sigma.music.ui.component.EmptyState
+import com.gemini.music.ui.component.EmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

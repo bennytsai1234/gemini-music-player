@@ -1,9 +1,9 @@
-package com.sigma.music.ui.settings
+package com.gemini.music.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sigma.music.data.repository.UserPreferencesRepository
-import com.sigma.music.domain.repository.MusicRepository
+import com.gemini.music.data.repository.UserPreferencesRepository
+import com.gemini.music.domain.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

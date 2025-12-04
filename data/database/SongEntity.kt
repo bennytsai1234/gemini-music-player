@@ -1,8 +1,8 @@
-package com.sigma.music.data.database
+package com.gemini.music.data.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.sigma.music.domain.model.Song
+import com.gemini.music.domain.model.Song
 
 /**
  * Room Database Table: songs

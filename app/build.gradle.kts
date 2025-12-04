@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.sigma.music"
+    namespace = "com.gemini.music"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.sigma.music"
+        applicationId = "com.gemini.music"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

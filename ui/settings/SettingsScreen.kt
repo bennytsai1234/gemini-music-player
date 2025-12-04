@@ -1,4 +1,4 @@
-package com.sigma.music.ui.settings
+package com.gemini.music.ui.settings
 
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,8 +50,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.sigma.music.data.repository.UserPreferencesRepository
-import com.sigma.music.core.common.util.StorageUtils
+import com.gemini.music.data.repository.UserPreferencesRepository
+import com.gemini.music.core.common.util.StorageUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

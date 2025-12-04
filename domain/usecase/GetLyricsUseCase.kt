@@ -1,7 +1,7 @@
-package com.sigma.music.domain.usecase
+package com.gemini.music.domain.usecase
 
-import com.sigma.music.domain.model.LyricLine
-import com.sigma.music.domain.repository.LyricsRepository
+import com.gemini.music.domain.model.LyricLine
+import com.gemini.music.domain.repository.LyricsRepository
 import javax.inject.Inject
 
 class GetLyricsUseCase @Inject constructor(

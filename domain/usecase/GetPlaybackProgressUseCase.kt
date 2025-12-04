@@ -1,6 +1,6 @@
-package com.sigma.music.domain.usecase
+package com.gemini.music.domain.usecase
 
-import com.sigma.music.domain.repository.MusicController
+import com.gemini.music.domain.repository.MusicController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

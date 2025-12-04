@@ -1,7 +1,7 @@
-package com.sigma.music.player.di
+package com.gemini.music.player.di
 
-import com.sigma.music.domain.repository.MusicController
-import com.sigma.music.player.manager.MusicServiceConnection
+import com.gemini.music.domain.repository.MusicController
+import com.gemini.music.player.manager.MusicServiceConnection
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

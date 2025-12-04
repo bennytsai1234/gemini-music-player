@@ -1,7 +1,7 @@
-package com.sigma.music.domain.repository
+package com.gemini.music.domain.repository
 
-import com.sigma.music.domain.model.MusicState
-import com.sigma.music.domain.model.Song
+import com.gemini.music.domain.model.MusicState
+import com.gemini.music.domain.model.Song
 import kotlinx.coroutines.flow.StateFlow
 
 interface MusicController {

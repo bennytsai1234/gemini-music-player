@@ -1,4 +1,4 @@
-package com.sigma.music.player.service
+package com.gemini.music.player.service
 
 import android.app.PendingIntent
 import android.content.Intent
@@ -16,7 +16,7 @@ import javax.inject.Inject
  * 負責管理 ExoPlayer 生命週期、MediaSession 以及背景播放邏輯。
  */
 @AndroidEntryPoint
-class SigmaAudioService : MediaLibraryService() {
+class GeminiAudioService : MediaLibraryService() {
 
     // 透過 Hilt 注入已經配置好的 ExoPlayer 實例
     // 我們會在 DI Module 中設定 Gapless 播放與 Audio Focus

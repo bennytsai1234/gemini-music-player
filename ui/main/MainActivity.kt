@@ -1,4 +1,4 @@
-package com.sigma.music.ui.main
+package com.gemini.music.ui.main
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -15,9 +15,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.isSystemInDarkTheme
-import com.sigma.music.data.repository.UserPreferencesRepository
-import com.sigma.music.core.designsystem.SigmaTheme
-import com.sigma.music.ui.navigation.MusicNavigation
+import com.gemini.music.data.repository.UserPreferencesRepository
+import com.gemini.music.core.designsystem.SigmaTheme
+import com.gemini.music.ui.navigation.MusicNavigation
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
                  else -> isSystemDark
             }
 
-            SigmaTheme(darkTheme = darkTheme) {
+            GeminiTheme(darkTheme = darkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     MainScreen()
                 }

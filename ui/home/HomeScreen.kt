@@ -1,4 +1,4 @@
-package com.sigma.music.ui.home
+package com.gemini.music.ui.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -85,8 +85,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.sigma.music.domain.model.Song
-import com.sigma.music.ui.component.EmptyState
+import com.gemini.music.domain.model.Song
+import com.gemini.music.ui.component.EmptyState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

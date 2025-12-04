@@ -1,4 +1,4 @@
-package com.sigma.music.data.database
+package com.gemini.music.data.database
 
 import androidx.room.Dao
 import androidx.room.Insert

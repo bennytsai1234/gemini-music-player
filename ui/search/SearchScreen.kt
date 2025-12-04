@@ -1,4 +1,4 @@
-package com.sigma.music.ui.search
+package com.gemini.music.ui.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -26,7 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.sigma.music.ui.home.SongListItem
+import com.gemini.music.ui.home.SongListItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

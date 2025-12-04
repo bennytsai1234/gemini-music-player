@@ -1,4 +1,4 @@
-package com.sigma.music.ui.component
+package com.gemini.music.ui.component
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures

@@ -1,8 +1,8 @@
-package com.sigma.music.data.repository
+package com.gemini.music.data.repository
 
-import com.sigma.music.core.common.parser.LrcParser
-import com.sigma.music.domain.model.LyricLine
-import com.sigma.music.domain.repository.LyricsRepository
+import com.gemini.music.core.common.parser.LrcParser
+import com.gemini.music.domain.model.LyricLine
+import com.gemini.music.domain.repository.LyricsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

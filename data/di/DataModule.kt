@@ -1,9 +1,9 @@
-package com.sigma.music.data.di
+package com.gemini.music.data.di
 
-import com.sigma.music.data.repository.MusicRepositoryImpl
-import com.sigma.music.domain.repository.MusicRepository
-import com.sigma.music.data.repository.LyricsRepositoryImpl
-import com.sigma.music.domain.repository.LyricsRepository
+import com.gemini.music.data.repository.MusicRepositoryImpl
+import com.gemini.music.domain.repository.MusicRepository
+import com.gemini.music.data.repository.LyricsRepositoryImpl
+import com.gemini.music.domain.repository.LyricsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

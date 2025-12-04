@@ -1,4 +1,4 @@
-package com.sigma.music.domain.model
+package com.gemini.music.domain.model
 
 data class Album(
     val id: Long,

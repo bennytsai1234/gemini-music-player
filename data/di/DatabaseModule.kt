@@ -1,9 +1,9 @@
-package com.sigma.music.data.di
+package com.gemini.music.data.di
 
 import android.content.Context
 import androidx.room.Room
-import com.sigma.music.data.database.SigmaDatabase
-import com.sigma.music.data.database.SongDao
+import com.gemini.music.data.database.GeminiDatabase
+import com.gemini.music.data.database.SongDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,16 +17,16 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): SigmaDatabase {
+    fun provideDatabase(@ApplicationContext context: Context): GeminiDatabase {
         return Room.databaseBuilder(
             context,
-            SigmaDatabase::class.java,
-            "sigma_music.db"
+            GeminiDatabase::class.java,
+            "gemini_music.db"
         ).build()
     }
 
     @Provides
-    fun provideSongDao(database: SigmaDatabase): SongDao {
+    fun provideSongDao(database: GeminiDatabase): SongDao {
         return database.songDao()
     }
 }

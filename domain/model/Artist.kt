@@ -1,4 +1,4 @@
-package com.sigma.music.domain.model
+package com.gemini.music.domain.model
 
 data class Artist(
     val name: String,

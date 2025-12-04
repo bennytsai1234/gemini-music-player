@@ -1,4 +1,4 @@
-package com.sigma.music.domain.model
+package com.gemini.music.domain.model
 
 /**
  * 代表一首單曲的核心業務模型。

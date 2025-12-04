@@ -1,4 +1,4 @@
-package com.sigma.music.ui.albumdetail
+package com.gemini.music.ui.albumdetail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,10 +46,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.sigma.music.domain.model.Album
-import com.sigma.music.domain.model.Song
-import com.sigma.music.ui.component.EmptyState
-import com.sigma.music.ui.home.SongListItem
+import com.gemini.music.domain.model.Album
+import com.gemini.music.domain.model.Song
+import com.gemini.music.ui.component.EmptyState
+import com.gemini.music.ui.home.SongListItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,6 +1,6 @@
-package com.sigma.music.domain.usecase
+package com.gemini.music.domain.usecase
 
-import com.sigma.music.domain.repository.MusicRepository
+import com.gemini.music.domain.repository.MusicRepository
 import javax.inject.Inject
 
 class ScanLocalMusicUseCase @Inject constructor(
