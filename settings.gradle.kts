@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SIGMA Music"
+rootProject.name = "Gemini Music"
 include(":app", ":core", ":data", ":domain", ":player", ":ui")
