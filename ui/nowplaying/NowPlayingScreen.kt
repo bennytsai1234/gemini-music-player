@@ -65,7 +65,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
@@ -101,19 +104,69 @@ fun NowPlayingScreen(
         )
     )
 
+    // Use the album art as the immersive background
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .background(backgroundBrush)
+        modifier = Modifier.fillMaxSize()
     ) {
+        // 1. Background Image with Blur (Immersive layer)
+        if (uiState.song != null) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(uiState.song.albumArtUri)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { 
+                        alpha = 0.6f 
+                        // Simulate blur for older APIs by scaling up, or use Modifier.blur on API 31+
+                        // For a consistent "Glass" look without RenderEffect, we use a dark overlay + alpha
+                    }
+                    // .blur(radius = 50.dp) // Uncomment if API 31+ is guaranteed or fallback is handled
+            )
+        }
+        
+        // 2. Gradient Overlay for readability and style
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.4f), // Top slightly dark
+                            Color.Black.copy(alpha = 0.8f), // Middle dark
+                            Color(0xFF050505)   // Bottom almost black
+                        )
+                    )
+                )
+        )
+
+        // 3. Dynamic Color Glow (Ambient light)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            uiState.backgroundColor.copy(alpha = 0.4f),
+                            Color.Transparent
+                        ),
+                        center = Offset.Unspecified,
+                        radius = 1000f
+                    )
+                )
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp),
+                .statusBarsPadding()
+                .padding(horizontal = 24.dp), // Reduce padding slightly for more space
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. Top Control Bar (With Status Bar Padding)
+            // 1. Top Control Bar
             TopControls(
                 onBackClick = onBackClick,
                 onQueueClick = onQueueClick,
@@ -155,9 +208,11 @@ fun NowPlayingScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             // 3. Song Info
+            // 3. Song Info (Centered and Larger)
             SongInfo(
                 title = uiState.song?.title ?: "No Audio",
-                artist = uiState.song?.artist ?: "Unknown Artist"
+                artist = uiState.song?.artist ?: "Unknown Artist",
+                modifier = Modifier.padding(vertical = 16.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -167,17 +222,19 @@ fun NowPlayingScreen(
                 progress = uiState.progress,
                 currentTime = uiState.currentTime,
                 totalTime = uiState.totalTime,
-                activeColor = Color.White,
+                activeColor = uiState.backgroundColor,
                 onSeek = { viewModel.onEvent(NowPlayingEvent.SeekTo(it)) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // 5. Media Controls
+            // 5. Media Controls (Refined)
             MediaControls(
                 isPlaying = uiState.isPlaying,
                 shuffleModeEnabled = uiState.shuffleModeEnabled,
                 repeatMode = uiState.repeatMode,
+                accentColor = uiState.backgroundColor, // Pass dynamic color
                 onPlayPause = { viewModel.onEvent(NowPlayingEvent.PlayPauseToggle) },
                 onNext = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
                 onPrev = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
@@ -257,12 +314,27 @@ fun HeroImage(
         label = "ShadowElevation"
     )
 
+    val glowColor = MaterialTheme.colorScheme.primaryContainer // Or pass a color from Palette
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.Center
     ) {
+        // Pseudo-glow layer
+        Box(
+            modifier = Modifier
+                .aspectRatio(1f)
+                .graphicsLayer {
+                    scaleX = scale * 0.9f
+                    scaleY = scale * 0.9f
+                    alpha = 0.5f
+                }
+                .blur(32.dp) // API 31+ only, but safe to call in Compose (ignored on lower)
+                .background(Color.White.copy(0.2f), CircleShape) // Fallback glow
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -270,14 +342,10 @@ fun HeroImage(
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
+                    shadowElevation = shadowElevation
+                    shape = RoundedCornerShape(28.dp)
+                    clip = true
                 }
-                .shadow(
-                    elevation = shadowElevation.dp,
-                    shape = RoundedCornerShape(24.dp),
-                    spotColor = Color.Black,
-                    ambientColor = Color.Black
-                )
-                .clip(RoundedCornerShape(24.dp))
                 .background(Color.DarkGray)
                 .clickable(onClick = onClick)
         ) {
@@ -304,24 +372,30 @@ fun HeroImage(
 @Composable
 fun SongInfo(
     title: String,
-    artist: String
+    artist: String,
+    modifier: Modifier = Modifier
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 16.dp)
+        modifier = modifier.padding(horizontal = 24.dp)
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 0.5.sp
+            ),
             color = Color.White,
             maxLines = 1,
             modifier = Modifier.basicMarquee()
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = artist,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 0.2.sp
+            ),
             color = Color.White.copy(alpha = 0.7f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -375,6 +449,7 @@ fun MediaControls(
     isPlaying: Boolean,
     shuffleModeEnabled: Boolean,
     repeatMode: RepeatMode,
+    accentColor: Color,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrev: () -> Unit,
@@ -384,39 +459,57 @@ fun MediaControls(
     val haptic = LocalHapticFeedback.current
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween, // Spread out widely
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Shuffle
         IconButton(onClick = onShuffleToggle) {
             Icon(
                 imageVector = Icons.Rounded.Shuffle,
                 contentDescription = "Shuffle",
-                tint = if (shuffleModeEnabled) Color.Green else Color.White.copy(alpha = 0.6f),
-                modifier = Modifier.size(24.dp)
+                tint = if (shuffleModeEnabled) accentColor else Color.White.copy(alpha = 0.5f),
+                modifier = Modifier.size(26.dp)
             )
         }
 
+        // Previous
         IconButton(
             onClick = { 
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onPrev() 
             },
-            modifier = Modifier.size(56.dp)
+            modifier = Modifier.size(50.dp)
         ) {
             Icon(
                 imageVector = Icons.Rounded.SkipPrevious,
                 contentDescription = "Previous",
                 tint = Color.White,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(38.dp)
             )
         }
 
+        // Play/Pause - Premium Button
         Box(
             modifier = Modifier
-                .size(80.dp)
+                .size(72.dp)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = CircleShape,
+                    spotColor = accentColor,
+                    ambientColor = accentColor
+                )
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color.White,
+                            Color(0xFFE0E0E0)
+                        )
+                    )
+                )
                 .clickable {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onPlayPause()
@@ -426,38 +519,40 @@ fun MediaControls(
             Icon(
                 imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                 contentDescription = if (isPlaying) "Pause" else "Play",
-                tint = Color.Black,
-                modifier = Modifier.size(48.dp)
+                tint = Color.Black, // Or accentColor if distinct enough
+                modifier = Modifier.size(36.dp)
             )
         }
 
+        // Next
         IconButton(
             onClick = {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onNext()
             },
-            modifier = Modifier.size(56.dp)
+            modifier = Modifier.size(50.dp)
         ) {
             Icon(
                 imageVector = Icons.Rounded.SkipNext,
                 contentDescription = "Next",
                 tint = Color.White,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(38.dp)
             )
         }
 
+        // Repeat
         IconButton(onClick = onRepeatToggle) {
             val icon = when (repeatMode) {
                 RepeatMode.ONE -> Icons.Rounded.RepeatOne
                 else -> Icons.Rounded.Repeat
             }
-            val tint = if (repeatMode != RepeatMode.OFF) Color.Green else Color.White.copy(alpha = 0.6f)
+            val tint = if (repeatMode != RepeatMode.OFF) accentColor else Color.White.copy(alpha = 0.5f)
             
             Icon(
                 imageVector = icon,
                 contentDescription = "Repeat",
                 tint = tint,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(26.dp)
             )
         }
     }

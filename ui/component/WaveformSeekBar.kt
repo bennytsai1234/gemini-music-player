@@ -3,6 +3,7 @@ package com.gemini.music.ui.component
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -57,6 +58,10 @@ fun WaveformSeekBar(
         val actualBarWidth = barWidth - gap
         val centerY = size.height / 2
 
+        val activeBrush = Brush.linearGradient(
+            colors = listOf(activeColor.copy(alpha = 0.7f), activeColor)
+        )
+
         amplitudes.forEachIndexed { index, amplitude ->
             val barProgress = index.toFloat() / amplitudes.size
             val isPlayed = barProgress <= progress
@@ -64,13 +69,23 @@ fun WaveformSeekBar(
             val barHeight = size.height * amplitude * 0.8f
             val startX = index * barWidth + gap / 2
             
-            drawLine(
-                color = if (isPlayed) activeColor else inactiveColor,
-                start = Offset(startX, centerY - barHeight / 2),
-                end = Offset(startX, centerY + barHeight / 2),
-                strokeWidth = actualBarWidth,
-                cap = StrokeCap.Round
-            )
+            if (isPlayed) {
+                drawLine(
+                    brush = activeBrush,
+                    start = Offset(startX, centerY - barHeight / 2),
+                    end = Offset(startX, centerY + barHeight / 2),
+                    strokeWidth = actualBarWidth,
+                    cap = StrokeCap.Round
+                )
+            } else {
+                drawLine(
+                    color = inactiveColor,
+                    start = Offset(startX, centerY - barHeight / 2),
+                    end = Offset(startX, centerY + barHeight / 2),
+                    strokeWidth = actualBarWidth,
+                    cap = StrokeCap.Round
+                )
+            }
         }
     }
 }
