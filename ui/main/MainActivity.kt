@@ -16,7 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.gemini.music.data.repository.UserPreferencesRepository
-import com.gemini.music.core.designsystem.SigmaTheme
+import com.gemini.music.core.designsystem.GeminiTheme
 import com.gemini.music.ui.navigation.MusicNavigation
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
