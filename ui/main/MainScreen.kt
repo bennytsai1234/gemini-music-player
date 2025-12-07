@@ -48,6 +48,7 @@ fun MainScreen(
     val navController = rememberNavController()
     val musicState by viewModel.musicState.collectAsState()
     val progress by viewModel.progress.collectAsState()
+    val waveform by viewModel.waveform.collectAsState()
 
     var showQueue by remember { mutableStateOf(false) }
 
@@ -114,7 +115,8 @@ fun MainScreen(
                             onBackClick = {
                                 scope.launch { sheetState.animateTo(PlayerSheetValue.Collapsed) }
                             },
-                            onQueueClick = { showQueue = true }
+                            onQueueClick = { showQueue = true },
+                            waveform = waveform
                         )
                     }
                 )

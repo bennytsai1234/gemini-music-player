@@ -29,11 +29,13 @@ fun WaveformSeekBar(
     progress: Float, // 0f to 1f
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    waveform: List<Float> = emptyList(),
     activeColor: Color = Color.White,
     inactiveColor: Color = Color.White.copy(alpha = 0.3f)
 ) {
-    // 產生固定的隨機波形數據，避免重繪時閃爍
-    val amplitudes = remember { List(50) { Random.nextFloat() * 0.6f + 0.2f } }
+    // Falls back to random if waveform is empty (e.g. loading or error)
+    val randomData = remember { List(50) { Random.nextFloat() * 0.6f + 0.2f } }
+    val amplitudes = if (waveform.isNotEmpty()) waveform else randomData
     
     Canvas(
         modifier = modifier
