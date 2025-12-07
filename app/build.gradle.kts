@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
 
+    // SplashScreen
+    implementation(libs.androidx.core.splashscreen)
+
     // Android Test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
