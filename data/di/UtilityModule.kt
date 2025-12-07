@@ -1,7 +1,7 @@
 package com.gemini.music.data.di
 
 import android.content.Context
-import com.gemini.music.data.utils.AudioWaveformExtractor
+import com.gemini.music.data.source.AudioWaveformExtractor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

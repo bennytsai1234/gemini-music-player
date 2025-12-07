@@ -22,7 +22,7 @@ class MainViewModel @Inject constructor(
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
     private val playQueueItemUseCase: PlayQueueItemUseCase,
     private val removeQueueItemUseCase: RemoveQueueItemUseCase,
-    private val audioWaveformExtractor: com.gemini.music.data.utils.AudioWaveformExtractor
+    private val audioWaveformExtractor: com.gemini.music.data.source.AudioWaveformExtractor
 ) : ViewModel() {
 
     val musicState: StateFlow<MusicState> = getMusicStateUseCase()
