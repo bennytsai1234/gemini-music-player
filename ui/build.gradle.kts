@@ -67,4 +67,7 @@ dependencies {
 
     // Android Core
     implementation(libs.androidx.core.ktx)
+    
+    // SplashScreen
+    implementation(libs.androidx.core.splashscreen)
 }
