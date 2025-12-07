@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class PlaylistDetailUiState(
+    val playlist: com.gemini.music.domain.model.Playlist? = null,
     val songs: List<Song> = emptyList(),
     val isLoading: Boolean = true
 )
@@ -29,15 +30,20 @@ class PlaylistDetailViewModel @Inject constructor(
 
     private val playlistId: Long = checkNotNull(savedStateHandle[Screen.PlaylistDetail.playlistIdArg])
 
-    val uiState: StateFlow<PlaylistDetailUiState> = musicRepository.getSongsForPlaylist(playlistId)
-        .map { songs ->
-            PlaylistDetailUiState(songs = songs, isLoading = false)
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = PlaylistDetailUiState()
+    val uiState: StateFlow<PlaylistDetailUiState> = kotlinx.coroutines.flow.combine(
+        musicRepository.getPlaylist(playlistId),
+        musicRepository.getSongsForPlaylist(playlistId)
+    ) { playlist, songs ->
+        PlaylistDetailUiState(
+            playlist = playlist,
+            songs = songs,
+            isLoading = false
         )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PlaylistDetailUiState()
+    )
 
     fun playSong(song: Song) {
         val songs = uiState.value.songs

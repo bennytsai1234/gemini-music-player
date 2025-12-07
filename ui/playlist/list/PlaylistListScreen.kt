@@ -37,6 +37,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.gemini.music.domain.model.Playlist
 import com.gemini.music.ui.component.CreatePlaylistDialog
 import com.gemini.music.ui.component.EmptyState
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import androidx.compose.material.icons.automirrored.rounded.List
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,16 +129,28 @@ fun PlaylistMsgItem(
         Box(
             modifier = Modifier
                 .size(56.dp)
-//                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)) // Design system maybe?
-                , 
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant), 
             contentAlignment = Alignment.Center
         ) {
-             Icon(
-                imageVector = Icons.AutoMirrored.Rounded.PlaylistPlay,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
+            if (playlist.coverArtUri != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(playlist.coverArtUri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                 Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.PlaylistPlay,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
        
         Spacer(modifier = Modifier.width(16.dp))

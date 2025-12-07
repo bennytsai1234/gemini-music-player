@@ -37,6 +37,7 @@ interface MusicRepository {
     
     // --- Playlist Management ---
     fun getPlaylists(): Flow<List<Playlist>>
+    fun getPlaylist(playlistId: Long): Flow<Playlist?>
     fun getSongsForPlaylist(playlistId: Long): Flow<List<Song>>
     suspend fun createPlaylist(name: String): Long
     suspend fun deletePlaylist(playlistId: Long)

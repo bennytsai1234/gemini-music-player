@@ -99,12 +99,24 @@ class MusicRepositoryImpl @Inject constructor(
         return playlistDao.getAllPlaylists().map { entities ->
             entities.map { 
                 Playlist(
-                    id = it.playlistId,
-                    name = it.name
-                    // songCount not stored in entity, maybe join? For now 0 or need another query.
-                    // For MVP, we can keep songCount 0 or do a complex query.
-                    // Let's leave it 0 or load it separately if needed.
+                    id = it.playlist.playlistId,
+                    name = it.playlist.name,
+                    songCount = it.songCount,
+                    coverArtUri = it.coverArtUri
                 ) 
+            }
+        }
+    }
+
+    override fun getPlaylist(playlistId: Long): Flow<Playlist?> {
+        return playlistDao.getPlaylist(playlistId).map { it ->
+            it?.let {
+                Playlist(
+                    id = it.playlist.playlistId,
+                    name = it.playlist.name,
+                    songCount = it.songCount,
+                    coverArtUri = it.coverArtUri
+                )
             }
         }
     }
