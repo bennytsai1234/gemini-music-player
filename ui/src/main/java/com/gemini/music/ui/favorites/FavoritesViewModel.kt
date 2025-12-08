@@ -31,7 +31,7 @@ class FavoritesViewModel @Inject constructor(
             initialValue = FavoritesUiState(isLoading = true)
         )
 
-    fun onSongClick(song: Song, index: Int) {
+    fun onSongClick(index: Int) {
         // Play the list starting from clicked index
         playSongUseCase(uiState.value.songs, index)
     }

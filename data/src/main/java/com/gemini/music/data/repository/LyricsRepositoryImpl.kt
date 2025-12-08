@@ -23,10 +23,15 @@ class LyricsRepositoryImpl @Inject constructor(
 
         // 2. 網絡查找
         try {
+            val durationSeconds = (song.duration / 1000).toInt()
+            // LrcLib API requires duration between 1 and 3600 seconds.
+            // If outside this range, pass null to search by text only.
+            val validDuration = if (durationSeconds in 1..3600) durationSeconds else null
+
             val response = lrcLibApi.getLyrics(
                 artistName = song.artist,
                 trackName = song.title,
-                duration = (song.duration / 1000).toInt()
+                duration = validDuration
             )
 
             // 優先使用同步歌詞

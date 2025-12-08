@@ -126,14 +126,17 @@ fun AddToPlaylistDialog(
 
 @Composable
 fun CreatePlaylistDialog(
+    initialName: String = "",
+    title: String = "New Playlist",
+    confirmButtonText: String = "Create",
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(initialName) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Playlist") },
+        title = { Text(title) },
         text = {
             OutlinedTextField(
                 value = text,
@@ -149,7 +152,7 @@ fun CreatePlaylistDialog(
                 },
                 enabled = text.isNotBlank()
             ) {
-                Text("Create")
+                Text(confirmButtonText)
             }
         },
         dismissButton = {

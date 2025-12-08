@@ -74,7 +74,7 @@ fun FavoritesScreen(
                  itemsIndexed(uiState.songs) { index, song ->
                      SongListItem(
                          song = song,
-                         onClick = { viewModel.onSongClick(song, index) }
+                         onClick = { viewModel.onSongClick(index) }
                      )
                  }
             }

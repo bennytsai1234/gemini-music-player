@@ -23,6 +23,8 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.AlarmOff
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import androidx.compose.material3.AlertDialog
@@ -125,6 +127,7 @@ fun SettingsScreen(
                 }
             )
 
+
             // Equalizer
             ListItem(
                 headlineContent = { Text(stringResource(R.string.equalizer)) },
@@ -138,6 +141,31 @@ fun SettingsScreen(
                     }
                 }
             )
+            
+            // Sleep Timer
+            var showSleepTimerDialog by remember { mutableStateOf(false) }
+            ListItem(
+                headlineContent = { Text("Sleep Timer") },
+                supportingContent = { Text("Stop playback after set time") },
+                leadingContent = { Icon(Icons.Rounded.Timer, null) },
+                modifier = Modifier.clickable { showSleepTimerDialog = true }
+            )
+
+            if (showSleepTimerDialog) {
+                SleepTimerDialog(
+                    onDismiss = { showSleepTimerDialog = false },
+                    onSetTimer = { minutes ->
+                        viewModel.setSleepTimer(minutes)
+                        showSleepTimerDialog = false
+                        Toast.makeText(context, "Sleep timer set for $minutes minutes", Toast.LENGTH_SHORT).show()
+                    },
+                    onCancelTimer = {
+                        viewModel.cancelSleepTimer()
+                        showSleepTimerDialog = false
+                        Toast.makeText(context, "Sleep timer cancelled", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
 
             // Min Duration Slider
             Text(
@@ -372,4 +400,58 @@ fun LanguageSelector() {
             }
         }
     }
+}
+
+@Composable
+fun SleepTimerDialog(
+    onDismiss: () -> Unit,
+    onSetTimer: (Int) -> Unit,
+    onCancelTimer: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Rounded.Timer, null) },
+        title = { Text("Sleep Timer") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                val options = listOf(15, 30, 45, 60, 90, 120)
+                options.chunked(3).forEach { rowOptions ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        rowOptions.forEach { minutes ->
+                            androidx.compose.material3.OutlinedButton(
+                                onClick = { onSetTimer(minutes) }
+                            ) {
+                                Text("$minutes min")
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = onCancelTimer,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Rounded.AlarmOff, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Turn Off Timer")
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        }
+    )
 }

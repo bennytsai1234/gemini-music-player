@@ -34,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -87,24 +88,21 @@ import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 fun NowPlayingScreen(
     onBackClick: () -> Unit,
     onQueueClick: () -> Unit,
-    viewModel: NowPlayingViewModel = hiltViewModel(),
-    waveform: List<Float> = emptyList()
+    viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
     var showLyrics by remember { mutableStateOf(false) }
 
-    val animatedColor by animateColorAsState(
-        targetValue = uiState.backgroundColor,
+    val startColor by animateColorAsState(
+        targetValue = uiState.gradientColors.getOrElse(0) { Color(0xFF1E1E1E) },
         animationSpec = tween(durationMillis = 800),
-        label = "BackgroundColorAnimation"
+        label = "StartColor"
     )
-
-    val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
-            animatedColor.copy(alpha = 0.6f),
-            Color.Black
-        )
+    val endColor by animateColorAsState(
+        targetValue = uiState.gradientColors.getOrElse(1) { Color.Black },
+        animationSpec = tween(durationMillis = 800),
+        label = "EndColor"
     )
 
     // Use a clean, dynamic color gradient background
@@ -119,10 +117,7 @@ fun NowPlayingScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(
-                            animatedColor.copy(alpha = 0.8f), // Top: Dominant color
-                            Color(0xFF121212)    // Bottom: Deep dark/black
-                        )
+                        colors = listOf(startColor, endColor)
                     )
                 )
         )
@@ -134,7 +129,7 @@ fun NowPlayingScreen(
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            animatedColor.copy(alpha = 0.4f),
+                            startColor.copy(alpha = 0.4f),
                             Color.Transparent
                         ),
                         center = Offset(0.5f, -0.2f), // Glow from top center
@@ -154,7 +149,9 @@ fun NowPlayingScreen(
             TopControls(
                 onBackClick = onBackClick,
                 onQueueClick = onQueueClick,
+                onLyricsClick = { showLyrics = !showLyrics },
                 onMoreClick = { /* TODO */ },
+                isLyricsVisible = showLyrics,
                 modifier = Modifier.statusBarsPadding()
             )
 
@@ -245,7 +242,9 @@ fun NowPlayingScreen(
 fun TopControls(
     onBackClick: () -> Unit,
     onQueueClick: () -> Unit,
+    onLyricsClick: () -> Unit,
     onMoreClick: () -> Unit,
+    isLyricsVisible: Boolean,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -264,6 +263,14 @@ fun TopControls(
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
+             IconButton(onClick = onLyricsClick) {
+                Icon(
+                    imageVector = Icons.Rounded.Description,
+                    contentDescription = "Lyrics",
+                    tint = if (isLyricsVisible) Color.White else Color.White.copy(alpha = 0.5f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
             IconButton(onClick = onQueueClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
@@ -305,7 +312,7 @@ fun HeroImage(
         label = "ShadowElevation"
     )
 
-    val glowColor = MaterialTheme.colorScheme.primaryContainer // Or pass a color from Palette
+
     
     Box(
         modifier = Modifier
@@ -350,7 +357,7 @@ fun HeroImage(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
                 onSuccess = { result ->
-                    val resultBitmap = (result.result as SuccessResult).drawable.toBitmap()
+                    val resultBitmap = result.result.drawable.toBitmap()
                     onImageLoaded(resultBitmap)
                 },
                 error = painterResource(id = android.R.drawable.ic_menu_gallery)

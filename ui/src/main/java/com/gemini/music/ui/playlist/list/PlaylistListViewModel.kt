@@ -15,7 +15,8 @@ import javax.inject.Inject
 
 data class PlaylistListUiState(
     val playlists: List<Playlist> = emptyList(),
-    val showCreateDialog: Boolean = false
+    val showCreateDialog: Boolean = false,
+    val playlistToRename: Playlist? = null
 )
 
 @HiltViewModel
@@ -24,12 +25,14 @@ class PlaylistListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _showCreateDialog = MutableStateFlow(false)
+    private val _playlistToRename = MutableStateFlow<Playlist?>(null)
 
     val uiState: StateFlow<PlaylistListUiState> = combine(
         musicRepository.getPlaylists(),
-        _showCreateDialog
-    ) { playlists, showDialog ->
-        PlaylistListUiState(playlists, showDialog)
+        _showCreateDialog,
+        _playlistToRename
+    ) { playlists, showDialog, playlistToRename ->
+        PlaylistListUiState(playlists, showDialog, playlistToRename)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -54,6 +57,21 @@ class PlaylistListViewModel @Inject constructor(
     fun deletePlaylist(playlistId: Long) {
         viewModelScope.launch {
             musicRepository.deletePlaylist(playlistId)
+        }
+    }
+
+    fun showRenameDialog(playlist: Playlist) {
+        _playlistToRename.value = playlist
+    }
+
+    fun dismissRenameDialog() {
+        _playlistToRename.value = null
+    }
+
+    fun renamePlaylist(playlistId: Long, name: String) {
+        viewModelScope.launch {
+            musicRepository.renamePlaylist(playlistId, name)
+            dismissRenameDialog()
         }
     }
 }

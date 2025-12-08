@@ -176,6 +176,25 @@ class MusicServiceConnection @Inject constructor(
     override fun getDuration(): Long {
         return mediaController?.duration ?: 0L
     }
+
+    override fun setSleepTimer(minutes: Int) {
+        val command = androidx.media3.session.SessionCommand(
+            com.gemini.music.core.common.PlayerConstants.ACTION_SET_SLEEP_TIMER, 
+            Bundle.EMPTY
+        )
+        val args = Bundle().apply {
+            putInt(com.gemini.music.core.common.PlayerConstants.EXTRA_SLEEP_TIMER_MINUTES, minutes)
+        }
+        mediaController?.sendCustomCommand(command, args)
+    }
+
+    override fun cancelSleepTimer() {
+        val command = androidx.media3.session.SessionCommand(
+            com.gemini.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER, 
+            Bundle.EMPTY
+        )
+        mediaController?.sendCustomCommand(command, Bundle.EMPTY)
+    }
 }
 
 fun MediaItem.toSong(): Song {

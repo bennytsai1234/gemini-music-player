@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -45,8 +46,9 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SelectAll
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Shuffle
-import androidx.compose.material.icons.rounded.Sort
+import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -100,7 +102,6 @@ fun HomeScreen(
     onSongClick: (Song) -> Unit,
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit,
-    onAlbumClick: (Long) -> Unit,
     onPlaylistClick: () -> Unit,
     onAlbumsClick: () -> Unit,
     onFavoritesClick: () -> Unit
@@ -165,7 +166,8 @@ fun HomeScreen(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 // Add more items...
-                Spacer(Modifier.weight(1f))
+                // Add more items...
+                Spacer(Modifier.height(24.dp))
                 NavigationDrawerItem(
                     label = { Text(stringResource(com.gemini.music.ui.R.string.settings)) },
                     selected = false,
@@ -173,7 +175,7 @@ fun HomeScreen(
                         scope.launch { drawerState.close() }
                         onSettingsClick()
                     },
-                    icon = { Icon(Icons.Rounded.MoreVert, null) }, // Placeholder
+                    icon = { Icon(Icons.Rounded.Settings, null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
             }
@@ -211,6 +213,14 @@ fun HomeScreen(
                 }
 
                 Column {
+                    // Recently Added
+                    if (uiState.recentlyAdded.isNotEmpty() && !uiState.isSelectionMode) {
+                        RecentlyAddedRow(
+                            songs = uiState.recentlyAdded,
+                            onSongClick = { song -> viewModel.playSong(song) }
+                        )
+                    }
+
                     // Second Row: Controls
                     ControlRow(
                         songCount = uiState.songs.size,
@@ -366,7 +376,7 @@ fun ControlRow(
         Row {
             Box {
                 IconButton(onClick = { showSortMenu = true }) {
-                    Icon(Icons.Rounded.Sort, contentDescription = "Sort")
+                    Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = "Sort")
                 }
                 
                 androidx.compose.material3.DropdownMenu(
@@ -418,7 +428,7 @@ fun SongList(
 ) {
     LazyColumn(
         state = listState,
-        contentPadding = PaddingValues(bottom = 100.dp), // MiniPlayer space
+        contentPadding = PaddingValues(bottom = 100.dp, end = 32.dp), // Space for MiniPlayer & FastScroller
         modifier = Modifier.fillMaxSize()
     ) {
         items(
@@ -480,5 +490,76 @@ fun FastScroller(
                     }
             )
         }
+    }
+}
+
+@Composable
+fun RecentlyAddedRow(
+    songs: List<Song>,
+    onSongClick: (Song) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text(
+            text = "Recently Added",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(songs) { song ->
+                RecentlyAddedItem(song = song, onClick = { onSongClick(song) })
+            }
+        }
+    }
+}
+
+@Composable
+fun RecentlyAddedItem(
+    song: Song,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .width(100.dp)
+            .clickable { onClick() }
+    ) {
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .size(100.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(song.albumArtUri)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = song.title,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = song.artist,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

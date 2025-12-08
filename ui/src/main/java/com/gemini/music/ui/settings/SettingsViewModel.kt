@@ -25,7 +25,9 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val musicRepository: MusicRepository
+    private val musicRepository: MusicRepository,
+    private val setSleepTimerUseCase: com.gemini.music.domain.usecase.sleeptimer.SetSleepTimerUseCase,
+    private val cancelSleepTimerUseCase: com.gemini.music.domain.usecase.sleeptimer.CancelSleepTimerUseCase
 ) : ViewModel() {
 
     private val _scanStatus = MutableStateFlow<ScanStatus>(ScanStatus.Idle)
@@ -81,5 +83,13 @@ class SettingsViewModel @Inject constructor(
 
     fun resetScanStatus() {
         _scanStatus.value = ScanStatus.Idle
+    }
+
+    fun setSleepTimer(minutes: Int) {
+        setSleepTimerUseCase(minutes)
+    }
+
+    fun cancelSleepTimer() {
+        cancelSleepTimerUseCase()
     }
 }

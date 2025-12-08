@@ -43,6 +43,7 @@ data class NowPlayingUiState(
     val currentTime: String = "0:00",
     val totalTime: String = "0:00",
     val backgroundColor: Color = Color(0xFF1E1E1E),
+    val gradientColors: List<Color> = listOf(Color(0xFF1E1E1E), Color.Black),
     val onBackgroundColor: Color = Color.White,
     val lyrics: List<LyricLine> = emptyList(),
     val currentLyricIndex: Int = -1,
@@ -72,7 +73,8 @@ class NowPlayingViewModel @Inject constructor(
     private val isSongFavoriteUseCase: com.gemini.music.domain.usecase.favorites.IsSongFavoriteUseCase
 ) : ViewModel() {
 
-    private val _paletteColor = MutableStateFlow(Pair(Color(0xFF1E1E1E), Color.White))
+    private val _paletteColors = MutableStateFlow(listOf(Color(0xFF1E1E1E), Color.Black))
+    private val _onPaletteColor = MutableStateFlow(Color.White)
 
     private val musicState = getMusicStateUseCase()
     
@@ -91,7 +93,7 @@ class NowPlayingViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { song ->
             if (song != null) {
-                // Fetch lyrics asynchronously (network might take a moment, but it's suspended)
+                // Fetch lyrics asynchronously
                 kotlinx.coroutines.flow.flow {
                      emit(getLyricsUseCase(song))
                 }
@@ -107,7 +109,6 @@ class NowPlayingViewModel @Inject constructor(
              if (song != null) {
                  kotlinx.coroutines.flow.flow {
                      val rawData = getSongWaveformUseCase(song.dataPath)
-                     // Normalize to 0f..1f
                      val max = rawData.maxOrNull() ?: 1
                      val normalized = rawData.map { it.toFloat() / max }
                      emit(normalized)
@@ -124,11 +125,12 @@ class NowPlayingViewModel @Inject constructor(
     val uiState: StateFlow<NowPlayingUiState> = combine(
         musicState,
         formattedPlaybackStateFlow,
-        _paletteColor,
+        _paletteColors,
+        _onPaletteColor,
         combine(lyricsFlow, waveformFlow, isFavoriteFlow) { lyrics, waveform, isFavorite -> 
             Triple(lyrics, waveform, isFavorite) 
         }
-    ) { state, formattedState, palette, supplemental ->
+    ) { state, formattedState, palette, onPalette, supplemental ->
         val (lyrics, waveform, isFavorite) = supplemental
         NowPlayingUiState(
             song = state.currentSong,
@@ -143,8 +145,9 @@ class NowPlayingViewModel @Inject constructor(
             lyrics = lyrics,
             waveform = waveform,
             isFavorite = isFavorite,
-            backgroundColor = palette.first,
-            onBackgroundColor = palette.second
+            backgroundColor = palette.firstOrNull() ?: Color(0xFF1E1E1E),
+            gradientColors = palette,
+            onBackgroundColor = onPalette
         )
     }.stateIn(
         scope = viewModelScope,
@@ -178,10 +181,18 @@ class NowPlayingViewModel @Inject constructor(
     private fun extractColors(bitmap: Bitmap?) {
         bitmap?.let { bmp ->
             Palette.from(bmp).generate { palette ->
-                val vibrant = palette?.vibrantSwatch?.rgb ?:
-                              palette?.darkVibrantSwatch?.rgb ?:
-                              palette?.mutedSwatch?.rgb ?: 0xFF1E1E1E.toInt()
-                _paletteColor.value = Pair(Color(vibrant), Color.White) // Assuming white is a safe "on" color
+                val vibrant = palette?.vibrantSwatch?.rgb?.let { Color(it) } ?: Color(0xFF1E1E1E)
+                val darkVibrant = palette?.darkVibrantSwatch?.rgb?.let { Color(it) } ?: Color.Black
+                val muted = palette?.mutedSwatch?.rgb?.let { Color(it) } ?: Color.DarkGray
+                
+                // Construct a rich gradient: Vibrant -> Muted/Dark
+                val gradient = listOf(vibrant, darkVibrant)
+                
+                _paletteColors.value = gradient
+                
+                // Calculate 'on' color
+                val bodyTextColor = palette?.dominantSwatch?.bodyTextColor ?: android.graphics.Color.WHITE
+                _onPaletteColor.value = Color(bodyTextColor)
             }
         }
     }

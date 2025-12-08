@@ -2,6 +2,7 @@ package com.gemini.music.player.service
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Bundle
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
@@ -9,7 +10,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 /**
  * SIGMA Music 的核心播放服務。
@@ -25,6 +28,9 @@ class GeminiAudioService : MediaLibraryService() {
 
     private var mediaLibrarySession: MediaLibrarySession? = null
 
+    private val serviceScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Main)
+    private var sleepTimerJob: kotlinx.coroutines.Job? = null
+
     private val librarySessionCallback = object : MediaLibrarySession.Callback {
         // 這裡處理來自 UI (MediaController) 或 Android Auto/Wear OS 的指令
         // 例如：連接請求、瀏覽媒體庫等
@@ -35,10 +41,53 @@ class GeminiAudioService : MediaLibraryService() {
             val connectionResult = super.onConnect(session, controller)
             val sessionCommands = connectionResult.availableSessionCommands
                 .buildUpon()
-                // 在此添加自定義指令 (例如：收藏歌曲、載入歌詞)
+                .add(androidx.media3.session.SessionCommand(com.gemini.music.core.common.PlayerConstants.ACTION_SET_SLEEP_TIMER, Bundle.EMPTY))
+                .add(androidx.media3.session.SessionCommand(com.gemini.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER, Bundle.EMPTY))
                 .build()
             return MediaSession.ConnectionResult.accept(sessionCommands, connectionResult.availablePlayerCommands)
         }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: androidx.media3.session.SessionCommand,
+            args: Bundle
+        ): com.google.common.util.concurrent.ListenableFuture<androidx.media3.session.SessionResult> {
+            when (customCommand.customAction) {
+                com.gemini.music.core.common.PlayerConstants.ACTION_SET_SLEEP_TIMER -> {
+                    val minutes = args.getInt(com.gemini.music.core.common.PlayerConstants.EXTRA_SLEEP_TIMER_MINUTES)
+                    if (minutes > 0) {
+                        startSleepTimer(minutes)
+                    }
+                    return com.google.common.util.concurrent.Futures.immediateFuture(
+                        androidx.media3.session.SessionResult(androidx.media3.session.SessionResult.RESULT_SUCCESS)
+                    )
+                }
+                com.gemini.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER -> {
+                    cancelSleepTimer()
+                    return com.google.common.util.concurrent.Futures.immediateFuture(
+                        androidx.media3.session.SessionResult(androidx.media3.session.SessionResult.RESULT_SUCCESS)
+                    )
+                }
+            }
+            return super.onCustomCommand(session, controller, customCommand, args)
+        }
+    }
+
+    private fun startSleepTimer(minutes: Int) {
+        cancelSleepTimer()
+        sleepTimerJob = serviceScope.launch {
+            kotlinx.coroutines.delay(minutes * 60 * 1000L)
+            if (player.isPlaying) {
+                player.pause()
+            }
+            sleepTimerJob = null
+        }
+    }
+
+    private fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
     }
 
     override fun onCreate() {

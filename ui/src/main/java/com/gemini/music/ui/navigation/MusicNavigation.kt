@@ -47,9 +47,6 @@ fun MusicNavigation(navController: NavHostController) {
                 onSearchClick = {
                     navController.navigate(Screen.Search.route)
                 },
-                onAlbumClick = { albumId ->
-                    navController.navigate(Screen.AlbumDetail.createRoute(albumId))
-                },
                 onPlaylistClick = {
                     navController.navigate(Screen.PlaylistList.route)
                 },

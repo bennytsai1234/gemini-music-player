@@ -19,4 +19,6 @@ interface MusicController {
     fun cycleRepeatMode()
     fun getCurrentPosition(): Long
     fun getDuration(): Long
+    fun setSleepTimer(minutes: Int)
+    fun cancelSleepTimer()
 }

@@ -17,7 +17,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -30,6 +32,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -59,6 +64,16 @@ fun PlaylistListScreen(
         CreatePlaylistDialog(
             onDismiss = { viewModel.dismissDialog() },
             onConfirm = { name -> viewModel.createPlaylist(name) }
+        )
+    }
+
+    if (uiState.playlistToRename != null) {
+        CreatePlaylistDialog(
+            initialName = uiState.playlistToRename!!.name,
+            title = "Rename Playlist",
+            confirmButtonText = "Rename",
+            onDismiss = { viewModel.dismissRenameDialog() },
+            onConfirm = { name -> viewModel.renamePlaylist(uiState.playlistToRename!!.id, name) }
         )
     }
 
@@ -105,6 +120,7 @@ fun PlaylistListScreen(
                     PlaylistMsgItem(
                         playlist = playlist,
                         onClick = { onPlaylistClick(playlist.id) },
+                        onRename = { viewModel.showRenameDialog(playlist) },
                         onDelete = { viewModel.deletePlaylist(playlist.id) }
                     )
                 }
@@ -117,8 +133,11 @@ fun PlaylistListScreen(
 fun PlaylistMsgItem(
     playlist: Playlist,
     onClick: () -> Unit,
+    onRename: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,14 +181,37 @@ fun PlaylistMsgItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "${playlist.songCount} songs", // Ideally update this based on real count
+                text = "${playlist.songCount} songs",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
-        IconButton(onClick = onDelete) {
-            Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(Icons.Rounded.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            androidx.compose.material3.DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
+            ) {
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text("Rename") },
+                    onClick = {
+                        showMenu = false
+                        onRename()
+                    },
+                    leadingIcon = { Icon(Icons.Rounded.Edit, null) }
+                )
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text("Delete") },
+                    onClick = {
+                        showMenu = false
+                        onDelete()
+                    },
+                    leadingIcon = { Icon(Icons.Rounded.Delete, null) }
+                )
+            }
         }
     }
 }
