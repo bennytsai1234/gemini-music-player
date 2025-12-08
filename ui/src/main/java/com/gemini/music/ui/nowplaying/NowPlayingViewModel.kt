@@ -77,7 +77,10 @@ class NowPlayingViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { song ->
             if (song != null) {
-                flowOf(getLyricsUseCase(song.dataPath))
+                // Fetch lyrics asynchronously (network might take a moment, but it's suspended)
+                kotlinx.coroutines.flow.flow {
+                     emit(getLyricsUseCase(song))
+                }
             } else {
                 flowOf(emptyList())
             }

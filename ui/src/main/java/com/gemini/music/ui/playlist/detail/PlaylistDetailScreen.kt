@@ -48,6 +48,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Edit
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -57,6 +63,20 @@ fun PlaylistDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    var showMenu by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showRenameDialog by remember { androidx.compose.runtime.mutableStateOf(false) }
+
+    if (showRenameDialog) {
+        RenamePlaylistDialog(
+            currentName = uiState.playlist?.name ?: "",
+            onDismiss = { showRenameDialog = false },
+            onConfirm = { newName ->
+                viewModel.renamePlaylist(newName)
+                showRenameDialog = false
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -64,6 +84,26 @@ fun PlaylistDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
+                    }
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { Text("Rename Playlist") },
+                            onClick = {
+                                showMenu = false
+                                showRenameDialog = true
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Rounded.Edit, contentDescription = null)
+                            }
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -244,4 +284,38 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
             }
         }
     }
+}
+
+@Composable
+fun RenamePlaylistDialog(
+    currentName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var text by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(currentName) }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Rename Playlist") },
+        text = {
+            androidx.compose.material3.OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Name") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(
+                onClick = { if (text.isNotBlank()) onConfirm(text) }
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

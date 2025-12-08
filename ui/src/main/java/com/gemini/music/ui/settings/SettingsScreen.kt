@@ -22,6 +22,9 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.GraphicEq
+import android.content.Intent
+import android.media.audiofx.AudioEffect
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
@@ -119,6 +122,20 @@ fun SettingsScreen(
                 leadingContent = { Icon(Icons.Rounded.Language, null) },
                 trailingContent = {
                     LanguageSelector()
+                }
+            )
+
+            // Equalizer
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.equalizer)) },
+                leadingContent = { Icon(Icons.Rounded.GraphicEq, null) },
+                modifier = Modifier.clickable {
+                    val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    } else {
+                        Toast.makeText(context, "No System Equalizer found", Toast.LENGTH_SHORT).show()
+                    }
                 }
             )
 

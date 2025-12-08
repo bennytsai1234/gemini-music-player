@@ -58,4 +58,10 @@ class PlaylistDetailViewModel @Inject constructor(
             musicRepository.removeSongFromPlaylist(playlistId, songId)
         }
     }
+
+    fun renamePlaylist(newName: String) {
+        viewModelScope.launch {
+            musicRepository.renamePlaylist(playlistId, newName)
+        }
+    }
 }

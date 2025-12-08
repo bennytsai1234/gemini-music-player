@@ -13,9 +13,23 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+import com.gemini.music.domain.model.Album
+import com.gemini.music.domain.model.Artist
+import com.gemini.music.domain.usecase.GetAlbumsUseCase
+import com.gemini.music.domain.usecase.GetArtistsUseCase
+
+data class SearchUiState(
+    val query: String = "",
+    val songs: List<Song> = emptyList(),
+    val albums: List<Album> = emptyList(),
+    val artists: List<Artist> = emptyList()
+)
+
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     getSongsUseCase: GetSongsUseCase,
+    getAlbumsUseCase: GetAlbumsUseCase,
+    getArtistsUseCase: GetArtistsUseCase,
     private val playSongUseCase: PlaySongUseCase
 ) : ViewModel() {
 
@@ -24,31 +38,45 @@ class SearchViewModel @Inject constructor(
 
     private val allSongs = getSongsUseCase()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    
+    private val allAlbums = getAlbumsUseCase()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val searchResults: StateFlow<List<Song>> = combine(
+    private val allArtists = getArtistsUseCase()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val uiState: StateFlow<SearchUiState> = combine(
         _searchQuery,
-        allSongs
-    ) { query, songs ->
+        allSongs,
+        allAlbums,
+        allArtists
+    ) { query, songs, albums, artists ->
         if (query.isBlank()) {
-            emptyList()
+            SearchUiState(query = query)
         } else {
-            songs.filter { song ->
-                song.title.contains(query, ignoreCase = true) ||
-                song.artist.contains(query, ignoreCase = true) ||
-                song.album.contains(query, ignoreCase = true)
-            }
+            SearchUiState(
+                query = query,
+                songs = songs.filter { 
+                    it.title.contains(query, ignoreCase = true) || 
+                    it.artist.contains(query, ignoreCase = true) 
+                },
+                albums = albums.filter { 
+                    it.title.contains(query, ignoreCase = true) || 
+                    it.artist.contains(query, ignoreCase = true) 
+                },
+                artists = artists.filter { 
+                    it.name.contains(query, ignoreCase = true) 
+                }
+            )
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchUiState())
 
     fun onQueryChange(newQuery: String) {
         _searchQuery.value = newQuery
     }
 
     fun onSongClick(song: Song) {
-        // When searching, usually we play that specific song, 
-        // or create a queue from the search results.
-        // For simplicity, we play the song in context of search results
-        val currentResults = searchResults.value
+        val currentResults = uiState.value.songs
         val index = currentResults.indexOf(song)
         if (index != -1) {
             playSongUseCase(currentResults, index)

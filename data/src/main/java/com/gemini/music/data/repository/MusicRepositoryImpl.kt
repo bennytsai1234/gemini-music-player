@@ -155,4 +155,8 @@ class MusicRepositoryImpl @Inject constructor(
     override suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long) {
         playlistDao.removeSongFromPlaylist(playlistId, songId)
     }
+
+    override suspend fun renamePlaylist(playlistId: Long, name: String) {
+        playlistDao.updatePlaylistName(playlistId, name)
+    }
 }

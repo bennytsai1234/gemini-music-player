@@ -45,5 +45,11 @@ dependencies {
     implementation(libs.androidx.core.ktx)
 
     // Amplituda (Audio Waveform)
+    // Amplituda (Audio Waveform)
     implementation(libs.amplituda)
+
+    // Network
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging)
 }
