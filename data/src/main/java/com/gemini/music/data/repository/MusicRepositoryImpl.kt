@@ -11,6 +11,7 @@ import com.gemini.music.domain.model.Playlist
 import com.gemini.music.domain.model.ScanStatus
 import com.gemini.music.domain.model.Song
 import com.gemini.music.domain.repository.MusicRepository
+import com.gemini.music.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
