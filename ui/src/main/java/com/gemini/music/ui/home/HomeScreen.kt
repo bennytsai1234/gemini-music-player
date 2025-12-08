@@ -37,6 +37,7 @@ import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.MoreVert
@@ -101,7 +102,8 @@ fun HomeScreen(
     onSearchClick: () -> Unit,
     onAlbumClick: (Long) -> Unit,
     onPlaylistClick: () -> Unit,
-    onAlbumsClick: () -> Unit
+    onAlbumsClick: () -> Unit,
+    onFavoritesClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -150,6 +152,16 @@ fun HomeScreen(
                         onPlaylistClick()
                     },
                     icon = { Icon(Icons.AutoMirrored.Rounded.PlaylistAdd, null) },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                NavigationDrawerItem(
+                    label = { Text("Favorites") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onFavoritesClick()
+                    },
+                    icon = { Icon(Icons.Rounded.Favorite, null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 // Add more items...

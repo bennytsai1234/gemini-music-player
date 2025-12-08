@@ -22,6 +22,9 @@ sealed class Screen(val route: String) {
         const val albumIdArg = "albumId"
         fun createRoute(albumId: Long) = "album_detail/$albumId"
     }
+    data object Queue : Screen("queue")
+    data object Favorites : Screen("favorites")
+
     data object PlaylistList : Screen("playlists")
     data object PlaylistDetail : Screen("playlist_detail/{playlistId}") {
         const val playlistIdArg = "playlistId"
@@ -52,10 +55,12 @@ fun MusicNavigation(navController: NavHostController) {
                 },
                 onAlbumsClick = {
                     navController.navigate(Screen.Albums.route)
+                },
+                onFavoritesClick = {
+                    navController.navigate(Screen.Favorites.route)
                 }
             )
         }
-        // NowPlayingScreen is handled by MainScreen overlay, no longer a navigation destination
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onBackClick = { navController.popBackStack() }
@@ -63,6 +68,16 @@ fun MusicNavigation(navController: NavHostController) {
         }
         composable(Screen.Search.route) {
             SearchScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Queue.route) {
+            com.gemini.music.ui.queue.QueueScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Favorites.route) {
+            com.gemini.music.ui.favorites.FavoritesScreen(
                 onBackClick = { navController.popBackStack() }
             )
         }

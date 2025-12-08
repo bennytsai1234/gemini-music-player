@@ -37,7 +37,6 @@ import com.gemini.music.ui.component.SwipeablePlayerSheet
 import com.gemini.music.ui.navigation.MusicNavigation
 import com.gemini.music.ui.navigation.Screen
 import com.gemini.music.ui.nowplaying.NowPlayingScreen
-import com.gemini.music.ui.nowplaying.QueueSheet
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -50,24 +49,16 @@ fun MainScreen(
     val progress by viewModel.progress.collectAsState()
     val waveform by viewModel.waveform.collectAsState()
 
-    var showQueue by remember { mutableStateOf(false) }
-
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-    val isPlayerVisible = currentRoute != Screen.Settings.route && currentRoute != Screen.Search.route
+    
+    // Hide mini player on Settings, Search, and Queue
+    val isPlayerVisible = currentRoute != Screen.Settings.route && 
+                          currentRoute != Screen.Search.route && 
+                          currentRoute != Screen.Queue.route
 
     val density = LocalDensity.current
 
     val scope = rememberCoroutineScope()
-
-    if (showQueue) {
-        QueueSheet(
-            queue = musicState.queue,
-            currentSong = musicState.currentSong,
-            onDismissRequest = { showQueue = false },
-            onPlaySong = { viewModel.playQueueItem(it) },
-            onRemoveSong = { viewModel.removeQueueItem(it) }
-        )
-    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -104,7 +95,10 @@ fun MainScreen(
                             isPlaying = musicState.isPlaying,
                             progress = progress,
                             onPlayPauseClick = { viewModel.togglePlayPause() },
-                            onQueueClick = { showQueue = true },
+                            onQueueClick = { 
+                                // Navigate to Queue
+                                navController.navigate(Screen.Queue.route)
+                            },
                             onClick = {
                                 scope.launch { sheetState.animateTo(PlayerSheetValue.Expanded) }
                             }
@@ -115,19 +109,20 @@ fun MainScreen(
                             onBackClick = {
                                 scope.launch { sheetState.animateTo(PlayerSheetValue.Collapsed) }
                             },
-                            onQueueClick = { showQueue = true },
+                            onQueueClick = { 
+                                // Navigate to Queue and collapse or keep open?
+                                // Better to collapse or just navigate on top.
+                                // If we navigate, BackHandler of Navigation takes over.
+                                navController.navigate(Screen.Queue.route)
+                            },
                             waveform = waveform
                         )
                     }
                 )
             }
 
-            BackHandler(enabled = sheetState.currentValue == PlayerSheetValue.Expanded || showQueue) {
-                if (showQueue) {
-                    showQueue = false
-                } else {
-                    scope.launch { sheetState.animateTo(PlayerSheetValue.Collapsed) }
-                }
+            BackHandler(enabled = sheetState.currentValue == PlayerSheetValue.Expanded) {
+                 scope.launch { sheetState.animateTo(PlayerSheetValue.Collapsed) }
             }
         }
     }
