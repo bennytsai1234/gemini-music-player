@@ -23,6 +23,7 @@ class MusicRepositoryImpl @Inject constructor(
     private val localAudioSource: LocalAudioSource,
     private val songDao: SongDao,
     private val playlistDao: PlaylistDao,
+    private val favoriteDao: com.gemini.music.data.database.FavoriteDao,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : MusicRepository {
 
@@ -158,5 +159,31 @@ class MusicRepositoryImpl @Inject constructor(
 
     override suspend fun renamePlaylist(playlistId: Long, name: String) {
         playlistDao.updatePlaylistName(playlistId, name)
+    }
+
+    // --- Favorites Implementation ---
+
+    override fun getFavoriteSongs(): Flow<List<Song>> {
+        return favoriteDao.getFavoriteSongs().map { entities ->
+            entities.map { it.asDomainModel() }
+        }
+    }
+
+    override fun isSongFavorite(songId: Long): Flow<Boolean> {
+        return favoriteDao.isFavorite(songId)
+    }
+
+    override suspend fun toggleFavorite(songId: Long) {
+        // Collect first, then decide. 
+        // Note: collect is a suspend function. But isFavorite returns a Flow. 
+        // Ideally we check existence and then insert/delete.
+        // Or simpler: DAO has no toggle. We check flow.first().
+        
+        val isFav = favoriteDao.isFavorite(songId).first()
+        if (isFav) {
+            favoriteDao.removeFavorite(songId)
+        } else {
+            favoriteDao.addFavorite(com.gemini.music.data.database.FavoriteEntity(songId))
+        }
     }
 }

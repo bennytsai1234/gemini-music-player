@@ -55,6 +55,32 @@ class GeminiAudioService : MediaLibraryService() {
         mediaLibrarySession = MediaLibrarySession.Builder(this, player, librarySessionCallback)
             .setSessionActivity(openActivityIntent)
             .build()
+            
+        player.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                updateWidget()
+            }
+
+            override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+                updateWidget()
+            }
+        })
+    }
+
+    private fun updateWidget() {
+        val intent = Intent("com.gemini.music.action.UPDATE_WIDGET")
+        val currentMediaItem = player.currentMediaItem
+        val metadata = currentMediaItem?.mediaMetadata
+
+        intent.putExtra("com.gemini.music.extra.IS_PLAYING", player.isPlaying)
+        intent.putExtra("com.gemini.music.extra.TITLE", metadata?.title?.toString())
+        intent.putExtra("com.gemini.music.extra.ARTIST", metadata?.artist?.toString())
+        
+        // We can't access WidgetConstants directly if it's in core/common and player depends on it.
+        // Assuming player depends on core/common (it should).
+        // If not, we use string literals to match WidgetConstants.
+        
+        sendBroadcast(intent)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {

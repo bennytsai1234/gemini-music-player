@@ -49,7 +49,8 @@ data class NowPlayingUiState(
     val waveform: List<Float> = emptyList(), // Normalized amplitudes
     val shuffleModeEnabled: Boolean = false,
     val repeatMode: RepeatMode = RepeatMode.OFF,
-    val queue: List<Song> = emptyList()
+    val queue: List<Song> = emptyList(),
+    val isFavorite: Boolean = false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -66,12 +67,25 @@ class NowPlayingViewModel @Inject constructor(
     private val cycleRepeatModeUseCase: CycleRepeatModeUseCase,
     private val playQueueItemUseCase: PlayQueueItemUseCase,
     private val removeQueueItemUseCase: RemoveQueueItemUseCase,
-    private val getSongWaveformUseCase: com.gemini.music.domain.usecase.GetSongWaveformUseCase
+    private val getSongWaveformUseCase: com.gemini.music.domain.usecase.GetSongWaveformUseCase,
+    private val toggleFavoriteUseCase: com.gemini.music.domain.usecase.favorites.ToggleFavoriteUseCase,
+    private val isSongFavoriteUseCase: com.gemini.music.domain.usecase.favorites.IsSongFavoriteUseCase
 ) : ViewModel() {
 
     private val _paletteColor = MutableStateFlow(Pair(Color(0xFF1E1E1E), Color.White))
 
     private val musicState = getMusicStateUseCase()
+    
+    // Observe favorite state for the current song
+    private val isFavoriteFlow = musicState.map { it.currentSong }
+        .distinctUntilChanged()
+        .flatMapLatest { song ->
+            if (song != null) {
+                isSongFavoriteUseCase(song.id)
+            } else {
+                flowOf(false)
+            }
+        }
 
     private val lyricsFlow = musicState.map { it.currentSong }
         .distinctUntilChanged()
@@ -110,10 +124,12 @@ class NowPlayingViewModel @Inject constructor(
     val uiState: StateFlow<NowPlayingUiState> = combine(
         musicState,
         formattedPlaybackStateFlow,
-        lyricsFlow,
-        waveformFlow,
-        _paletteColor
-    ) { state, formattedState, lyrics, waveform, palette ->
+        _paletteColor,
+        combine(lyricsFlow, waveformFlow, isFavoriteFlow) { lyrics, waveform, isFavorite -> 
+            Triple(lyrics, waveform, isFavorite) 
+        }
+    ) { state, formattedState, palette, supplemental ->
+        val (lyrics, waveform, isFavorite) = supplemental
         NowPlayingUiState(
             song = state.currentSong,
             isPlaying = state.isPlaying,
@@ -126,6 +142,7 @@ class NowPlayingViewModel @Inject constructor(
             currentLyricIndex = formattedState.currentLyricIndex,
             lyrics = lyrics,
             waveform = waveform,
+            isFavorite = isFavorite,
             backgroundColor = palette.first,
             onBackgroundColor = palette.second
         )
@@ -147,6 +164,14 @@ class NowPlayingViewModel @Inject constructor(
             is NowPlayingEvent.UpdatePalette -> extractColors(event.bitmap)
             is NowPlayingEvent.PlayQueueItem -> playQueueItemUseCase(event.index)
             is NowPlayingEvent.RemoveFromQueue -> removeQueueItemUseCase(event.index)
+            is NowPlayingEvent.ToggleFavorite -> {
+                val song = uiState.value.song
+                if (song != null) {
+                    viewModelScope.launch {
+                        toggleFavoriteUseCase(song.id)
+                    }
+                }
+            }
         }
     }
 
@@ -168,6 +193,7 @@ sealed class NowPlayingEvent {
     data object SkipPrevious : NowPlayingEvent()
     data object ToggleShuffle : NowPlayingEvent()
     data object ToggleRepeat : NowPlayingEvent()
+    data object ToggleFavorite : NowPlayingEvent()
     data class SeekTo(val position: Float) : NowPlayingEvent()
     data class UpdatePalette(val bitmap: Bitmap?) : NowPlayingEvent()
     data class PlayQueueItem(val index: Int) : NowPlayingEvent()

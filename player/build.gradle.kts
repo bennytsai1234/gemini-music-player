@@ -33,7 +33,7 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     // Media3
-    implementation(libs.androidx.media3.session)
+    api(libs.androidx.media3.session)
     implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.exoplayer)
 

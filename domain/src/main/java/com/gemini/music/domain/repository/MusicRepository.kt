@@ -46,4 +46,9 @@ interface MusicRepository {
     suspend fun addSongToPlaylist(playlistId: Long, songId: Long)
     suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long)
     suspend fun renamePlaylist(playlistId: Long, name: String)
+
+    // --- Favorites Management ---
+    fun getFavoriteSongs(): Flow<List<Song>>
+    fun isSongFavorite(songId: Long): Flow<Boolean>
+    suspend fun toggleFavorite(songId: Long)
 }

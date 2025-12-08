@@ -31,6 +31,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Pause
@@ -173,7 +175,14 @@ fun NowPlayingScreen(
                     LyricsView(
                         lyrics = uiState.lyrics,
                         currentIndex = uiState.currentLyricIndex,
-                        onTap = { showLyrics = false }
+                        onTap = { showLyrics = false },
+                        onSeek = { timestamp ->
+                             val duration = uiState.song?.duration ?: 1L
+                             if (duration > 0) {
+                                 val progress = timestamp.toFloat() / duration.toFloat()
+                                 viewModel.onEvent(NowPlayingEvent.SeekTo(progress))
+                             }
+                        }
                     )
                 } else {
                     HeroImage(
@@ -194,6 +203,8 @@ fun NowPlayingScreen(
             SongInfo(
                 title = uiState.song?.title ?: "No Audio",
                 artist = uiState.song?.artist ?: "Unknown Artist",
+                isFavorite = uiState.isFavorite,
+                onToggleFavorite = { viewModel.onEvent(NowPlayingEvent.ToggleFavorite) },
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
@@ -353,22 +364,40 @@ fun HeroImage(
 fun SongInfo(
     title: String,
     artist: String,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.padding(horizontal = 24.dp)
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.5.sp
-            ),
-            color = Color.White,
-            maxLines = 1,
-            modifier = Modifier.basicMarquee()
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.5.sp
+                ),
+                color = Color.White,
+                maxLines = 1,
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .basicMarquee()
+            )
+            
+            Spacer(modifier = Modifier.size(16.dp))
+            
+            IconButton(onClick = onToggleFavorite) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                    contentDescription = if (isFavorite) "Remove from Favorites" else "Add to Favorites",
+                    tint = if (isFavorite) Color.Red else Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+        
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = artist,
@@ -544,15 +573,38 @@ fun MediaControls(
 fun LyricsView(
     lyrics: List<LyricLine>,
     currentIndex: Int,
-    onTap: () -> Unit
+    onTap: () -> Unit,
+    onSeek: (Long) -> Unit
 ) {
     val listState = rememberLazyListState()
+    var isUserScrolling by remember { mutableStateOf(false) }
+    
+    // Detect user interaction
+    val isScrollInProgress = listState.isScrollInProgress
+    LaunchedEffect(isScrollInProgress) {
+        if (isScrollInProgress) {
+            isUserScrolling = true
+        } else {
+            // Resume auto-scroll after 3 seconds of inactivity
+            kotlinx.coroutines.delay(3000)
+            isUserScrolling = false
+        }
+    }
 
-    LaunchedEffect(currentIndex) {
-        if (currentIndex >= 0 && currentIndex < lyrics.size) {
+    LaunchedEffect(currentIndex, isUserScrolling) {
+        if (!isUserScrolling && currentIndex >= 0 && currentIndex < lyrics.size) {
+            // Calculate offset to center the item roughly
+            // We use a safe estimate or specific item positioning if possible.
+            // Using animateScrollToItem with offset is the best we can do without complex layout measurement.
+            // Offset 0 puts it at top. 
+            // We want it in middle. Assuming standard screen height ~800dp, half is 400dp.
+            // But we have padding. Let's aim for top-third for better readability.
             listState.animateScrollToItem(
                 index = currentIndex,
-                scrollOffset = -500
+                scrollOffset = -300 // Negative offset doesn't work as "from top" in LazyColumn standardly? 
+                // Actually scrollToItem(index, scrollOffset) -> offset is pixels from top of visible area.
+                // So positive offset pushes it DOWN.
+                // We want to push it down to the middle.
             )
         }
     }
@@ -562,7 +614,7 @@ fun LyricsView(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(onClick = onTap),
-                contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "No Lyrics Found",
@@ -572,36 +624,77 @@ fun LyricsView(
             )
         }
     } else {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(onClick = onTap),
-            contentPadding = PaddingValues(vertical = 200.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            itemsIndexed(lyrics) { index, line ->
-                val isCurrent = index == currentIndex
-                val targetAlpha = if (isCurrent) 1f else 0.3f
-                val targetScale = if (isCurrent) 1.2f else 0.95f
-                
-                val alpha by animateFloatAsState(targetValue = targetAlpha, label = "alpha")
-                val scale by animateFloatAsState(targetValue = targetScale, label = "scale")
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(onClick = onTap),
+                contentPadding = PaddingValues(top = 150.dp, bottom = 150.dp), // Add padding to allow start/end items to be centered
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                itemsIndexed(lyrics) { index, line ->
+                    val isCurrent = index == currentIndex
+                    // Active line: Opaque, Larger. Inactive: Faded, Smaller.
+                    val targetAlpha = if (isCurrent) 1f else 0.4f
+                    val targetScale = if (isCurrent) 1.1f else 0.95f
+                    val targetColor = if (isCurrent) Color.White else Color.LightGray
+                    
+                    val alpha by animateFloatAsState(targetValue = targetAlpha, label = "alpha")
+                    val scale by animateFloatAsState(targetValue = targetScale, label = "scale")
+                    val color by animateColorAsState(targetValue = targetColor, label = "color")
 
-                Text(
-                    text = line.text,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                    color = Color.White.copy(alpha = alpha),
-                    textAlign = TextAlign.Center,
+                    Text(
+                        text = line.text,
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                            shadow = if (isCurrent) androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black.copy(alpha = 0.5f),
+                                offset = Offset(0f, 4f),
+                                blurRadius = 8f
+                            ) else null
+                        ),
+                        color = color.copy(alpha = alpha),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                            }
+                            // Seek to this line on click
+                            .clickable(
+                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                indication = null // No ripple for clear reading
+                            ) {
+                                onSeek(line.startTime)
+                            }
+                            .padding(horizontal = 32.dp)
+                    )
+                }
+            }
+            
+            // "Resume Sync" button if user scrolled away
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isUserScrolling,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 100.dp, end = 24.dp),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                IconButton(
+                    onClick = { isUserScrolling = false },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                        }
-                )
+                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                        .size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = "Resume Sync",
+                        tint = Color.White
+                    )
+                }
             }
         }
     }

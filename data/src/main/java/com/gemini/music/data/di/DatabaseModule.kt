@@ -37,4 +37,9 @@ object DatabaseModule {
     fun providePlaylistDao(database: GeminiDatabase): PlaylistDao {
         return database.playlistDao()
     }
+
+    @Provides
+    fun provideFavoriteDao(database: GeminiDatabase): com.gemini.music.data.database.FavoriteDao {
+        return database.favoriteDao()
+    }
 }
