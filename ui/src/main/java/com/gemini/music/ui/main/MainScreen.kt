@@ -47,7 +47,7 @@ fun MainScreen(
     val navController = rememberNavController()
     val musicState by viewModel.musicState.collectAsState()
     val progress by viewModel.progress.collectAsState()
-    val waveform by viewModel.waveform.collectAsState()
+
 
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     
@@ -114,8 +114,7 @@ fun MainScreen(
                                 // Better to collapse or just navigate on top.
                                 // If we navigate, BackHandler of Navigation takes over.
                                 navController.navigate(Screen.Queue.route)
-                            },
-                            waveform = waveform
+                            }
                         )
                     }
                 )
