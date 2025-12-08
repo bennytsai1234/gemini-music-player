@@ -39,6 +39,28 @@
 *   **分支策略**: 應採用 Git Flow 或 GitHub Flow 等主流分支策略。
 
 
+### **第三章：專案架構規範 (Project Architecture)**
+
+本專案採用 **Clean Architecture** 與 **Modularization** (模組化) 設計。為確保架構的一致性，各模組皆有其專屬的行為準則 (`gemini.md`)，請務必遵守。
+
+#### **§1 模組職責**
+*   **[Domain Layer](domain/gemini.md)**: 核心業務邏輯，不依賴 Android (Pure Kotlin)。定義所有 Entities 與 Repository Interfaces。
+*   **[Data Layer](data/gemini.md)**: 資料實作層 (Room, Retrofit, Datastore)。實作 Repository Interfaces。
+*   **[UI Layer](ui/gemini.md)**: 使用者介面 (Compose, ViewModel)。僅透過 UseCases 與 Domain 互動。
+*   **[Player Layer](player/gemini.md)**: 媒體播放實作 (Media3)。實作 `MusicController` 介面。
+
+#### **§2 依賴關係 (Dependency Graph)**
+```mermaid
+graph TD
+    UI --> Domain
+    Data --> Domain
+    Player --> Domain
+    UI --x Data
+    UI --x Player
+```
+Ui 模組嚴禁直接依賴 Data 模組。
+
+---
 ---
 
 
