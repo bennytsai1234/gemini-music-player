@@ -32,23 +32,10 @@ class MainActivity : AppCompatActivity() {
     lateinit var userPreferencesRepository: UserPreferencesRepository
 
     private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // Permission granted, ViewModel will handle scan
-            // We need to notify the ViewModel to re-scan.
-            // Since we can't easily access the Hilt VM instance here directly without scoping issues in legacy Views,
-            // but in Compose, the VM is obtained in setContent.
-            // However, for this simple case, we can rely on the fact that if permission is granted,
-            // the onResume or the LaunchedEffect in UI can handle it, OR we can use a shared flow/event.
-            // BUT, the simplest valid fix for "Run Normally" is to let the VM know.
-            
-            // Recreating the activity is a nuclear option, but ensures everything re-initializes with permissions.
-            // recreate() 
-            
-            // Better: Just let the UI recompose. The VM scan logic is currently in init{}.
-            // We should move scan logic to be triggered by UI.
-        }
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        // Handle permissions
+        // Optional: Trigger UI update or VM scan
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,14 +66,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_AUDIO
+        val permissions = mutableListOf<String>()
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.READ_MEDIA_AUDIO)
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        
+        val permissionsToRequest = permissions.filter {
+             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissionLauncher.launch(permission)
+        if (permissionsToRequest.isNotEmpty()) {
+            requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
 }

@@ -48,6 +48,14 @@ fun QueueScreen(
     viewModel: QueueViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+
+    // Auto-scroll to current song when opening screen
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (uiState.currentSongIndex >= 0) {
+            listState.scrollToItem(uiState.currentSongIndex)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -84,6 +92,7 @@ fun QueueScreen(
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
@@ -91,7 +100,7 @@ fun QueueScreen(
             ) {
                 itemsIndexed(
                     items = uiState.queue,
-                    key = { index, song -> "${song.id}_$index" } // Unique key combining ID and index to handle duplicates if any
+                    key = { index, song -> "${song.id}_$index" }
                 ) { index, song ->
                     val isCurrent = index == uiState.currentSongIndex
                     
@@ -112,7 +121,7 @@ fun QueueScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Red)
+                                    .background(Color.Red.copy(alpha = 0.7f))
                                     .padding(horizontal = 20.dp),
                                 contentAlignment = Alignment.CenterEnd
                             ) {
@@ -163,7 +172,7 @@ fun QueueItem(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(48.dp)
+                .size(56.dp) // Slightly larger
                 .clip(RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         )
@@ -177,7 +186,7 @@ fun QueueItem(
             Text(
                 text = song.title,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
@@ -191,7 +200,7 @@ fun QueueItem(
             )
         }
 
-        // Indicator
+        // Indicator or Duration
         if (isCurrent && isPlaying) {
             Icon(
                 imageVector = Icons.Rounded.GraphicEq,
@@ -200,12 +209,18 @@ fun QueueItem(
                 modifier = Modifier.size(24.dp)
             )
         } else {
-             Icon(
-                imageVector = Icons.Rounded.DragHandle,
-                contentDescription = "Drag",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(24.dp)
+             Text(
+                text = formatDuration(song.duration),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
         }
     }
+}
+
+private fun formatDuration(durationMs: Long): String {
+    val totalSeconds = durationMs / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format("%02d:%02d", minutes, seconds)
 }

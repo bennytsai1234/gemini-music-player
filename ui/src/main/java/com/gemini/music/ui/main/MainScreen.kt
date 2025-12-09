@@ -72,7 +72,13 @@ fun MainScreen(
                 }
             }
 
-            val sheetState = remember(sheetAnchors) {
+            val sheetState = androidx.compose.runtime.saveable.rememberSaveable(
+                saver = AnchoredDraggableState.Saver(
+                    animationSpec = tween(200),
+                    positionalThreshold = { distance: Float -> distance * 0.5f },
+                    velocityThreshold = { with(density) { 100.dp.toPx() } }
+                )
+            ) {
                 AnchoredDraggableState(
                     initialValue = PlayerSheetValue.Collapsed,
                     anchors = sheetAnchors,
@@ -80,6 +86,11 @@ fun MainScreen(
                     velocityThreshold = { with(density) { 100.dp.toPx() } },
                     animationSpec = tween(200)
                 )
+            }
+            
+            // Update anchors when availableHeight changes
+            androidx.compose.runtime.LaunchedEffect(sheetAnchors) {
+                sheetState.updateAnchors(sheetAnchors)
             }
 
             MusicNavigation(navController = navController)
