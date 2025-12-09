@@ -96,12 +96,12 @@ fun NowPlayingScreen(
 
     val startColor by animateColorAsState(
         targetValue = uiState.gradientColors.getOrElse(0) { Color(0xFF1E1E1E) },
-        animationSpec = tween(durationMillis = 800),
+        animationSpec = tween(durationMillis = 400),
         label = "StartColor"
     )
     val endColor by animateColorAsState(
         targetValue = uiState.gradientColors.getOrElse(1) { Color.Black },
-        animationSpec = tween(durationMillis = 800),
+        animationSpec = tween(durationMillis = 400),
         label = "EndColor"
     )
 
@@ -161,7 +161,7 @@ fun NowPlayingScreen(
             AnimatedContent(
                 targetState = showLyrics,
                 transitionSpec = {
-                    fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                    fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
                 },
                 label = "ContentSwitcher",
                 modifier = Modifier
@@ -302,13 +302,13 @@ fun HeroImage(
     
     val scale by animateFloatAsState(
         targetValue = if (isPlaying) 1.0f else 0.85f,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 250),
         label = "ImageScale"
     )
 
     val animatedShadowElevation by animateFloatAsState(
         targetValue = if (isPlaying) 24f else 8f,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 250),
         label = "ShadowElevation"
     )
 

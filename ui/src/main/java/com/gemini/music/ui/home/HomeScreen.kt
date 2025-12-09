@@ -540,7 +540,7 @@ fun SongList(
                 onClick = { onSongClick(song) },
                 onLongClick = { onSongLongClick(song) },
                 modifier = Modifier.animateItemPlacement(
-                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing)
                 )
             )
         }

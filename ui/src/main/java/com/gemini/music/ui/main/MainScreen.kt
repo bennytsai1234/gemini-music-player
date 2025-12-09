@@ -78,7 +78,7 @@ fun MainScreen(
                     anchors = sheetAnchors,
                     positionalThreshold = { distance: Float -> distance * 0.5f },
                     velocityThreshold = { with(density) { 100.dp.toPx() } },
-                    animationSpec = tween(300)
+                    animationSpec = tween(200)
                 )
             }
 

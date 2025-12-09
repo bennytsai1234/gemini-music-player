@@ -1,5 +1,10 @@
 package com.gemini.music.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -26,6 +31,21 @@ fun NavHostController.safePopBackStack(): Boolean {
     }
 }
 
+// Fast navigation animation specs
+private const val NAV_ANIMATION_DURATION = 200
+
+private val enterTransition = fadeIn(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
+    slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { it / 4 }
+
+private val exitTransition = fadeOut(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
+    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { -it / 4 }
+
+private val popEnterTransition = fadeIn(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
+    slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { -it / 4 }
+
+private val popExitTransition = fadeOut(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
+    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { it / 4 }
+
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object NowPlaying : Screen("now_playing")
@@ -48,7 +68,14 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun MusicNavigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
+    NavHost(
+        navController = navController, 
+        startDestination = Screen.Home.route,
+        enterTransition = { enterTransition },
+        exitTransition = { exitTransition },
+        popEnterTransition = { popEnterTransition },
+        popExitTransition = { popExitTransition }
+    ) {
         composable(Screen.Home.route) {
             HomeScreen(
                 onSongClick = { _ -> 
