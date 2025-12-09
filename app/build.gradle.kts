@@ -41,6 +41,13 @@ android {
     buildFeatures {
         buildConfig = true
     }
+
+    lint {
+        // Suppress Instantiatable error for Hilt-injected Activities
+        // Hilt uses a custom AppComponentFactory to instantiate app components,
+        // so the Lint check reports a false positive.
+        disable += "Instantiatable"
+    }
 }
 
 dependencies {

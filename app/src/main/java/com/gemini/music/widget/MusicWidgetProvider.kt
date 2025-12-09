@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.view.KeyEvent
 import android.widget.RemoteViews
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import com.gemini.music.R
 import com.gemini.music.core.common.WidgetConstants
 
@@ -88,6 +90,7 @@ private fun setupPendingIntents(context: Context, views: RemoteViews) {
     views.setOnClickPendingIntent(R.id.widget_btn_next, getMediaKeyPendingIntent(context, KeyEvent.KEYCODE_MEDIA_NEXT))
 }
 
+@OptIn(UnstableApi::class)
 private fun getMediaKeyPendingIntent(context: Context, keyCode: Int): PendingIntent {
     val intent = Intent(Intent.ACTION_MEDIA_BUTTON)
     intent.putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
@@ -102,6 +105,7 @@ private fun getMediaKeyPendingIntent(context: Context, keyCode: Int): PendingInt
     // androidx.media3.session.MediaButtonReceiver
     
     intent.component = ComponentName(context, androidx.media3.session.MediaButtonReceiver::class.java)
+
     
     return PendingIntent.getBroadcast(
         context, 
