@@ -576,34 +576,37 @@ fun FastScroller(
         map
     }
 
-    val sortedKeys = remember(sections) {
-        val keys = sections.keys.toList()
-        val letters = keys.filter { it != '#' }.sorted()
-        // Put # at the end
-        if (keys.contains('#')) letters + '#' else letters
-    }
+    // Fixed alphabet list + '#'
+    val alphabet = remember { ('A'..'Z').toList() + '#' }
 
-    if (sortedKeys.isEmpty()) return
+    if (sections.isEmpty()) return
     
     var isDragging by remember { androidx.compose.runtime.mutableStateOf(false) }
     var activeChar by remember { androidx.compose.runtime.mutableStateOf<Char?>(null) } // Current selected char
 
     fun scrollToSection(char: Char) {
         activeChar = char
-        val index = sections[char]
-        if (index != null) {
+        // Find exact match or the next available section
+        val targetIndex = sections[char] ?: run {
+            // If char not found, find the next available char in sections
+            // We search in the alphabet starting from current char
+            val nextChar = alphabet.dropWhile { it != char }.firstOrNull { sections.containsKey(it) }
+            sections[nextChar]
+        }
+        
+        if (targetIndex != null) {
             scope.launch {
-                listState.scrollToItem(index)
+                listState.scrollToItem(targetIndex)
             }
         }
     }
 
     fun getCharAtIndex(offsetY: Float, totalHeight: Int): Char? {
         if (totalHeight == 0) return null
-        val itemHeight = totalHeight.toFloat() / sortedKeys.size
+        val itemHeight = totalHeight.toFloat() / alphabet.size
         // Prevent index out of bounds
-        val index = (offsetY / itemHeight).toInt().coerceIn(0, sortedKeys.lastIndex)
-        return sortedKeys.getOrNull(index)
+        val index = (offsetY / itemHeight).toInt().coerceIn(0, alphabet.lastIndex)
+        return alphabet.getOrNull(index)
     }
     
     // Scroller Container
@@ -663,12 +666,16 @@ fun FastScroller(
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            sortedKeys.forEach { char ->
+            alphabet.forEach { char ->
+                val isPresent = sections.containsKey(char)
                 Text(
                     text = char.toString(),
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = 10.sp,
-                    color = if (activeChar == char) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    // Dim characters that don't have sections
+                    color = if (activeChar == char) MaterialTheme.colorScheme.primary 
+                            else if (isPresent) MaterialTheme.colorScheme.onSurfaceVariant 
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                     fontWeight = if (activeChar == char) FontWeight.Bold else FontWeight.Medium,
                     modifier = Modifier.padding(vertical = 0.dp)
                 )
