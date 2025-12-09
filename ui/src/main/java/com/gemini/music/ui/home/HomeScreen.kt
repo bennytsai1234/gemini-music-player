@@ -6,6 +6,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -13,6 +15,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -80,6 +85,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -557,47 +563,138 @@ fun FastScroller(
 ) {
     val scope = rememberCoroutineScope()
     
-    // Get available letters from songs
-    val availableLetters = remember(songs) {
-        songs.mapNotNull { song ->
-            song.title.firstOrNull()?.uppercaseChar()?.takeIf { it.isLetter() }
-        }.distinct().sorted()
+    // Group songs by their first letter
+    val sections = remember(songs) {
+        val map = mutableMapOf<Char, Int>()
+        songs.forEachIndexed { index, song ->
+            val firstChar = song.title.firstOrNull()?.uppercaseChar()
+            val section = if (firstChar != null && firstChar.isLetter()) firstChar else '#'
+            if (!map.containsKey(section)) {
+                map[section] = index
+            }
+        }
+        map
+    }
+
+    val sortedKeys = remember(sections) {
+        val keys = sections.keys.toList()
+        val letters = keys.filter { it != '#' }.sorted()
+        // Put # at the end
+        if (keys.contains('#')) letters + '#' else letters
+    }
+
+    if (sortedKeys.isEmpty()) return
+    
+    var isDragging by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var activeChar by remember { androidx.compose.runtime.mutableStateOf<Char?>(null) } // Current selected char
+
+    fun scrollToSection(char: Char) {
+        activeChar = char
+        val index = sections[char]
+        if (index != null) {
+            scope.launch {
+                listState.scrollToItem(index)
+            }
+        }
+    }
+
+    fun getCharAtIndex(offsetY: Float, totalHeight: Int): Char? {
+        if (totalHeight == 0) return null
+        val itemHeight = totalHeight.toFloat() / sortedKeys.size
+        // Prevent index out of bounds
+        val index = (offsetY / itemHeight).toInt().coerceIn(0, sortedKeys.lastIndex)
+        return sortedKeys.getOrNull(index)
     }
     
-    // If no letters available, don't show scroller
-    if (availableLetters.isEmpty()) return
-    
-    Column(
+    // Scroller Container
+    Box(
         modifier = modifier
-            .width(24.dp)
+            .width(40.dp) // Wider touch area
             .fillMaxHeight()
-            .padding(top = 8.dp, bottom = 8.dp, end = 4.dp)
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), 
-                RoundedCornerShape(12.dp)
-            ),
-        verticalArrangement = Arrangement.SpaceEvenly,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        availableLetters.forEach { char ->
-            Text(
-                text = char.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = if (availableLetters.size > 20) 9.sp else 10.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .padding(vertical = 1.dp)
-                    .clickable {
-                        // Find index of first song starting with this char
-                        val index = songs.indexOfFirst { 
-                            it.title.firstOrNull()?.uppercaseChar() == char 
-                        }
-                        if (index != -1) {
-                            scope.launch { listState.scrollToItem(index) }
+            .padding(vertical = 32.dp)
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onDragStart = { offset ->
+                        isDragging = true
+                        val char = getCharAtIndex(offset.y, size.height)
+                        if (char != null) scrollToSection(char)
+                    },
+                    onDragEnd = { 
+                        isDragging = false 
+                        activeChar = null
+                    },
+                    onDragCancel = { 
+                        isDragging = false 
+                        activeChar = null
+                    },
+                    onVerticalDrag = { change, _ ->
+                        val char = getCharAtIndex(change.position.y, size.height)
+                        if (char != null && char != activeChar) scrollToSection(char)
+                    }
+                )
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { offset ->
+                        val char = getCharAtIndex(offset.y, size.height)
+                        if (char != null) {
+                            scrollToSection(char)
+                            // Reset visual highlight after short delay
+                            scope.launch {
+                                kotlinx.coroutines.delay(200)
+                                if (!isDragging) activeChar = null
+                            }
                         }
                     }
-            )
+                )
+            },
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        // Track Background
+        Column(
+            modifier = Modifier
+                .width(24.dp)
+                .background(
+                    if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f) 
+                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), 
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(vertical = 8.dp),
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            sortedKeys.forEach { char ->
+                Text(
+                    text = char.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 10.sp,
+                    color = if (activeChar == char) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (activeChar == char) FontWeight.Bold else FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 0.dp)
+                )
+            }
+        }
+        
+        // Large Bubble Indicator (Left of the scroller)
+        AnimatedVisibility(
+            visible = isDragging && activeChar != null,
+            enter = fadeIn() + androidx.compose.animation.scaleIn(),
+            exit = fadeOut() + androidx.compose.animation.scaleOut(),
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 50.dp) // Push to left
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = activeChar?.toString() ?: "",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
