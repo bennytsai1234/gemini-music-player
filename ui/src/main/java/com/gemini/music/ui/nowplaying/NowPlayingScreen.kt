@@ -88,6 +88,11 @@ import com.gemini.music.ui.component.AddToPlaylistDialog
 import com.gemini.music.ui.component.WaveformSeekBar
 
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.animation.scaleIn
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -283,7 +288,11 @@ fun NowPlayingScreen(
                         onImageLoaded = { bitmap ->
                             viewModel.onEvent(NowPlayingEvent.UpdatePalette(bitmap))
                         },
-                        onClick = { showLyrics = true }
+                        onClick = { showLyrics = true },
+                        onSwipeLeft = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
+                        onSwipeRight = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
+                        onDoubleTapLeft = { viewModel.onEvent(NowPlayingEvent.SeekBackward10s) },
+                        onDoubleTapRight = { viewModel.onEvent(NowPlayingEvent.SeekForward10s) }
                     )
                 }
             }
@@ -391,9 +400,14 @@ fun HeroImage(
     artUri: String?,
     isPlaying: Boolean,
     onImageLoaded: (Bitmap) -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onSwipeLeft: () -> Unit = {},
+    onSwipeRight: () -> Unit = {},
+    onDoubleTapLeft: () -> Unit = {},
+    onDoubleTapRight: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val hapticFeedback = LocalHapticFeedback.current
     
     val scale by animateFloatAsState(
         targetValue = if (isPlaying) 1.0f else 0.85f,
@@ -406,13 +420,68 @@ fun HeroImage(
         animationSpec = tween(durationMillis = 250),
         label = "ShadowElevation"
     )
-
-
+    
+    // Swipe offset animation for visual feedback
+    var swipeOffset by remember { mutableStateOf(0f) }
+    val animatedOffset by animateFloatAsState(
+        targetValue = swipeOffset,
+        animationSpec = tween(durationMillis = 150),
+        finishedListener = { swipeOffset = 0f },
+        label = "SwipeOffset"
+    )
+    
+    // Double tap indicator
+    var showDoubleTapIndicator by remember { mutableStateOf<String?>(null) }
+    
+    LaunchedEffect(showDoubleTapIndicator) {
+        if (showDoubleTapIndicator != null) {
+            kotlinx.coroutines.delay(500)
+            showDoubleTapIndicator = null
+        }
+    }
     
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        if (kotlin.math.abs(swipeOffset) > 100) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            if (swipeOffset > 0) {
+                                onSwipeRight() // Previous
+                            } else {
+                                onSwipeLeft() // Next
+                            }
+                        }
+                        swipeOffset = 0f
+                    },
+                    onHorizontalDrag = { _, dragAmount ->
+                        swipeOffset = (swipeOffset + dragAmount).coerceIn(-200f, 200f)
+                    }
+                )
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { offset ->
+                        onClick()
+                    },
+                    onDoubleTap = { offset ->
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        val width = size.width
+                        if (offset.x < width / 2) {
+                            // Left side - go back 10 seconds
+                            showDoubleTapIndicator = "-10s"
+                            onDoubleTapLeft()
+                        } else {
+                            // Right side - skip 10 seconds
+                            showDoubleTapIndicator = "+10s"
+                            onDoubleTapRight()
+                        }
+                    }
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
         // Pseudo-glow layer
@@ -423,9 +492,10 @@ fun HeroImage(
                     scaleX = scale * 0.9f
                     scaleY = scale * 0.9f
                     alpha = 0.5f
+                    translationX = animatedOffset * 0.3f
                 }
-                .blur(32.dp) // API 31+ only, but safe to call in Compose (ignored on lower)
-                .background(Color.White.copy(0.2f), CircleShape) // Fallback glow
+                .blur(32.dp)
+                .background(Color.White.copy(0.2f), CircleShape)
         )
 
         Box(
@@ -438,9 +508,9 @@ fun HeroImage(
                     shadowElevation = animatedShadowElevation
                     shape = RoundedCornerShape(28.dp)
                     clip = true
+                    translationX = animatedOffset
                 }
                 .background(Color.DarkGray)
-                .clickable(onClick = onClick)
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(context)
@@ -457,9 +527,35 @@ fun HeroImage(
                 },
                 error = painterResource(id = android.R.drawable.ic_menu_gallery)
             )
+            
+            // Double Tap Indicator Overlay
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showDoubleTapIndicator != null,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut(),
+                modifier = Modifier.align(
+                    if (showDoubleTapIndicator == "-10s") Alignment.CenterStart 
+                    else Alignment.CenterEnd
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp)
+                        .background(Color.Black.copy(alpha = 0.7f), CircleShape)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = showDoubleTapIndicator ?: "",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            }
         }
     }
 }
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

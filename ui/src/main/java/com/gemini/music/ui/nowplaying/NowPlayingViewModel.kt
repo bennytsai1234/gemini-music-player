@@ -176,6 +176,22 @@ class NowPlayingViewModel @Inject constructor(
             is NowPlayingEvent.UpdatePalette -> extractColors(event.bitmap)
             is NowPlayingEvent.PlayQueueItem -> playQueueItemUseCase(event.index)
             is NowPlayingEvent.RemoveFromQueue -> removeQueueItemUseCase(event.index)
+            is NowPlayingEvent.SeekForward10s -> {
+                // Calculate new position: current + 10 seconds
+                val currentProgress = uiState.value.progress
+                val duration = uiState.value.song?.duration ?: 1L
+                val tenSecondsProgress = 10000f / duration.toFloat()
+                val newProgress = (currentProgress + tenSecondsProgress).coerceAtMost(1f)
+                seekToUseCase(newProgress)
+            }
+            is NowPlayingEvent.SeekBackward10s -> {
+                // Calculate new position: current - 10 seconds
+                val currentProgress = uiState.value.progress
+                val duration = uiState.value.song?.duration ?: 1L
+                val tenSecondsProgress = 10000f / duration.toFloat()
+                val newProgress = (currentProgress - tenSecondsProgress).coerceAtLeast(0f)
+                seekToUseCase(newProgress)
+            }
             is NowPlayingEvent.ToggleFavorite -> {
                 val song = uiState.value.song
                 if (song != null) {
@@ -231,6 +247,8 @@ sealed class NowPlayingEvent {
     data object ToggleShuffle : NowPlayingEvent()
     data object ToggleRepeat : NowPlayingEvent()
     data object ToggleFavorite : NowPlayingEvent()
+    data object SeekForward10s : NowPlayingEvent()
+    data object SeekBackward10s : NowPlayingEvent()
     data class SeekTo(val position: Float) : NowPlayingEvent()
     data class UpdatePalette(val bitmap: Bitmap?) : NowPlayingEvent()
     data class PlayQueueItem(val index: Int) : NowPlayingEvent()
