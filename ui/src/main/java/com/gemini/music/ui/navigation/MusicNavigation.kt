@@ -1,11 +1,17 @@
 package com.gemini.music.ui.navigation
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -32,7 +38,7 @@ fun NavHostController.safePopBackStack(): Boolean {
 }
 
 // Fast navigation animation specs
-private const val NAV_ANIMATION_DURATION = 200
+private const val NAV_ANIMATION_DURATION = 300
 
 private val enterTransition = fadeIn(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
     slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { it / 4 }
@@ -74,119 +80,167 @@ sealed class Screen(val route: String) {
     }
 }
 
+/**
+ * Shared Element Key 生成器
+ */
+object SharedElementKeys {
+    fun albumCover(albumId: Long) = "album_cover_$albumId"
+    fun albumTitle(albumId: Long) = "album_title_$albumId"
+    fun songCover(songId: Long) = "song_cover_$songId"
+}
+
+/**
+ * CompositionLocal for SharedTransitionScope
+ * 讓子組件可以訪問 SharedTransitionScope 來使用 sharedElement modifier
+ */
+@OptIn(ExperimentalSharedTransitionApi::class)
+val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
+
+/**
+ * CompositionLocal for AnimatedContentScope (from NavHost)
+ */
+val LocalAnimatedContentScope = compositionLocalOf<AnimatedContentScope?> { null }
+
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MusicNavigation(navController: NavHostController) {
-    NavHost(
-        navController = navController, 
-        startDestination = Screen.Home.route,
-        enterTransition = { enterTransition },
-        exitTransition = { exitTransition },
-        popEnterTransition = { popEnterTransition },
-        popExitTransition = { popExitTransition }
-    ) {
-        composable(Screen.Home.route) {
-            HomeScreen(
-                onSongClick = { _ -> 
-                    // Just play, don't navigate
-                },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
-                },
-                onSearchClick = {
-                    navController.navigate(Screen.Search.route)
-                },
-                onPlaylistClick = {
-                    navController.navigate(Screen.PlaylistList.route)
-                },
-                onAlbumsClick = {
-                    navController.navigate(Screen.Albums.route)
-                },
-                onFavoritesClick = {
-                    navController.navigate(Screen.Favorites.route)
+    SharedTransitionLayout {
+        CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+            NavHost(
+                navController = navController, 
+                startDestination = Screen.Home.route,
+                enterTransition = { enterTransition },
+                exitTransition = { exitTransition },
+                popEnterTransition = { popEnterTransition },
+                popExitTransition = { popExitTransition }
+            ) {
+                composable(Screen.Home.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        HomeScreen(
+                            onSongClick = { _ -> 
+                                // Just play, don't navigate
+                            },
+                            onSettingsClick = {
+                                navController.navigate(Screen.Settings.route)
+                            },
+                            onSearchClick = {
+                                navController.navigate(Screen.Search.route)
+                            },
+                            onPlaylistClick = {
+                                navController.navigate(Screen.PlaylistList.route)
+                            },
+                            onAlbumsClick = {
+                                navController.navigate(Screen.Albums.route)
+                            },
+                            onFavoritesClick = {
+                                navController.navigate(Screen.Favorites.route)
+                            }
+                        )
+                    }
                 }
-            )
-        }
-        composable(Screen.Settings.route) {
-            SettingsScreen(
-                onBackClick = { navController.safePopBackStack() }
-            )
-        }
-        composable(Screen.Search.route) {
-            SearchScreen(
-                onBackClick = { navController.safePopBackStack() },
-                onAlbumClick = { albumId ->
-                    navController.navigate(Screen.AlbumDetail.createRoute(albumId))
-                },
-                onArtistClick = { artistName ->
-                    navController.navigate(Screen.ArtistDetail.createRoute(artistName))
+                composable(Screen.Settings.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        SettingsScreen(
+                            onBackClick = { navController.safePopBackStack() }
+                        )
+                    }
                 }
-            )
-        }
-        composable(Screen.Queue.route) {
-            com.gemini.music.ui.queue.QueueScreen(
-                onBackClick = { navController.safePopBackStack() }
-            )
-        }
-        composable(Screen.Favorites.route) {
-            com.gemini.music.ui.favorites.FavoritesScreen(
-                onBackClick = { navController.safePopBackStack() }
-            )
-        }
-        composable(Screen.Albums.route) {
-            AlbumsScreen(
-                onBackClick = { navController.safePopBackStack() },
-                onAlbumClick = { albumId ->
-                     navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                composable(Screen.Search.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        SearchScreen(
+                            onBackClick = { navController.safePopBackStack() },
+                            onAlbumClick = { albumId ->
+                                navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                            },
+                            onArtistClick = { artistName ->
+                                navController.navigate(Screen.ArtistDetail.createRoute(artistName))
+                            }
+                        )
+                    }
                 }
-            )
-        }
-        composable(
-            route = Screen.AlbumDetail.route,
-            arguments = listOf(navArgument(Screen.AlbumDetail.albumIdArg) { type = NavType.LongType })
-        ) {
-            AlbumDetailScreen(
-                onBackClick = { navController.safePopBackStack() },
-                onSongClick = { _ -> 
-                    // Just play, don't navigate
+                composable(Screen.Queue.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        com.gemini.music.ui.queue.QueueScreen(
+                            onBackClick = { navController.safePopBackStack() }
+                        )
+                    }
                 }
-            )
-        }
-        composable(Screen.PlaylistList.route) {
-            com.gemini.music.ui.playlist.list.PlaylistListScreen(
-                onBackClick = { navController.safePopBackStack() },
-                onPlaylistClick = { id: Long ->
-                    navController.navigate(Screen.PlaylistDetail.createRoute(id))
+                composable(Screen.Favorites.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        com.gemini.music.ui.favorites.FavoritesScreen(
+                            onBackClick = { navController.safePopBackStack() }
+                        )
+                    }
                 }
-            )
-        }
-        composable(
-            route = Screen.PlaylistDetail.route,
-            arguments = listOf(navArgument(Screen.PlaylistDetail.playlistIdArg) { type = NavType.LongType })
-        ) {
-            com.gemini.music.ui.playlist.detail.PlaylistDetailScreen(
-                onBackClick = { navController.safePopBackStack() }
-            )
-        }
-        composable(
-            route = Screen.Equalizer.route,
-            arguments = listOf(navArgument(Screen.Equalizer.audioSessionIdArg) { type = NavType.IntType })
-        ) { backStackEntry ->
-            val audioSessionId = backStackEntry.arguments?.getInt(Screen.Equalizer.audioSessionIdArg) ?: 0
-            com.gemini.music.ui.equalizer.EqualizerScreen(
-                audioSessionId = audioSessionId,
-                onBackClick = { navController.safePopBackStack() }
-            )
-        }
-        composable(
-            route = Screen.ArtistDetail.route,
-            arguments = listOf(navArgument(Screen.ArtistDetail.artistNameArg) { type = NavType.StringType })
-        ) {
-            com.gemini.music.ui.artist.ArtistDetailScreen(
-                onBackClick = { navController.safePopBackStack() },
-                onAlbumClick = { albumId ->
-                    navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                composable(Screen.Albums.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        AlbumsScreen(
+                            onBackClick = { navController.safePopBackStack() },
+                            onAlbumClick = { albumId ->
+                                navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                            }
+                        )
+                    }
                 }
-            )
+                composable(
+                    route = Screen.AlbumDetail.route,
+                    arguments = listOf(navArgument(Screen.AlbumDetail.albumIdArg) { type = NavType.LongType })
+                ) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        AlbumDetailScreen(
+                            onBackClick = { navController.safePopBackStack() },
+                            onSongClick = { _ -> 
+                                // Just play, don't navigate
+                            }
+                        )
+                    }
+                }
+                composable(Screen.PlaylistList.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        com.gemini.music.ui.playlist.list.PlaylistListScreen(
+                            onBackClick = { navController.safePopBackStack() },
+                            onPlaylistClick = { id: Long ->
+                                navController.navigate(Screen.PlaylistDetail.createRoute(id))
+                            }
+                        )
+                    }
+                }
+                composable(
+                    route = Screen.PlaylistDetail.route,
+                    arguments = listOf(navArgument(Screen.PlaylistDetail.playlistIdArg) { type = NavType.LongType })
+                ) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        com.gemini.music.ui.playlist.detail.PlaylistDetailScreen(
+                            onBackClick = { navController.safePopBackStack() }
+                        )
+                    }
+                }
+                composable(
+                    route = Screen.Equalizer.route,
+                    arguments = listOf(navArgument(Screen.Equalizer.audioSessionIdArg) { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val audioSessionId = backStackEntry.arguments?.getInt(Screen.Equalizer.audioSessionIdArg) ?: 0
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        com.gemini.music.ui.equalizer.EqualizerScreen(
+                            audioSessionId = audioSessionId,
+                            onBackClick = { navController.safePopBackStack() }
+                        )
+                    }
+                }
+                composable(
+                    route = Screen.ArtistDetail.route,
+                    arguments = listOf(navArgument(Screen.ArtistDetail.artistNameArg) { type = NavType.StringType })
+                ) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        com.gemini.music.ui.artist.ArtistDetailScreen(
+                            onBackClick = { navController.safePopBackStack() },
+                            onAlbumClick = { albumId ->
+                                navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }
