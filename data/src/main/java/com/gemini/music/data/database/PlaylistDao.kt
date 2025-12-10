@@ -60,7 +60,21 @@ interface PlaylistDao {
         SELECT * FROM songs 
         INNER JOIN playlist_songs ON songs.id = playlist_songs.songId 
         WHERE playlist_songs.playlistId = :playlistId
-        ORDER BY playlist_songs.dateAdded ASC
+        ORDER BY playlist_songs.sortOrder ASC
     """)
     fun getSongsForPlaylist(playlistId: Long): Flow<List<SongEntity>>
+
+    @Query("UPDATE playlist_songs SET sortOrder = :newOrder WHERE playlistId = :playlistId AND songId = :songId")
+    suspend fun updateSongPosition(playlistId: Long, songId: Long, newOrder: Int)
+
+    @Query("SELECT COALESCE(MAX(sortOrder), 0) + 1 FROM playlist_songs WHERE playlistId = :playlistId")
+    suspend fun getNextSortOrder(playlistId: Long): Int
+
+    @Query("SELECT songId, sortOrder FROM playlist_songs WHERE playlistId = :playlistId ORDER BY sortOrder ASC")
+    suspend fun getSongsSortOrderSync(playlistId: Long): List<SongSortOrder>
+
+    data class SongSortOrder(
+        val songId: Long,
+        val sortOrder: Int
+    )
 }

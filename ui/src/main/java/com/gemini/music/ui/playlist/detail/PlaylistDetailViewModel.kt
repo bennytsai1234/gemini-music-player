@@ -64,4 +64,11 @@ class PlaylistDetailViewModel @Inject constructor(
             musicRepository.renamePlaylist(playlistId, newName)
         }
     }
+
+    fun moveSong(fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex) return
+        viewModelScope.launch {
+            musicRepository.moveSongInPlaylist(playlistId, fromIndex, toIndex)
+        }
+    }
 }

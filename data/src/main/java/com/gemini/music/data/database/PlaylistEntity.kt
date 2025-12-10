@@ -14,5 +14,6 @@ data class PlaylistEntity(
 data class PlaylistSongCrossRef(
     val playlistId: Long,
     val songId: Long,
-    val dateAdded: Long = System.currentTimeMillis()
+    val dateAdded: Long = System.currentTimeMillis(),
+    val sortOrder: Int = 0
 )

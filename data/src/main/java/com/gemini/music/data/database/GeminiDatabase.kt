@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [SongEntity::class, PlaylistEntity::class, PlaylistSongCrossRef::class, FavoriteEntity::class, LyricsEntity::class], 
-    version = 4, 
+    version = 5, 
     exportSchema = false
 )
 abstract class GeminiDatabase : RoomDatabase() {

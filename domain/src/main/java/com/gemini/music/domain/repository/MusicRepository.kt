@@ -45,6 +45,7 @@ interface MusicRepository {
     suspend fun deletePlaylist(playlistId: Long)
     suspend fun addSongToPlaylist(playlistId: Long, songId: Long)
     suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long)
+    suspend fun moveSongInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int)
     suspend fun renamePlaylist(playlistId: Long, name: String)
 
     // --- Favorites Management ---

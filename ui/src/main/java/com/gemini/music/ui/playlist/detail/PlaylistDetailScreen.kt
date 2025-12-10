@@ -1,59 +1,45 @@
 package com.gemini.music.ui.playlist.detail
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.asComposeRenderEffect
-import androidx.compose.ui.draw.shadow
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.rounded.DragIndicator
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.gemini.music.ui.component.EmptyState
-import com.gemini.music.ui.component.SongListItem
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.Column
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Edit
+import com.gemini.music.domain.model.Song
+import com.gemini.music.ui.component.EmptyState
+import com.gemini.music.ui.component.SongListItem
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -63,8 +49,9 @@ fun PlaylistDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var showMenu by remember { androidx.compose.runtime.mutableStateOf(false) }
-    var showRenameDialog by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var isReorderMode by remember { mutableStateOf(false) }
 
     if (showRenameDialog) {
         RenamePlaylistDialog(
@@ -87,14 +74,20 @@ fun PlaylistDetailScreen(
                     }
                 },
                 actions = {
+                    // Reorder Toggle Button
+                    if (uiState.songs.size > 1) {
+                        TextButton(onClick = { isReorderMode = !isReorderMode }) {
+                            Text(if (isReorderMode) "Done" else "Edit")
+                        }
+                    }
                     IconButton(onClick = { showMenu = true }) {
                         Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
                     }
-                    androidx.compose.material3.DropdownMenu(
+                    DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
-                        androidx.compose.material3.DropdownMenuItem(
+                        DropdownMenuItem(
                             text = { Text("Rename Playlist") },
                             onClick = {
                                 showMenu = false
@@ -114,7 +107,7 @@ fun PlaylistDetailScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (uiState.songs.isEmpty()) {
-             Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Box(modifier = Modifier.padding(padding).fillMaxSize()) {
                 EmptyState(
                     icon = Icons.AutoMirrored.Rounded.QueueMusic,
                     title = "Empty Playlist",
@@ -122,60 +115,232 @@ fun PlaylistDetailScreen(
                 )
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(bottom = 100.dp)
-            ) {
-                item {
-                    val playlist = uiState.playlist
-                    if (playlist != null) {
-                         PlaylistHeader(playlist = playlist)
-                    }
-                }
-                items(
-                    items = uiState.songs,
-                    key = { it.id }
-                ) { song ->
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = {
-                            if (it == SwipeToDismissBoxValue.EndToStart) {
-                                viewModel.removeSong(song.id)
-                                true
-                            } else {
-                                false
-                            }
-                        }
-                    )
+            ReorderableSongList(
+                songs = uiState.songs,
+                playlist = uiState.playlist,
+                isReorderMode = isReorderMode,
+                onSongClick = { viewModel.playSong(it) },
+                onRemoveSong = { viewModel.removeSong(it.id) },
+                onMoveSong = { from, to -> viewModel.moveSong(from, to) },
+                modifier = Modifier.padding(padding)
+            )
+        }
+    }
+}
 
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 20.dp),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Delete,
-                                    contentDescription = "Remove",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        },
-                        content = {
-                            SongListItem(
-                                song = song,
-                                onClick = { viewModel.playSong(song) },
-                                modifier = Modifier.background(MaterialTheme.colorScheme.background)
-                            )
-                        }
-                    )
-                }
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ReorderableSongList(
+    songs: List<Song>,
+    playlist: com.gemini.music.domain.model.Playlist?,
+    isReorderMode: Boolean,
+    onSongClick: (Song) -> Unit,
+    onRemoveSong: (Song) -> Unit,
+    onMoveSong: (fromIndex: Int, toIndex: Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val hapticFeedback = LocalHapticFeedback.current
+    
+    // Track dragging state
+    var draggedItemIndex by remember { mutableStateOf<Int?>(null) }
+    var draggedOverIndex by remember { mutableStateOf<Int?>(null) }
+
+    LazyColumn(
+        state = listState,
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 100.dp)
+    ) {
+        // Header
+        item {
+            if (playlist != null) {
+                PlaylistHeader(playlist = playlist)
             }
         }
+        
+        itemsIndexed(
+            items = songs,
+            key = { _, song -> song.id }
+        ) { index, song ->
+            val isDragging = draggedItemIndex == index
+            val isDraggedOver = draggedOverIndex == index && draggedItemIndex != null && draggedItemIndex != index
+            
+            val elevation by animateDpAsState(
+                targetValue = if (isDragging) 8.dp else 0.dp,
+                label = "DragElevation"
+            )
+            
+            val backgroundColor = when {
+                isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+                isDraggedOver -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                else -> Color.Transparent
+            }
+            
+            if (isReorderMode) {
+                // Reorder mode: show drag handle
+                DraggableSongItem(
+                    song = song,
+                    index = index,
+                    elevation = elevation,
+                    backgroundColor = backgroundColor,
+                    onDragStart = {
+                        draggedItemIndex = index
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    },
+                    onDragEnd = {
+                        if (draggedItemIndex != null && draggedOverIndex != null && draggedItemIndex != draggedOverIndex) {
+                            onMoveSong(draggedItemIndex!!, draggedOverIndex!!)
+                        }
+                        draggedItemIndex = null
+                        draggedOverIndex = null
+                    },
+                    onDragOver = { targetIndex ->
+                        if (targetIndex in songs.indices && targetIndex != draggedItemIndex) {
+                            draggedOverIndex = targetIndex
+                        }
+                    },
+                    totalItems = songs.size,
+                    listState = listState,
+                    scope = scope
+                )
+            } else {
+                // Normal mode: swipe to dismiss
+                SwipeToDeleteSongItem(
+                    song = song,
+                    onClick = { onSongClick(song) },
+                    onRemove = { onRemoveSong(song) }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeToDeleteSongItem(
+    song: Song,
+    onClick: () -> Unit,
+    onRemove: () -> Unit
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            if (it == SwipeToDismissBoxValue.EndToStart) {
+                onRemove()
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    Icons.Rounded.Delete,
+                    contentDescription = "Remove",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        content = {
+            SongListItem(
+                song = song,
+                onClick = onClick,
+                modifier = Modifier.background(MaterialTheme.colorScheme.background)
+            )
+        }
+    )
+}
+
+@Composable
+private fun DraggableSongItem(
+    song: Song,
+    index: Int,
+    elevation: androidx.compose.ui.unit.Dp,
+    backgroundColor: Color,
+    onDragStart: () -> Unit,
+    onDragEnd: () -> Unit,
+    onDragOver: (Int) -> Unit,
+    totalItems: Int,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    var accumulatedDrag by remember { mutableStateOf(0f) }
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(elevation = elevation)
+            .background(backgroundColor)
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Drag Handle
+        Icon(
+            imageVector = Icons.Rounded.DragIndicator,
+            contentDescription = "Drag to reorder",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .padding(8.dp)
+                .size(24.dp)
+                .pointerInput(Unit) {
+                    detectDragGesturesAfterLongPress(
+                        onDragStart = {
+                            accumulatedDrag = 0f
+                            onDragStart()
+                        },
+                        onDragEnd = {
+                            onDragEnd()
+                        },
+                        onDragCancel = {
+                            onDragEnd()
+                        },
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            accumulatedDrag += dragAmount.y
+                            
+                            // Calculate how many positions we've moved
+                            val itemHeight = 72f // Approximate height of a song item
+                            val positionOffset = (accumulatedDrag / itemHeight).toInt()
+                            val newTargetIndex = (index + positionOffset).coerceIn(0, totalItems - 1)
+                            
+                            onDragOver(newTargetIndex)
+                            
+                            // Auto-scroll if near edges
+                            val visibleItems = listState.layoutInfo.visibleItemsInfo
+                            if (visibleItems.isNotEmpty()) {
+                                val firstVisible = visibleItems.first().index
+                                val lastVisible = visibleItems.last().index
+                                
+                                if (newTargetIndex <= firstVisible + 1 && firstVisible > 0) {
+                                    scope.launch {
+                                        listState.animateScrollToItem(firstVisible - 1)
+                                    }
+                                } else if (newTargetIndex >= lastVisible - 1 && lastVisible < totalItems - 1) {
+                                    scope.launch {
+                                        listState.animateScrollToItem(firstVisible + 1)
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+        )
+        
+        // Song Info
+        SongListItem(
+            song = song,
+            onClick = { /* Disabled during reorder mode */ },
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
@@ -184,7 +349,7 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(280.dp) // Fixed height for header area
+            .height(280.dp)
     ) {
         val coverArtUri = playlist.coverArtUri
         
@@ -204,13 +369,13 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
                          renderEffect = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                              android.graphics.RenderEffect.createBlurEffect(50f, 50f, android.graphics.Shader.TileMode.MIRROR).asComposeRenderEffect()
                          } else {
-                             null // Fallback for older versions
+                             null
                          }
                     }
             )
         }
         
-        // Gradient Overlay (Fade to bottom)
+        // Gradient Overlay
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -292,13 +457,13 @@ fun RenamePlaylistDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
-    var text by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(currentName) }
+    var text by remember { mutableStateOf(currentName) }
 
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Rename Playlist") },
         text = {
-            androidx.compose.material3.OutlinedTextField(
+            OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
                 label = { Text("Name") },
@@ -306,14 +471,14 @@ fun RenamePlaylistDialog(
             )
         },
         confirmButton = {
-            androidx.compose.material3.TextButton(
+            TextButton(
                 onClick = { if (text.isNotBlank()) onConfirm(text) }
             ) {
                 Text("Save")
             }
         },
         dismissButton = {
-            androidx.compose.material3.TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss) {
                 Text("Cancel")
             }
         }

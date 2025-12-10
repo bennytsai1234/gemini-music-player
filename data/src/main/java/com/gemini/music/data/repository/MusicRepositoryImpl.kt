@@ -149,13 +149,34 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addSongToPlaylist(playlistId: Long, songId: Long) {
+        val nextOrder = playlistDao.getNextSortOrder(playlistId)
         playlistDao.insertPlaylistSongCrossRef(
-            com.gemini.music.data.database.PlaylistSongCrossRef(playlistId, songId)
+            com.gemini.music.data.database.PlaylistSongCrossRef(
+                playlistId = playlistId,
+                songId = songId,
+                sortOrder = nextOrder
+            )
         )
     }
 
     override suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long) {
         playlistDao.removeSongFromPlaylist(playlistId, songId)
+    }
+
+    override suspend fun moveSongInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex) return
+        
+        val sortOrders = playlistDao.getSongsSortOrderSync(playlistId).toMutableList()
+        if (fromIndex !in sortOrders.indices || toIndex !in sortOrders.indices) return
+        
+        // Move the item in the list
+        val item = sortOrders.removeAt(fromIndex)
+        sortOrders.add(toIndex, item)
+        
+        // Update all sort orders based on new positions
+        sortOrders.forEachIndexed { index, songSortOrder ->
+            playlistDao.updateSongPosition(playlistId, songSortOrder.songId, index)
+        }
     }
 
     override suspend fun renamePlaylist(playlistId: Long, name: String) {
