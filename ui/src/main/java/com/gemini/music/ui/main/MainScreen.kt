@@ -128,6 +128,9 @@ fun MainScreen(
                             onAlbumClick = { albumId ->
                                 scope.launch { sheetState.animateTo(PlayerSheetValue.Collapsed) }
                                 navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                            },
+                            onArtworkLoaded = { bitmap ->
+                                viewModel.updateDynamicTheme(bitmap)
                             }
                         )
                     }

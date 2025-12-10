@@ -95,21 +95,24 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.animation.scaleIn
 
 
+import androidx.compose.runtime.saveable.rememberSaveable
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingScreen(
     onBackClick: () -> Unit,
     onQueueClick: () -> Unit,
     onAlbumClick: (albumId: Long) -> Unit = {},
+    onArtworkLoaded: (Bitmap) -> Unit = {},
     viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
-    var showLyrics by remember { mutableStateOf(false) }
+    var showLyrics by rememberSaveable { mutableStateOf(false) }
 
-    var showMoreOptions by remember { mutableStateOf(false) }
+    var showMoreOptions by rememberSaveable { mutableStateOf(false) }
     
-    var showAddToPlaylist by remember { mutableStateOf(false) }
+    var showAddToPlaylist by rememberSaveable { mutableStateOf(false) }
 
     if (showMoreOptions) {
         ModalBottomSheet(
@@ -287,6 +290,7 @@ fun NowPlayingScreen(
                         isPlaying = uiState.isPlaying,
                         onImageLoaded = { bitmap ->
                             viewModel.onEvent(NowPlayingEvent.UpdatePalette(bitmap))
+                            onArtworkLoaded(bitmap)
                         },
                         onClick = { showLyrics = true },
                         onSwipeLeft = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
