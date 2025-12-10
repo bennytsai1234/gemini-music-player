@@ -105,7 +105,10 @@ fun MusicNavigation(navController: NavHostController) {
         }
         composable(Screen.Search.route) {
             SearchScreen(
-                onBackClick = { navController.safePopBackStack() }
+                onBackClick = { navController.safePopBackStack() },
+                onAlbumClick = { albumId ->
+                    navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                }
             )
         }
         composable(Screen.Queue.route) {
