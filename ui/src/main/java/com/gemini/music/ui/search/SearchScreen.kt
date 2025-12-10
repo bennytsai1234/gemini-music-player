@@ -35,6 +35,7 @@ import com.gemini.music.ui.component.SongListItem
 fun SearchScreen(
     onBackClick: () -> Unit,
     onAlbumClick: (Long) -> Unit = {},
+    onArtistClick: (String) -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -132,7 +133,8 @@ fun SearchScreen(
                                 ListItem(
                                     headlineContent = { Text(artist.name) },
                                     supportingContent = { Text("${artist.songCount} songs") },
-                                    leadingContent = { Icon(Icons.Rounded.Person, null) }
+                                    leadingContent = { Icon(Icons.Rounded.Person, null) },
+                                    modifier = Modifier.clickable { onArtistClick(artist.name) }
                                 )
                             }
                         }

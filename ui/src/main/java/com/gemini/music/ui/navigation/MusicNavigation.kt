@@ -68,6 +68,10 @@ sealed class Screen(val route: String) {
         const val audioSessionIdArg = "audioSessionId"
         fun createRoute(audioSessionId: Int) = "equalizer/$audioSessionId"
     }
+    data object ArtistDetail : Screen("artist_detail/{artistName}") {
+        const val artistNameArg = "artistName"
+        fun createRoute(artistName: String) = "artist_detail/${java.net.URLEncoder.encode(artistName, "UTF-8")}"
+    }
 }
 
 @Composable
@@ -112,6 +116,9 @@ fun MusicNavigation(navController: NavHostController) {
                 onBackClick = { navController.safePopBackStack() },
                 onAlbumClick = { albumId ->
                     navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                },
+                onArtistClick = { artistName ->
+                    navController.navigate(Screen.ArtistDetail.createRoute(artistName))
                 }
             )
         }
@@ -168,6 +175,17 @@ fun MusicNavigation(navController: NavHostController) {
             com.gemini.music.ui.equalizer.EqualizerScreen(
                 audioSessionId = audioSessionId,
                 onBackClick = { navController.safePopBackStack() }
+            )
+        }
+        composable(
+            route = Screen.ArtistDetail.route,
+            arguments = listOf(navArgument(Screen.ArtistDetail.artistNameArg) { type = NavType.StringType })
+        ) {
+            com.gemini.music.ui.artist.ArtistDetailScreen(
+                onBackClick = { navController.safePopBackStack() },
+                onAlbumClick = { albumId ->
+                    navController.navigate(Screen.AlbumDetail.createRoute(albumId))
+                }
             )
         }
     }

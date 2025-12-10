@@ -2,6 +2,7 @@ package com.gemini.music.ui.main
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
@@ -72,19 +73,14 @@ fun MainScreen(
                 }
             }
 
-            val sheetState = androidx.compose.runtime.saveable.rememberSaveable(
-                saver = AnchoredDraggableState.Saver(
-                    animationSpec = tween(200),
-                    positionalThreshold = { distance: Float -> distance * 0.5f },
-                    velocityThreshold = { with(density) { 100.dp.toPx() } }
-                )
-            ) {
+            val sheetState = remember(sheetAnchors) {
                 AnchoredDraggableState(
                     initialValue = PlayerSheetValue.Collapsed,
                     anchors = sheetAnchors,
                     positionalThreshold = { distance: Float -> distance * 0.5f },
                     velocityThreshold = { with(density) { 100.dp.toPx() } },
-                    animationSpec = tween(200)
+                    snapAnimationSpec = tween(200),
+                    decayAnimationSpec = exponentialDecay()
                 )
             }
             
