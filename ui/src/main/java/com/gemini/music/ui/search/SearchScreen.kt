@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Person
@@ -77,6 +78,43 @@ fun SearchScreen(
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                    } else if (uiState.query.isEmpty()) {
+                        // Recent Searches
+                        if (uiState.recentSearches.isNotEmpty()) {
+                            item {
+                                androidx.compose.foundation.layout.Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+                                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                                    androidx.compose.ui.Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Recent Searches",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "Clear All",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.clickable { viewModel.clearHistory() }
+                                    )
+                                }
+                            }
+                            items(uiState.recentSearches) { historyItem ->
+                                ListItem(
+                                    headlineContent = { Text(historyItem) },
+                                    leadingContent = { Icon(androidx.compose.material.icons.Icons.Rounded.History, null) },
+                                    trailingContent = {
+                                        IconButton(onClick = { viewModel.removeHistoryItem(historyItem) }) {
+                                            Icon(Icons.Rounded.Close, contentDescription = "Remove")
+                                        }
+                                    },
+                                    modifier = Modifier.clickable { viewModel.onQueryChange(historyItem) }
+                                )
+                            }
                         }
                     } else {
                         // Songs Section

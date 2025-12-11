@@ -63,14 +63,17 @@ fun SwipeablePlayerSheet(
                 )
         ) {
             // FULL PLAYER CONTENT
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        alpha = progress
-                    }
-            ) {
-                expandedContent()
+            // Only compose when sheet starts expanding to avoid ViewModel running in background
+            if (progress > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            alpha = progress
+                        }
+                ) {
+                    expandedContent()
+                }
             }
 
             // MINI PLAYER CONTENT

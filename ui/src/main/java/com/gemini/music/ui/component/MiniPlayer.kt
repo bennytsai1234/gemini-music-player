@@ -56,6 +56,7 @@ fun MiniPlayer(
     onPlayPauseClick: () -> Unit,
     onQueueClick: () -> Unit,
     onClick: () -> Unit,
+    onArtworkLoaded: (android.graphics.Bitmap) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val isClickable = song != null
@@ -66,13 +67,13 @@ fun MiniPlayer(
     // Animated background color
     val backgroundColor by animateColorAsState(
         targetValue = animatedColors?.surface ?: MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "MiniPlayerBg"
     )
     
     val accentColor by animateColorAsState(
         targetValue = animatedColors?.accent ?: MaterialTheme.colorScheme.primary,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "MiniPlayerAccent"
     )
 
@@ -97,7 +98,8 @@ fun MiniPlayer(
                 progress = progress,
                 accentColor = accentColor,
                 onPlayPauseClick = onPlayPauseClick,
-                onQueueClick = onQueueClick
+                onQueueClick = onQueueClick,
+                onArtworkLoaded = onArtworkLoaded
             )
         }
     }
@@ -173,7 +175,8 @@ private fun FullMiniPlayer(
     progress: Float,
     accentColor: Color,
     onPlayPauseClick: () -> Unit,
-    onQueueClick: () -> Unit
+    onQueueClick: () -> Unit,
+    onArtworkLoaded: (android.graphics.Bitmap) -> Unit
 ) {
     Box {
         Row(
@@ -187,9 +190,16 @@ private fun FullMiniPlayer(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(song.albumArtUri)
                     .crossfade(true)
+                    .allowHardware(false) // Important for Palette extraction
                     .build(),
                 contentDescription = "Mini Player Art",
                 contentScale = ContentScale.Crop,
+                onSuccess = { result ->
+                    val bitmap = (result.result.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                    if (bitmap != null) {
+                        onArtworkLoaded(bitmap)
+                    }
+                },
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))

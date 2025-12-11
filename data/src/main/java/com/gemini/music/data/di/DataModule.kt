@@ -32,4 +32,9 @@ abstract class DataModule {
     abstract fun bindUserPreferencesRepository(
         userPreferencesRepositoryImpl: com.gemini.music.data.repository.UserPreferencesRepositoryImpl
     ): com.gemini.music.domain.repository.UserPreferencesRepository
+
+    @Binds
+    abstract fun bindSearchRepository(
+        searchRepositoryImpl: com.gemini.music.data.repository.SearchRepositoryImpl
+    ): com.gemini.music.domain.repository.SearchRepository
 }

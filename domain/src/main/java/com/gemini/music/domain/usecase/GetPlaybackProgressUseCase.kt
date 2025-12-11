@@ -30,7 +30,7 @@ class GetPlaybackProgressUseCase @Inject constructor(
                      emit(current.toFloat() / duration.toFloat())
                  }
             }
-            delay(50L) // Update every 50ms (20fps) for smoother UI
+            delay(100L) // Update every 100ms (10fps) - sufficient for progress bar
         }
     }
 }

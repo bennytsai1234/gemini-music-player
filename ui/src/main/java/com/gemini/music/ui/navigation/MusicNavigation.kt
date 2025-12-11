@@ -37,20 +37,16 @@ fun NavHostController.safePopBackStack(): Boolean {
     }
 }
 
-// Fast navigation animation specs
-private const val NAV_ANIMATION_DURATION = 300
+// Fast navigation animation specs with linear easing for snappy feel
+private const val NAV_ANIMATION_DURATION = 150
 
-private val enterTransition = fadeIn(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
-    slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { it / 4 }
+private val enterTransition = androidx.compose.animation.EnterTransition.None
 
-private val exitTransition = fadeOut(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
-    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { -it / 4 }
+private val exitTransition = androidx.compose.animation.ExitTransition.None
 
-private val popEnterTransition = fadeIn(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
-    slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { -it / 4 }
+private val popEnterTransition = androidx.compose.animation.EnterTransition.None
 
-private val popExitTransition = fadeOut(animationSpec = tween(NAV_ANIMATION_DURATION)) + 
-    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION)) { it / 4 }
+private val popExitTransition = androidx.compose.animation.ExitTransition.None
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")

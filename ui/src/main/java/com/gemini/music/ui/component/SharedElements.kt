@@ -46,7 +46,7 @@ fun SharedAlbumCover(
                 state = rememberSharedContentState(key = SharedElementKeys.albumCover(albumId)),
                 animatedVisibilityScope = animatedContentScope,
                 boundsTransform = { _, _ ->
-                    tween(durationMillis = 400)
+                    tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing)
                 }
             )
         }
@@ -89,7 +89,7 @@ fun SharedSongCover(
                 state = rememberSharedContentState(key = SharedElementKeys.songCover(songId)),
                 animatedVisibilityScope = animatedContentScope,
                 boundsTransform = { _, _ ->
-                    tween(durationMillis = 400)
+                    tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing)
                 }
             )
         }
@@ -128,7 +128,7 @@ fun Modifier.sharedBounds(
                 animatedVisibilityScope = animatedContentScope,
                 enter = if (enter) androidx.compose.animation.fadeIn() else androidx.compose.animation.EnterTransition.None,
                 exit = if (enter) androidx.compose.animation.fadeOut() else androidx.compose.animation.ExitTransition.None,
-                boundsTransform = { _, _ -> tween(400) }
+                boundsTransform = { _, _ -> tween(150, easing = androidx.compose.animation.core.LinearEasing) }
             )
         }
     } else {

@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 import com.gemini.music.domain.model.Album
 import com.gemini.music.domain.model.Artist
+import com.gemini.music.domain.repository.SearchRepository
 import com.gemini.music.domain.usecase.GetAlbumsUseCase
 import com.gemini.music.domain.usecase.GetArtistsUseCase
 
@@ -22,7 +24,8 @@ data class SearchUiState(
     val query: String = "",
     val songs: List<Song> = emptyList(),
     val albums: List<Album> = emptyList(),
-    val artists: List<Artist> = emptyList()
+    val artists: List<Artist> = emptyList(),
+    val recentSearches: List<String> = emptyList()
 )
 
 @HiltViewModel
@@ -30,7 +33,8 @@ class SearchViewModel @Inject constructor(
     getSongsUseCase: GetSongsUseCase,
     getAlbumsUseCase: GetAlbumsUseCase,
     getArtistsUseCase: GetArtistsUseCase,
-    private val playSongUseCase: PlaySongUseCase
+    private val playSongUseCase: PlaySongUseCase,
+    private val searchRepository: SearchRepository
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -45,14 +49,18 @@ class SearchViewModel @Inject constructor(
     private val allArtists = getArtistsUseCase()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private val recentSearches = searchRepository.getRecentSearches()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     val uiState: StateFlow<SearchUiState> = combine(
         _searchQuery,
         allSongs,
         allAlbums,
-        allArtists
-    ) { query, songs, albums, artists ->
+        allArtists,
+        recentSearches
+    ) { query, songs, albums, artists, recent ->
         if (query.isBlank()) {
-            SearchUiState(query = query)
+            SearchUiState(query = query, recentSearches = recent)
         } else {
             SearchUiState(
                 query = query,
@@ -66,7 +74,8 @@ class SearchViewModel @Inject constructor(
                 },
                 artists = artists.filter { 
                     it.name.contains(query, ignoreCase = true) 
-                }
+                },
+                recentSearches = recent
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchUiState())
@@ -76,10 +85,39 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onSongClick(song: Song) {
+        addToHistory(_searchQuery.value)
         val currentResults = uiState.value.songs
         val index = currentResults.indexOf(song)
         if (index != -1) {
             playSongUseCase(currentResults, index)
+        }
+    }
+    
+    fun onAlbumClick(album: Album) {
+        addToHistory(_searchQuery.value)
+    }
+
+    fun onArtistClick(artist: Artist) {
+        addToHistory(_searchQuery.value)
+    }
+    
+    fun addToHistory(query: String) {
+        if (query.isNotBlank()) {
+            viewModelScope.launch {
+                searchRepository.addSearch(query)
+            }
+        }
+    }
+
+    fun removeHistoryItem(query: String) {
+        viewModelScope.launch {
+            searchRepository.removeSearch(query)
+        }
+    }
+
+    fun clearHistory() {
+        viewModelScope.launch {
+            searchRepository.clearHistory()
         }
     }
 }

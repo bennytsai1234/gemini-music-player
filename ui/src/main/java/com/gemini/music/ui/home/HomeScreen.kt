@@ -133,14 +133,32 @@ fun HomeScreen(
 
     androidx.compose.runtime.LaunchedEffect(recoverableAction) {
         recoverableAction?.let { exception ->
-            val intentSenderRequest = IntentSenderRequest.Builder(exception.userAction.actionIntent.intentSender).build()
-            intentSenderLauncher.launch(intentSenderRequest)
+            // RecoverableSecurityException.userAction requires API 29+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                val intentSenderRequest = IntentSenderRequest.Builder(exception.userAction.actionIntent.intentSender).build()
+                intentSenderLauncher.launch(intentSenderRequest)
+            }
         }
     }
 
     // Trigger scan when screen is first composed
     androidx.compose.runtime.LaunchedEffect(Unit) {
         viewModel.scanMusic()
+    }
+    
+    // Refresh on Resume (e.g. after permission grant)
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                // Check permissions or just trigger scan which handles empty results gracefully
+                viewModel.scanMusic()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     // Back Handler for Selection Mode or Drawer
@@ -343,41 +361,44 @@ fun HomeScreen(
 
                     if (uiState.songs.isEmpty() && !uiState.isLoading) {
                         EmptyState(
-                            icon = androidx.compose.material.icons.Icons.Rounded.Menu, // Placeholder
+                            icon = androidx.compose.material.icons.Icons.Rounded.Menu,
                             title = stringResource(com.gemini.music.ui.R.string.no_songs),
                             message = stringResource(com.gemini.music.ui.R.string.no_songs_message)
                         )
                     } else {
-                        SongList(
-                            songs = uiState.songs,
-                            selectedIds = uiState.selectedSongIds,
-                            isSelectionMode = uiState.isSelectionMode,
-                            listState = listState,
-                            onSongClick = { song ->
-                                if (uiState.isSelectionMode) {
-                                    viewModel.toggleSongSelection(song.id)
-                                } else {
-                                    viewModel.playSong(song)
-                                    onSongClick(song)
-                                }
-                            },
-                            onSongLongClick = { song ->
-                                if (!uiState.isSelectionMode) {
-                                    viewModel.enterSelectionMode()
-                                    viewModel.toggleSongSelection(song.id)
-                                }
-                            }
-                        )
+                        // Use Row to place SongList and FastScroller side-by-side
+                        // This prevents gesture interference that causes scroll jank
+                        Row(modifier = Modifier.fillMaxSize()) {
+                            SongList(
+                                songs = uiState.songs,
+                                selectedIds = uiState.selectedSongIds,
+                                isSelectionMode = uiState.isSelectionMode,
+                                listState = listState,
+                                onSongClick = { song ->
+                                    if (uiState.isSelectionMode) {
+                                        viewModel.toggleSongSelection(song.id)
+                                    } else {
+                                        viewModel.playSong(song)
+                                        onSongClick(song)
+                                    }
+                                },
+                                onSongLongClick = { song ->
+                                    if (!uiState.isSelectionMode) {
+                                        viewModel.enterSelectionMode()
+                                        viewModel.toggleSongSelection(song.id)
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                            
+                            // FastScroller as sibling, not overlay
+                            FastScroller(
+                                listState = listState,
+                                songs = uiState.songs,
+                                modifier = Modifier.padding(bottom = 80.dp) // Space for MiniPlayer
+                            )
+                        }
                     }
-                }
-                
-                // A-Z Scroller Overlay
-                if (uiState.songs.isNotEmpty()) {
-                    FastScroller(
-                        listState = listState,
-                        songs = uiState.songs,
-                        modifier = Modifier.align(Alignment.CenterEnd)
-                    )
                 }
             }
         }
@@ -544,12 +565,13 @@ fun SongList(
     isSelectionMode: Boolean,
     listState: LazyListState,
     onSongClick: (Song) -> Unit,
-    onSongLongClick: (Song) -> Unit
+    onSongLongClick: (Song) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     LazyColumn(
         state = listState,
-        contentPadding = PaddingValues(bottom = 100.dp, end = 32.dp), // Space for MiniPlayer & FastScroller
-        modifier = Modifier.fillMaxSize()
+        contentPadding = PaddingValues(bottom = 100.dp), // Space for MiniPlayer
+        modifier = modifier.fillMaxSize()
     ) {
         items(
             items = songs,
@@ -562,10 +584,7 @@ fun SongList(
                 isSelected = isSelected,
                 isSelectionMode = isSelectionMode,
                 onClick = { onSongClick(song) },
-                onLongClick = { onSongLongClick(song) },
-                modifier = Modifier.animateItemPlacement(
-                    animationSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing)
-                )
+                onLongClick = { onSongLongClick(song) }
             )
         }
     }
@@ -675,28 +694,31 @@ fun FastScroller(
         Column(
             modifier = Modifier
                 .width(24.dp)
+                .fillMaxHeight()
                 .background(
                     if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f) 
                     else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), 
                     RoundedCornerShape(12.dp)
-                )
-                .padding(vertical = 8.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             alphabet.forEach { char ->
                 val isPresent = sections.containsKey(char)
-                Text(
-                    text = char.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 10.sp,
-                    // Dim characters that don't have sections
-                    color = if (activeChar == char) MaterialTheme.colorScheme.primary 
-                            else if (isPresent) MaterialTheme.colorScheme.onSurfaceVariant 
-                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                    fontWeight = if (activeChar == char) FontWeight.Bold else FontWeight.Medium,
-                    modifier = Modifier.padding(vertical = 0.dp)
-                )
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = char.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 10.sp,
+                        // Dim characters that don't have sections
+                        color = if (activeChar == char) MaterialTheme.colorScheme.primary 
+                                else if (isPresent) MaterialTheme.colorScheme.onSurfaceVariant 
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                        fontWeight = if (activeChar == char) FontWeight.Bold else FontWeight.Medium,
+                    )
+                }
             }
         }
         

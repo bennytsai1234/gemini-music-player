@@ -113,7 +113,7 @@ private fun LyricLineView(
 ) {
     val scale by animateFloatAsState(
         targetValue = if (isCurrentLine) 1.1f else 1f,
-        animationSpec = tween(300),
+        animationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing),
         label = "LyricScale"
     )
     
@@ -123,7 +123,7 @@ private fun LyricLineView(
             isPastLine -> 0.4f
             else -> 0.6f
         },
-        animationSpec = tween(300),
+        animationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing),
         label = "LyricAlpha"
     )
 
@@ -253,7 +253,7 @@ private fun StandardLyricLine(
             isPastLine -> highlightColor.copy(alpha = 0.6f)
             else -> normalColor
         },
-        animationSpec = tween(300),
+        animationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing),
         label = "LineColor"
     )
 

@@ -39,7 +39,7 @@ class GetFormattedPlaybackStateUseCase @Inject constructor(
                  emit(FormattedPlaybackState())
             }
 
-            delay(50) // Update faster for smooth UI
+            delay(100) // Update every 100ms (10fps)
         }
     }
 

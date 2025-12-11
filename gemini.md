@@ -71,7 +71,14 @@
 *   **權限策略 (Permission Strategy)**: 
     *   針對 Android 13+ (API 33+) 的 `POST_NOTIFICATIONS` 與細分媒體權限 (`READ_MEDIA_AUDIO` 等)，**必須**在相關功能啟動前 (如 `MainActivity.onCreate` 或播放前) 進行檢查與請求。
     *   永遠不要假設權限已被授予。
-
+#### **§4 列表效能優化 (List Performance Optimization)**
+*   **狀態穩定性 (State Stability)**:
+    *   所有 UI State 類別（特別是包含 `List` 的）**必須**標註 `@Immutable` 或 `@Stable`。這能啟用 Compose 的智慧重組跳過機制 (Smart Recomposition Skipping)。
+*   **佈局穩定性 (Layout Stability)**:
+    *   **固定高度優先**: 在複雜列表 (`LazyColumn`) 中，如果可能，**強制設定項目為固定高度** (e.g., `Modifier.height(72.dp)`)。這能大幅減少測量開銷並消除滾動抖動 (Scroll Jitter)。
+*   **輕量化渲染 (Lightweight Rendering)**:
+    *   **移除 Heavy Wrappers**: 避免在列表項中使用高開銷容器（如 `Card`），改用輕量級 Modifier（如 `Modifier.clip()`, `Modifier.border()`）。
+    *   **圖片載入優化**: 使用 Coil 時，**必須**指定 `.size()` (載入縮圖)、`.memoryCacheKey()` 並明確指定 `Dispatchers.IO`，避免主線程阻塞。
 ---
 ---
 

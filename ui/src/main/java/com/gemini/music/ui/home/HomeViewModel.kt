@@ -21,6 +21,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,6 +32,7 @@ enum class SortOption {
     TITLE, ARTIST, ALBUM, DATE_ADDED, DURATION
 }
 
+@androidx.compose.runtime.Immutable
 data class HomeUiState(
     val songs: List<Song> = emptyList(),
     val recentlyAdded: List<Song> = emptyList(),
@@ -94,12 +99,12 @@ class HomeViewModel @Inject constructor(
         _dataFlow,
         _controlsFlow
     ) { data, controls ->
-    // Apply Sorting
+        // Apply Sorting
         val sortedSongs = when (controls.sortOption) {
             SortOption.TITLE -> data.songs.sortedBy { it.title }
             SortOption.ARTIST -> data.songs.sortedBy { it.artist }
             SortOption.ALBUM -> data.songs.sortedBy { it.album }
-            SortOption.DATE_ADDED -> data.songs.sortedByDescending { it.dateAdded } // Default to newest
+            SortOption.DATE_ADDED -> data.songs.sortedByDescending { it.dateAdded }
             SortOption.DURATION -> data.songs.sortedByDescending { it.duration }
         }
 
@@ -268,10 +273,16 @@ class HomeViewModel @Inject constructor(
                      deleteSongUseCase(song)
                      // If success, remove from selection so we don't try to delete again on retry
                      toggleSongSelection(song.id)
-                 } catch (e: android.app.RecoverableSecurityException) {
-                     // Pause and ask for permission
-                     _recoverableAction.value = e
-                     return@launch // Stop processing to handle this one
+                 } catch (e: SecurityException) {
+                     // RecoverableSecurityException is only available on API 29+
+                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q 
+                         && e is android.app.RecoverableSecurityException) {
+                         // Pause and ask for permission
+                         _recoverableAction.value = e
+                         return@launch // Stop processing to handle this one
+                     } else {
+                         e.printStackTrace()
+                     }
                  } catch (e: Exception) {
                      e.printStackTrace()
                      // Ignore other errors or show toast?
@@ -284,7 +295,7 @@ class HomeViewModel @Inject constructor(
         }
     }
     
-    fun handleRecoverableAction(resultCode: Int) {
+    fun handleRecoverableAction(@Suppress("UNUSED_PARAMETER") resultCode: Int) {
         // If result is OK, user granted permission.
         // We could retry the deletion here.
         // For now, we clear the exception so UI can reset.

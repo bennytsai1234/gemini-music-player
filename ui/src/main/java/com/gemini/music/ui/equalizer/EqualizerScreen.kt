@@ -235,7 +235,7 @@ fun EqualizerBandSlider(
 ) {
     val activeColor by animateColorAsState(
         targetValue = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-        animationSpec = tween(200),
+        animationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing),
         label = "ActiveColor"
     )
     

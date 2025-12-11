@@ -46,11 +46,6 @@ fun MainScreen(
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
-    val musicState by viewModel.musicState.collectAsState()
-    val progress by viewModel.progress.collectAsState()
-
-
-    val dynamicThemeState by viewModel.dynamicThemeState.collectAsState()
 
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     
@@ -81,14 +76,18 @@ fun MainScreen(
                     anchors = sheetAnchors,
                     positionalThreshold = { distance: Float -> distance * 0.5f },
                     velocityThreshold = { with(density) { 100.dp.toPx() } },
-                    snapAnimationSpec = tween(200),
+                    snapAnimationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing),
                     decayAnimationSpec = exponentialDecay()
                 )
             }
             
-            // Update anchors when availableHeight changes
+            // Update anchors when availableHeight changes and force state sync
             androidx.compose.runtime.LaunchedEffect(sheetAnchors) {
                 sheetState.updateAnchors(sheetAnchors)
+                // If the sheet was stuck in an unknown state (e.g. process death recovery), reset it
+                if (sheetState.currentValue == PlayerSheetValue.Collapsed && sheetState.targetValue == PlayerSheetValue.Collapsed) {
+                     // No-op, normal state
+                }
             }
 
             MusicNavigation(navController = navController)
@@ -99,6 +98,11 @@ fun MainScreen(
                 SwipeablePlayerSheet(
                     state = sheetState,
                     miniPlayerContent = {
+                        // All state subscriptions are isolated here to prevent parent recomposition
+                        val musicState by viewModel.musicState.collectAsState()
+                        val progress by viewModel.progress.collectAsState()
+                        val dynamicThemeState by viewModel.dynamicThemeState.collectAsState()
+                        
                         MiniPlayer(
                             song = musicState.currentSong,
                             isPlaying = musicState.isPlaying,
@@ -111,6 +115,9 @@ fun MainScreen(
                             },
                             onClick = {
                                 scope.launch { sheetState.animateTo(PlayerSheetValue.Expanded) }
+                            },
+                            onArtworkLoaded = { bitmap ->
+                                viewModel.updateDynamicTheme(bitmap)
                             }
                         )
                     },

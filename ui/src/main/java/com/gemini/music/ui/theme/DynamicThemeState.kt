@@ -142,37 +142,37 @@ class DynamicThemeState {
 fun DynamicThemeState.animatedColors(): AnimatedDynamicColors {
     val animDominant by animateColorAsState(
         targetValue = dominantColor,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "DominantColor"
     )
     val animAccent by animateColorAsState(
         targetValue = accentColor,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "AccentColor"
     )
     val animSurface by animateColorAsState(
         targetValue = surfaceColor,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "SurfaceColor"
     )
     val animOnSurface by animateColorAsState(
         targetValue = onSurfaceColor,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "OnSurfaceColor"
     )
     val animGradientStart by animateColorAsState(
         targetValue = gradientStartColor,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "GradientStart"
     )
     val animGradientEnd by animateColorAsState(
         targetValue = gradientEndColor,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "GradientEnd"
     )
     val animSecondaryAccent by animateColorAsState(
         targetValue = secondaryAccent,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "SecondaryAccent"
     )
     

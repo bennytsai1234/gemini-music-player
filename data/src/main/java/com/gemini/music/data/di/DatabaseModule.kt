@@ -47,4 +47,9 @@ object DatabaseModule {
     fun provideLyricsDao(database: GeminiDatabase): com.gemini.music.data.database.LyricsDao {
         return database.lyricsDao()
     }
+
+    @Provides
+    fun provideSearchHistoryDao(database: GeminiDatabase): com.gemini.music.data.database.SearchHistoryDao {
+        return database.searchHistoryDao()
+    }
 }
