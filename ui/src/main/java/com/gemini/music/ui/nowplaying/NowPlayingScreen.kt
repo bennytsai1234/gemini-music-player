@@ -44,6 +44,7 @@ import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Album
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -95,6 +96,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.animation.scaleIn
 
 
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,6 +105,7 @@ fun NowPlayingScreen(
     onBackClick: () -> Unit,
     onQueueClick: () -> Unit,
     onAlbumClick: (albumId: Long) -> Unit = {},
+    onInternalEqualizerClick: () -> Unit = {},
     onArtworkLoaded: (Bitmap) -> Unit = {},
     viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
@@ -177,6 +180,27 @@ fun NowPlayingScreen(
                     Spacer(modifier = Modifier.size(16.dp))
                     Text(text = "Go to Album", style = MaterialTheme.typography.bodyLarge)
                 }
+
+                // Equalizer
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showMoreOptions = false
+                            onInternalEqualizerClick()
+                        }
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.GraphicEq,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.size(16.dp))
+                    Text(text = "Equalizer", style = MaterialTheme.typography.bodyLarge)
+                }
                 
                 Spacer(modifier = Modifier.height(32.dp))
             }
@@ -216,30 +240,30 @@ fun NowPlayingScreen(
             .background(Color.Black) // Base fallback
     ) {
         // 1. Main Gradient Background
+        val mainGradientBrush = remember(startColor, endColor) {
+             Brush.verticalGradient(colors = listOf(startColor, endColor))
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(startColor, endColor)
-                    )
-                )
+                .background(mainGradientBrush)
         )
 
         // 2. Subtle Radial Glow for depth
+        val radialGlowBrush = remember(startColor) {
+            Brush.radialGradient(
+                colors = listOf(
+                    startColor.copy(alpha = 0.4f),
+                    Color.Transparent
+                ),
+                center = Offset(0.5f, -0.2f), // Glow from top center
+                radius = 2000f
+            )
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            startColor.copy(alpha = 0.4f),
-                            Color.Transparent
-                        ),
-                        center = Offset(0.5f, -0.2f), // Glow from top center
-                        radius = 2000f
-                    )
-                )
+                .background(radialGlowBrush)
         )
 
         Column(
@@ -444,6 +468,12 @@ fun HeroImage(
         }
     }
     
+    val currentOnSwipeLeft by rememberUpdatedState(onSwipeLeft)
+    val currentOnSwipeRight by rememberUpdatedState(onSwipeRight)
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentOnDoubleTapLeft by rememberUpdatedState(onDoubleTapLeft)
+    val currentOnDoubleTapRight by rememberUpdatedState(onDoubleTapRight)
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -454,9 +484,9 @@ fun HeroImage(
                         if (kotlin.math.abs(swipeOffset) > 100) {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             if (swipeOffset > 0) {
-                                onSwipeRight() // Previous
+                                currentOnSwipeRight() // Previous
                             } else {
-                                onSwipeLeft() // Next
+                                currentOnSwipeLeft() // Next
                             }
                         }
                         swipeOffset = 0f
@@ -469,7 +499,7 @@ fun HeroImage(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { offset ->
-                        onClick()
+                        currentOnClick()
                     },
                     onDoubleTap = { offset ->
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -477,11 +507,11 @@ fun HeroImage(
                         if (offset.x < width / 2) {
                             // Left side - go back 10 seconds
                             showDoubleTapIndicator = "-10s"
-                            onDoubleTapLeft()
+                            currentOnDoubleTapLeft()
                         } else {
                             // Right side - skip 10 seconds
                             showDoubleTapIndicator = "+10s"
-                            onDoubleTapRight()
+                            currentOnDoubleTapRight()
                         }
                     }
                 )

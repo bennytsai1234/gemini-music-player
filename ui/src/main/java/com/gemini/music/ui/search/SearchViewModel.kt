@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -52,8 +54,12 @@ class SearchViewModel @Inject constructor(
     private val recentSearches = searchRepository.getRecentSearches()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    private val debouncedQuery = _searchQuery
+        .debounce(300L)
+
     val uiState: StateFlow<SearchUiState> = combine(
-        _searchQuery,
+        debouncedQuery,
         allSongs,
         allAlbums,
         allArtists,
@@ -78,7 +84,9 @@ class SearchViewModel @Inject constructor(
                 recentSearches = recent
             )
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchUiState())
+    }
+    .flowOn(kotlinx.coroutines.Dispatchers.Default)
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchUiState())
 
     fun onQueryChange(newQuery: String) {
         _searchQuery.value = newQuery

@@ -44,6 +44,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -71,21 +72,19 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
+    onInternalEqualizerClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-
     val folderPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         uri?.let {
-            val path = StorageUtils.getPathFromUri(it)
-            if (path != null) {
-                viewModel.addIncludedFolder(path)
-            } else {
-                Toast.makeText(context, "Could not resolve folder path", Toast.LENGTH_SHORT).show()
-            }
+            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            context.contentResolver.takePersistableUriPermission(it, flags)
+            viewModel.addIncludedFolder(it.toString())
         }
     }
 
@@ -106,19 +105,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Theme Mode
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.theme_mode)) },
-                trailingContent = {
-                    ThemeModeSelector(
-                        currentMode = uiState.themeMode,
-                        onModeSelected = viewModel::updateThemeMode
-                    )
-                }
-            )
-
-            // Language
+             // Language
             ListItem(
                 headlineContent = { Text(stringResource(R.string.language)) },
                 leadingContent = { Icon(Icons.Rounded.Language, null) },
@@ -127,17 +114,35 @@ fun SettingsScreen(
                 }
             )
 
-
             // Equalizer
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            
+            ListItem(
+                headlineContent = { Text("Use Internal Equalizer") },
+                supportingContent = { Text("Use the built-in 5-band equalizer instead of system default") },
+                trailingContent = {
+                    Switch(
+                        checked = uiState.useInternalEqualizer,
+                        onCheckedChange = viewModel::updateUseInternalEqualizer
+                    )
+                }
+            )
+
             ListItem(
                 headlineContent = { Text(stringResource(R.string.equalizer)) },
                 leadingContent = { Icon(Icons.Rounded.GraphicEq, null) },
                 modifier = Modifier.clickable {
-                    val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
+                    if (uiState.useInternalEqualizer) {
+                        onInternalEqualizerClick()
                     } else {
-                        Toast.makeText(context, "No System Equalizer found", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            // We should pass the audio session ID if possible, but basic intent is fine for now
+                            // To make it better, we could need the current session ID from repository or VM
+                            context.startActivity(intent)
+                        } else {
+                            Toast.makeText(context, "No System Equalizer found", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             )

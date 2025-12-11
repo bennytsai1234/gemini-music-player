@@ -36,6 +36,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         preferences[THEME_MODE] ?: UserPreferencesRepository.THEME_SYSTEM
     }
 
+    override val useInternalEqualizer: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[USE_INTERNAL_EQUALIZER] ?: false
+    }
+
     override suspend fun setMinAudioDuration(durationMs: Long) {
         dataStore.edit { preferences ->
             preferences[MIN_AUDIO_DURATION] = durationMs
@@ -54,9 +58,16 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setUseInternalEqualizer(useInternal: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[USE_INTERNAL_EQUALIZER] = useInternal
+        }
+    }
+
     companion object {
         private val MIN_AUDIO_DURATION = longPreferencesKey("min_audio_duration")
         private val INCLUDED_FOLDERS = stringSetPreferencesKey("included_folders")
         private val THEME_MODE = stringPreferencesKey("theme_mode")
+        private val USE_INTERNAL_EQUALIZER = androidx.datastore.preferences.core.booleanPreferencesKey("use_internal_equalizer")
     }
 }

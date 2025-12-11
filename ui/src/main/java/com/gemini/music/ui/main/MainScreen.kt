@@ -138,6 +138,10 @@ fun MainScreen(
                                 scope.launch { sheetState.animateTo(PlayerSheetValue.Collapsed) }
                                 navController.navigate(Screen.AlbumDetail.createRoute(albumId))
                             },
+                            onInternalEqualizerClick = {
+                                scope.launch { sheetState.animateTo(PlayerSheetValue.Collapsed) }
+                                navController.navigate(Screen.Equalizer.createRoute(0))
+                            },
                             onArtworkLoaded = { bitmap ->
                                 viewModel.updateDynamicTheme(bitmap)
                             }

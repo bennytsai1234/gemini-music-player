@@ -137,7 +137,10 @@ fun MusicNavigation(navController: NavHostController) {
                 composable(Screen.Settings.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
                         SettingsScreen(
-                            onBackClick = { navController.safePopBackStack() }
+                            onBackClick = { navController.safePopBackStack() },
+                            onInternalEqualizerClick = {
+                                navController.navigate(Screen.Equalizer.createRoute(0))
+                            }
                         )
                     }
                 }

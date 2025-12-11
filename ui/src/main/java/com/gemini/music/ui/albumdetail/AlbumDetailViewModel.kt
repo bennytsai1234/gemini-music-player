@@ -1,3 +1,4 @@
+
 package com.gemini.music.ui.albumdetail
 
 import androidx.lifecycle.SavedStateHandle
@@ -16,6 +17,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -47,7 +50,9 @@ class AlbumDetailViewModel @Inject constructor(
                 getSongsByAlbumIdUseCase(albumId)
             ) { album, songs ->
                 AlbumDetailUiState(album, songs, isLoading = false)
-            }.stateIn(
+            }
+            .flowOn(kotlinx.coroutines.Dispatchers.Default)
+            .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = AlbumDetailUiState(isLoading = true)

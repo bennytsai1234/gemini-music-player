@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -54,7 +55,9 @@ class ArtistDetailViewModel @Inject constructor(
                     albums = artistAlbums,
                     isLoading = false
                 )
-            }.collect { state ->
+            }
+            .flowOn(kotlinx.coroutines.Dispatchers.Default)
+            .collect { state ->
                 _uiState.value = state
             }
         }

@@ -8,10 +8,6 @@
 
 *   **溝通語言**: 預設使用 **繁體中文 (Traditional Chinese)**。
 *   **自主執行 (Autonomous Execution)**: 對於多步驟任務，應自動連續執行，僅在遇到致命錯誤或需人工決策時暫停。
-*   **Shell 會話管理 (Shell Session Management)**: 
-    *   **Rule**: 嚴禁使用單次 `run_command` 執行連續指令。
-    *   **Action**: 必須使用 `run_command` 啟動一個持續的 Shell Session，並透過 `send_command_input` 發送後續指令。這能確保環境變數（如 `export`）與工作目錄上下文被正確保留。
-
 ---
 
 ### **第二章：工作方法論 (Working Methodology)**
@@ -55,7 +51,7 @@
 本章節總結了跨專案通用的技術陷阱與解決方案，**必須**在設計階段納入考量。
 
 #### **§1 狀態韌性 (State Resilience)**
-*   **Process Death 防護**: 所有關鍵 UI 狀態（尤其是 **Bottom Sheets**, **Expanded Views**, **Complex Navigation State**）**必須**使用 `rememberSaveable` 而非 `remember`。確保應用在後台被系統回收後，用戶返回時能看到一致的畫面。
+*   **Process Death 防護**: 所有關鍵 UI 狀態（尤其是 **Bottom Sheets**, **Expanded Views**, **Complex Navigation State**）**必須**使用 `rememberSaveable` 而非 `remember`。對於 ViewModel 層級的狀態，**必須**使用 `SavedStateHandle` 進行持久化，確保應用在後台被系統回收後，用戶返回時能看到一致的畫面（如排序選項、選取模式）。
 *   **動態佈局適配**: 對於依賴容器尺寸計算的狀態（如 `AnchoredDraggableState` 的 anchors），應在 `LaunchedEffect` 或 `onSizeChanged` 中更新配置，**嚴禁**因尺寸變化而重新創建 (Re-create) 狀態物件，這會導致互動中斷或狀態重置。
 
 #### **§2 極致使用者體驗 (UX Excellence)**
@@ -67,11 +63,15 @@
 *   **誠實 UI (Honest UI)**: 
     *   若某 UI 元素看似可互動（如 Drag Handle），則必須具備相應功能。若功能未實作，應隱藏該元素或替換為資訊性組件（如 Metadata 標籤），避免欺騙用戶預期。
 
-#### **§3 系統兼容性 (System Compatibility)**
+#### **§3 系統兼容性與除錯 (System Compatibility & Debugging)**
 *   **權限策略 (Permission Strategy)**: 
-    *   針對 Android 13+ (API 33+) 的 `POST_NOTIFICATIONS` 與細分媒體權限 (`READ_MEDIA_AUDIO` 等)，**必須**在相關功能啟動前 (如 `MainActivity.onCreate` 或播放前) 進行檢查與請求。
-    *   永遠不要假設權限已被授予。
-#### **§4 列表效能優化 (List Performance Optimization)**
+    *   針對 Android 13+ (API 33+) 的 `POST_NOTIFICATIONS` 與細分媒體權限 (`READ_MEDIA_AUDIO` 等)，**必須**在相關功能啟動前 (如 `MainActivity.onCreate` 或播放前) 進行檢查與請求。永遠不要假設權限已被授予。
+*   **Release 模式驗證 (Verifying in Release Mode)**:
+    *   Jetpack Compose 在 Debug 模式下會有顯著的效能開銷（尤其是 120Hz 滾動）。遇到「卡頓」問題時，**優先**檢查 Release Build 是否正常，避免在 Debug 模式下過早優化。
+
+#### **§4 效能優化 (Performance Optimization)**
+*   **後台線程優先 (Background Thread First)**:
+    *   所有資料處理（如 `combine`, `map`, `filter`, `sortedBy`）若涉及大量數據，**必須**透過 `.flowOn(Dispatchers.Default)` 移至後台線程執行，嚴禁阻塞 UI 線程。
 *   **狀態穩定性 (State Stability)**:
     *   所有 UI State 類別（特別是包含 `List` 的）**必須**標註 `@Immutable` 或 `@Stable`。這能啟用 Compose 的智慧重組跳過機制 (Smart Recomposition Skipping)。
 *   **佈局穩定性 (Layout Stability)**:
@@ -79,6 +79,11 @@
 *   **輕量化渲染 (Lightweight Rendering)**:
     *   **移除 Heavy Wrappers**: 避免在列表項中使用高開銷容器（如 `Card`），改用輕量級 Modifier（如 `Modifier.clip()`, `Modifier.border()`）。
     *   **圖片載入優化**: 使用 Coil 時，**必須**指定 `.size()` (載入縮圖)、`.memoryCacheKey()` 並明確指定 `Dispatchers.IO`，避免主線程阻塞。
+    *   **Callback 穩定化**: 傳遞給子組件的 Lambda，若依賴外部狀態，應使用 `rememberUpdatedState` 包裝或優化為方法引用，避免導致子組件無效重組。
+    *   **搜尋輸入防抖 (Search Debounce)**:
+        *   針對本地搜尋 (Local Search) 或頻繁過濾操作，**必須**實作 Debounce (建議 300ms) 並配合 `.flowOn(Dispatchers.Default)`。這能避免每次按鍵都觸發重計算，導致輸入卡頓。
+    *   **導航解耦 (Decoupled Navigation)**:
+        *   深層組件 (如 `NowPlayingScreen`) 不應持有 `NavController`。應透過 Lambda 回調 (e.g. `onAlbumClick: (Long) -> Unit`) 將導航事件向外傳遞給頂層 NavHost 處理。這能保持組件純淨且易於測試。
 ---
 ---
 

@@ -54,10 +54,9 @@ class EqualizerViewModel @Inject constructor() : ViewModel() {
     fun initializeEqualizer(audioSessionId: Int) {
         viewModelScope.launch {
             try {
-                if (audioSessionId == 0) {
-                    _uiState.update { it.copy(isAvailable = false, errorMessage = "No active audio session") }
-                    return@launch
-                }
+                // 0 is valid for global mix, though deprecated/restricted on some devices.
+                // We proceed and let the try-catch handle failures.
+
                 
                 equalizer?.release()
                 equalizer = Equalizer(0, audioSessionId).apply {

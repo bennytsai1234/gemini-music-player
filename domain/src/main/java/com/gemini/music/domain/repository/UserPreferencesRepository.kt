@@ -6,10 +6,13 @@ interface UserPreferencesRepository {
     val minAudioDuration: Flow<Long>
     val includedFolders: Flow<Set<String>>
     val themeMode: Flow<String>
+    val useInternalEqualizer: Flow<Boolean>
 
     suspend fun setMinAudioDuration(durationMs: Long)
     suspend fun setIncludedFolders(folders: Set<String>)
     suspend fun setThemeMode(mode: String)
+    suspend fun setUseInternalEqualizer(useInternal: Boolean)
+
 
     companion object {
         const val THEME_SYSTEM = "SYSTEM"

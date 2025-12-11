@@ -58,15 +58,17 @@ class HomeViewModel @Inject constructor(
     getArtistsUseCase: GetArtistsUseCase,
     private val scanLocalMusicUseCase: ScanLocalMusicUseCase,
     private val playSongUseCase: PlaySongUseCase,
-    private val toggleShuffleUseCase: ToggleShuffleUseCase,
     private val deleteSongUseCase: com.gemini.music.domain.usecase.DeleteSongUseCase,
-    private val musicRepository: MusicRepository // Direct Access for Playlist MVP
+    private val musicRepository: MusicRepository, // Direct Access for Playlist MVP
+    private val savedStateHandle: androidx.lifecycle.SavedStateHandle
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
-    private val _isSelectionMode = MutableStateFlow(false)
-    private val _selectedSongIds = MutableStateFlow<Set<Long>>(emptySet())
-    private val _sortOption = MutableStateFlow(SortOption.TITLE)
+    
+    // Process Death Resilient States
+    private val _isSelectionMode = savedStateHandle.getStateFlow("is_selection_mode", false)
+    private val _selectedSongIds = savedStateHandle.getStateFlow<Set<Long>>("selected_song_ids", emptySet())
+    private val _sortOption = savedStateHandle.getStateFlow("sort_option", SortOption.TITLE)
     private val _showAddToPlaylistDialog = MutableStateFlow(false)
     
     // Error Handling for Deletion (Android 10+)
@@ -120,7 +122,9 @@ class HomeViewModel @Inject constructor(
             showAddToPlaylistDialog = controls.showAddToPlaylistDialog,
             sortOption = controls.sortOption
         )
-    }.stateIn(
+    }
+    .flowOn(Dispatchers.Default) // Perform sorting and combination on Background Thread
+    .stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = HomeUiState(isLoading = true)
@@ -148,6 +152,7 @@ class HomeViewModel @Inject constructor(
     )
 
     fun scanMusic() {
+        if (_isLoading.value) return // Prevent overlapping scans
         viewModelScope.launch {
             _isLoading.value = true
             // Must collect the Flow to trigger the scan operation
@@ -186,25 +191,25 @@ class HomeViewModel @Inject constructor(
     // --- Selection Mode ---
 
     fun enterSelectionMode() {
-        _isSelectionMode.value = true
+        savedStateHandle["is_selection_mode"] = true
     }
 
     fun exitSelectionMode() {
-        _isSelectionMode.value = false
-        _selectedSongIds.value = emptySet()
+        savedStateHandle["is_selection_mode"] = false
+        savedStateHandle["selected_song_ids"] = emptySet<Long>()
     }
 
     fun toggleSongSelection(songId: Long) {
         val current = _selectedSongIds.value
         if (current.contains(songId)) {
-            _selectedSongIds.value = current - songId
+            savedStateHandle["selected_song_ids"] = current - songId
             if (_selectedSongIds.value.isEmpty()) {
                 // Keep selection mode active even if empty
             }
         } else {
-            _selectedSongIds.value = current + songId
+            savedStateHandle["selected_song_ids"] = current + songId
             if (!_isSelectionMode.value) {
-                _isSelectionMode.value = true
+                savedStateHandle["is_selection_mode"] = true
             }
         }
     }
@@ -212,9 +217,9 @@ class HomeViewModel @Inject constructor(
     fun selectAll() {
         val allIds = uiState.value.songs.map { it.id }.toSet()
         if (_selectedSongIds.value.size == allIds.size) {
-            _selectedSongIds.value = emptySet() // Deselect all
+            savedStateHandle["selected_song_ids"] = emptySet<Long>() // Deselect all
         } else {
-            _selectedSongIds.value = allIds
+            savedStateHandle["selected_song_ids"] = allIds
         }
     }
 
@@ -307,6 +312,6 @@ class HomeViewModel @Inject constructor(
     // --- Sorting ---
     
     fun setSortOption(option: SortOption) {
-        _sortOption.value = option
+        savedStateHandle["sort_option"] = option
     }
 }

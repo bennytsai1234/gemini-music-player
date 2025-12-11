@@ -19,6 +19,7 @@ data class SettingsUiState(
     val minAudioDuration: Long = 10000L,
     val includedFolders: Set<String> = emptySet(),
     val themeMode: String = UserPreferencesRepository.THEME_SYSTEM,
+    val useInternalEqualizer: Boolean = false,
     val scanStatus: ScanStatus = ScanStatus.Idle
 )
 
@@ -36,9 +37,10 @@ class SettingsViewModel @Inject constructor(
         userPreferencesRepository.minAudioDuration,
         userPreferencesRepository.includedFolders,
         userPreferencesRepository.themeMode,
+        userPreferencesRepository.useInternalEqualizer,
         _scanStatus
-    ) { duration, folders, theme, scanStatus ->
-        SettingsUiState(duration, folders, theme, scanStatus)
+    ) { duration, folders, theme, useInternal, scanStatus ->
+        SettingsUiState(duration, folders, theme, useInternal, scanStatus)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -70,6 +72,12 @@ class SettingsViewModel @Inject constructor(
     fun updateThemeMode(mode: String) {
         viewModelScope.launch {
             userPreferencesRepository.setThemeMode(mode)
+        }
+    }
+
+    fun updateUseInternalEqualizer(useInternal: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setUseInternalEqualizer(useInternal)
         }
     }
 
