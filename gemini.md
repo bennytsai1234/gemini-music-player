@@ -84,6 +84,10 @@
         *   針對本地搜尋 (Local Search) 或頻繁過濾操作，**必須**實作 Debounce (建議 300ms) 並配合 `.flowOn(Dispatchers.Default)`。這能避免每次按鍵都觸發重計算，導致輸入卡頓。
     *   **導航解耦 (Decoupled Navigation)**:
         *   深層組件 (如 `NowPlayingScreen`) 不應持有 `NavController`。應透過 Lambda 回調 (e.g. `onAlbumClick: (Long) -> Unit`) 將導航事件向外傳遞給頂層 NavHost 處理。這能保持組件純淨且易於測試。
+
+#### §5 命令行操作 (Command Line Operations)
+*   **無輸出處理 (No Output Handling)**: 
+    *   當發現 `run_command` 沒有預期輸出時，**強制**改用 `run_command` 啟動一個持續的 Shell Session (如 `cmd`)，接著使用 `send_command_input` 發送指令，以確保能獲取執行結果。
 ---
 ---
 
