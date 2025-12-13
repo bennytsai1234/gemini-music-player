@@ -199,6 +199,9 @@ private fun ArtistHeader(
             modifier = Modifier
                 .fillMaxSize()
                 .blur(50.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant), // Fallback background color
+            error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person),
+            placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person)
         )
         
         // Gradient Overlay
@@ -244,7 +247,9 @@ private fun ArtistHeader(
                                 .build(),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person),
+                            placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person)
                         )
                     } else {
                         Icon(
@@ -323,7 +328,11 @@ private fun AlbumGridItem(
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person),
+                placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person)
             )
         }
         

@@ -1,20 +1,19 @@
 package com.gemini.music.ui.home
 
+import java.util.Calendar
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,25 +38,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SelectAll
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Shuffle
-import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -71,23 +67,21 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -99,10 +93,6 @@ import com.gemini.music.domain.model.Song
 import com.gemini.music.ui.component.EmptyState
 import com.gemini.music.ui.component.SongListItem
 import kotlinx.coroutines.launch
-import androidx.compose.ui.res.stringResource
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.IntentSenderRequest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,9 +111,6 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     
-    // State for expanding Recently Added in drawer
-    var isRecentlyAddedExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
-
     // Launcher for Android 10+ deletion permission
     val intentSenderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -133,7 +120,6 @@ fun HomeScreen(
 
     androidx.compose.runtime.LaunchedEffect(recoverableAction) {
         recoverableAction?.let { exception ->
-            // RecoverableSecurityException.userAction requires API 29+
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                 val intentSenderRequest = IntentSenderRequest.Builder(exception.userAction.actionIntent.intentSender).build()
                 intentSenderLauncher.launch(intentSenderRequest)
@@ -141,17 +127,14 @@ fun HomeScreen(
         }
     }
 
-    // Trigger scan when screen is first composed
     androidx.compose.runtime.LaunchedEffect(Unit) {
         viewModel.scanMusic()
     }
     
-    // Refresh on Resume (e.g. after permission grant)
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                // Check permissions or just trigger scan which handles empty results gracefully
                 viewModel.scanMusic()
             }
         }
@@ -161,7 +144,6 @@ fun HomeScreen(
         }
     }
 
-    // Back Handler for Selection Mode or Drawer
     BackHandler(enabled = uiState.isSelectionMode || drawerState.isOpen) {
         if (drawerState.isOpen) {
             scope.launch { drawerState.close() }
@@ -211,97 +193,6 @@ fun HomeScreen(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 
-                // Recently Added - Expandable Section
-                NavigationDrawerItem(
-                    label = { 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Recently Added")
-                            if (uiState.recentlyAdded.isNotEmpty()) {
-                                Text(
-                                    "(${uiState.recentlyAdded.size})",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    },
-                    selected = isRecentlyAddedExpanded,
-                    onClick = { isRecentlyAddedExpanded = !isRecentlyAddedExpanded },
-                    icon = { 
-                        Icon(
-                            if (isRecentlyAddedExpanded) Icons.Rounded.Folder else Icons.Rounded.Folder, 
-                            null
-                        ) 
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-                
-                // Show Recently Added songs when expanded
-                AnimatedVisibility(
-                    visible = isRecentlyAddedExpanded && uiState.recentlyAdded.isNotEmpty()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(start = 32.dp)
-                    ) {
-                        uiState.recentlyAdded.take(5).forEach { song ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        viewModel.playSong(song)
-                                        scope.launch { drawerState.close() }
-                                    }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Album art
-                                Card(
-                                    shape = RoundedCornerShape(4.dp),
-                                    modifier = Modifier.size(40.dp)
-                                ) {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(LocalContext.current)
-                                            .data(song.albumArtUri)
-                                            .crossfade(true)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                                Spacer(Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = song.title,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Text(
-                                        text = song.artist,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
-                        }
-                        if (uiState.recentlyAdded.size > 5) {
-                            Text(
-                                text = "+${uiState.recentlyAdded.size - 5} more",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
-                        }
-                    }
-                }
-                
                 Spacer(Modifier.height(24.dp))
                 NavigationDrawerItem(
                     label = { Text(stringResource(com.gemini.music.ui.R.string.settings)) },
@@ -337,7 +228,6 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                // Dialog
                 if (uiState.showAddToPlaylistDialog) {
                     com.gemini.music.ui.component.AddToPlaylistDialog(
                         playlists = uiState.playlists,
@@ -347,61 +237,119 @@ fun HomeScreen(
                     )
                 }
 
-                Column {
-                    // Removed RecentlyAdded from main view - now in drawer menu
-
-                    // Second Row: Controls
-                    ControlRow(
-                        songCount = uiState.songs.size,
-                        currentSortOption = uiState.sortOption,
-                        onShuffleClick = { viewModel.shuffleAll() },
-                        onSortOptionSelected = { viewModel.setSortOption(it) },
-                        onSelectModeClick = { viewModel.enterSelectionMode() }
+                if (uiState.songs.isEmpty() && !uiState.isLoading) {
+                    EmptyState(
+                        icon = androidx.compose.material.icons.Icons.Rounded.Menu,
+                        title = stringResource(com.gemini.music.ui.R.string.no_songs),
+                        message = stringResource(com.gemini.music.ui.R.string.no_songs_message)
                     )
-
-                    if (uiState.songs.isEmpty() && !uiState.isLoading) {
-                        EmptyState(
-                            icon = androidx.compose.material.icons.Icons.Rounded.Menu,
-                            title = stringResource(com.gemini.music.ui.R.string.no_songs),
-                            message = stringResource(com.gemini.music.ui.R.string.no_songs_message)
-                        )
-                    } else {
-                        // Use Row to place SongList and FastScroller side-by-side
-                        // This prevents gesture interference that causes scroll jank
-                        Row(modifier = Modifier.fillMaxSize()) {
-                            SongList(
-                                songs = uiState.songs,
-                                selectedIds = uiState.selectedSongIds,
-                                isSelectionMode = uiState.isSelectionMode,
-                                listState = listState,
-                                onSongClick = { song ->
-                                    if (uiState.isSelectionMode) {
-                                        viewModel.toggleSongSelection(song.id)
-                                    } else {
-                                        viewModel.playSong(song)
-                                        onSongClick(song)
-                                    }
-                                },
-                                onSongLongClick = { song ->
-                                    if (!uiState.isSelectionMode) {
-                                        viewModel.enterSelectionMode()
-                                        viewModel.toggleSongSelection(song.id)
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
+                } else {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(
+                            state = listState,
+                            contentPadding = PaddingValues(bottom = 100.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            // 1. Dashboard Greeting
+                            item {
+                                GreetingHeader()
+                            }
                             
-                            // FastScroller as sibling, not overlay
-                            FastScroller(
-                                listState = listState,
-                                songs = uiState.songs,
-                                modifier = Modifier.padding(bottom = 80.dp) // Space for MiniPlayer
-                            )
+                            // 2. Recently Added Carousel (Dashboard Style)
+                            if (uiState.recentlyAdded.isNotEmpty()) {
+                                item {
+                                    RecentlyAddedRow(
+                                        songs = uiState.recentlyAdded.take(15),
+                                        onSongClick = { 
+                                            viewModel.playSong(it)
+                                            onSongClick(it)
+                                        }
+                                    )
+                                }
+                            }
+
+                            // 3. Controls & Song List Header
+                            item {
+                                ControlRow(
+                                    songCount = uiState.songs.size,
+                                    currentSortOption = uiState.sortOption,
+                                    isFilteringFavorites = uiState.filterFavorites,
+                                    onShuffleClick = { viewModel.shuffleAll() },
+                                    onSortOptionSelected = { viewModel.setSortOption(it) },
+                                    onSelectModeClick = { viewModel.enterSelectionMode() },
+                                    onToggleFavorites = { viewModel.toggleFavoritesFilter() }
+                                )
+                            }
+                            
+                            // 4. All Songs List (Filtered by VM)
+                            items(
+                                items = uiState.songs,
+                                key = { it.id }
+                            ) { song ->
+                                val isSelected = uiState.selectedSongIds.contains(song.id)
+                                SongListItem(
+                                    song = song,
+                                    isSelected = isSelected,
+                                    isSelectionMode = uiState.isSelectionMode,
+                                    onClick = {
+                                        if (uiState.isSelectionMode) {
+                                            viewModel.toggleSongSelection(song.id)
+                                        } else {
+                                            viewModel.playSong(song)
+                                            onSongClick(song)
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (!uiState.isSelectionMode) {
+                                            viewModel.enterSelectionMode()
+                                            viewModel.toggleSongSelection(song.id)
+                                        }
+                                    }
+                                )
+                            }
                         }
+                        
+                        // FastScroller handles headers offset
+                        val headerCount = 3 // Greeting, Recent, Controls
+                        FastScroller(
+                            listState = listState,
+                            songs = uiState.songs,
+                            headerOffset = headerCount,
+                            modifier = Modifier.padding(bottom = 80.dp)
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun GreetingHeader() {
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val greeting = when (hour) {
+        in 5..11 -> "Good Morning"
+        in 12..17 -> "Good Afternoon"
+        else -> "Good Evening"
+    }
+    // Subtle background gradient based on time
+    val gradientColors = when (hour) {
+        in 5..11 -> listOf(Color(0xFFFFA726).copy(alpha = 0.15f), Color.Transparent) // Orange
+        in 12..17 -> listOf(Color(0xFF29B6F6).copy(alpha = 0.15f), Color.Transparent) // Blue
+        else -> listOf(Color(0xFF7E57C2).copy(alpha = 0.15f), Color.Transparent) // Purple
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Brush.verticalGradient(gradientColors))
+    ) {
+        Text(
+            text = greeting,
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 12.dp)
+        )
     }
 }
 
@@ -418,12 +366,11 @@ fun HomeTopBar(
     onDelete: () -> Unit,
     onPlaySelected: () -> Unit
 ) {
-    // Use compact TopAppBar by setting smaller height
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
-        color = MaterialTheme.colorScheme.background
+        color = MaterialTheme.colorScheme.background.copy(alpha = 0.95f) // Slight visual distinction
     ) {
         Row(
             modifier = Modifier
@@ -431,7 +378,6 @@ fun HomeTopBar(
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Navigation Icon
             if (isSelectionMode) {
                 IconButton(onClick = onCloseSelection) {
                     Icon(Icons.Rounded.Close, contentDescription = "Close")
@@ -442,15 +388,13 @@ fun HomeTopBar(
                 }
             }
             
-            // Title
             Text(
-                text = if (isSelectionMode) stringResource(com.gemini.music.ui.R.string.selected_count, selectedCount) else stringResource(com.gemini.music.ui.R.string.songs),
+                text = if (isSelectionMode) stringResource(com.gemini.music.ui.R.string.selected_count, selectedCount) else "",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
             
-            // Actions
             if (isSelectionMode) {
                 IconButton(onClick = onPlaySelected) {
                     Icon(Icons.Rounded.PlayArrow, contentDescription = "Play")
@@ -477,9 +421,11 @@ fun HomeTopBar(
 fun ControlRow(
     songCount: Int,
     currentSortOption: SortOption,
+    isFilteringFavorites: Boolean,
     onShuffleClick: () -> Unit,
     onSortOptionSelected: (SortOption) -> Unit,
-    onSelectModeClick: () -> Unit
+    onSelectModeClick: () -> Unit,
+    onToggleFavorites: () -> Unit
 ) {
     var showSortMenu by remember { androidx.compose.runtime.mutableStateOf(false) }
 
@@ -490,7 +436,6 @@ fun ControlRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Left: Shuffle & Count
         Row(verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = onShuffleClick,
@@ -513,8 +458,16 @@ fun ControlRow(
             )
         }
 
-        // Right: Sort & Select
         Row {
+            // Favorites Toggle
+            IconButton(onClick = onToggleFavorites) {
+                Icon(
+                    imageVector = if (isFilteringFavorites) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                    contentDescription = "Filter Favorites",
+                    tint = if (isFilteringFavorites) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             Box {
                 IconButton(onClick = { showSortMenu = true }) {
                     Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = "Sort")
@@ -557,50 +510,15 @@ fun ControlRow(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun SongList(
-    songs: List<Song>,
-    selectedIds: Set<Long>,
-    isSelectionMode: Boolean,
-    listState: LazyListState,
-    onSongClick: (Song) -> Unit,
-    onSongLongClick: (Song) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        state = listState,
-        contentPadding = PaddingValues(bottom = 100.dp), // Space for MiniPlayer
-        modifier = modifier.fillMaxSize()
-    ) {
-        items(
-            items = songs,
-            key = { it.id } // Performance optimization
-        ) { song ->
-            val isSelected = selectedIds.contains(song.id)
-            
-            SongListItem(
-                song = song,
-                isSelected = isSelected,
-                isSelectionMode = isSelectionMode,
-                onClick = { onSongClick(song) },
-                onLongClick = { onSongLongClick(song) }
-            )
-        }
-    }
-}
-
-// SongListItem moved to ui/component/SongListItem.kt
-
 @Composable
 fun FastScroller(
     listState: LazyListState,
     songs: List<Song>,
+    headerOffset: Int = 0,
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
     
-    // Group songs by their first letter
     val sections = remember(songs) {
         val map = mutableMapOf<Char, Int>()
         songs.forEachIndexed { index, song ->
@@ -613,27 +531,24 @@ fun FastScroller(
         map
     }
 
-    // Fixed alphabet list + '#'
     val alphabet = remember { ('A'..'Z').toList() + '#' }
 
     if (sections.isEmpty()) return
     
     var isDragging by remember { androidx.compose.runtime.mutableStateOf(false) }
-    var activeChar by remember { androidx.compose.runtime.mutableStateOf<Char?>(null) } // Current selected char
+    var activeChar by remember { androidx.compose.runtime.mutableStateOf<Char?>(null) } 
 
     fun scrollToSection(char: Char) {
         activeChar = char
-        // Find exact match or the next available section
         val targetIndex = sections[char] ?: run {
-            // If char not found, find the next available char in sections
-            // We search in the alphabet starting from current char
             val nextChar = alphabet.dropWhile { it != char }.firstOrNull { sections.containsKey(it) }
             sections[nextChar]
         }
         
         if (targetIndex != null) {
             scope.launch {
-                listState.scrollToItem(targetIndex)
+                // Adjust for headers!
+                listState.scrollToItem(targetIndex + headerOffset)
             }
         }
     }
@@ -641,15 +556,13 @@ fun FastScroller(
     fun getCharAtIndex(offsetY: Float, totalHeight: Int): Char? {
         if (totalHeight == 0) return null
         val itemHeight = totalHeight.toFloat() / alphabet.size
-        // Prevent index out of bounds
         val index = (offsetY / itemHeight).toInt().coerceIn(0, alphabet.lastIndex)
         return alphabet.getOrNull(index)
     }
     
-    // Scroller Container
     Box(
         modifier = modifier
-            .width(40.dp) // Wider touch area
+            .width(40.dp)
             .fillMaxHeight()
             .padding(vertical = 32.dp)
             .pointerInput(Unit) {
@@ -679,7 +592,6 @@ fun FastScroller(
                         val char = getCharAtIndex(offset.y, size.height)
                         if (char != null) {
                             scrollToSection(char)
-                            // Reset visual highlight after short delay
                             scope.launch {
                                 kotlinx.coroutines.delay(200)
                                 if (!isDragging) activeChar = null
@@ -690,14 +602,13 @@ fun FastScroller(
             },
         contentAlignment = Alignment.CenterEnd
     ) {
-        // Track Background
         Column(
             modifier = Modifier
                 .width(24.dp)
                 .fillMaxHeight()
                 .background(
                     if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f) 
-                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), 
+                    else Color.Transparent, 
                     RoundedCornerShape(12.dp)
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -712,7 +623,6 @@ fun FastScroller(
                         text = char.toString(),
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 10.sp,
-                        // Dim characters that don't have sections
                         color = if (activeChar == char) MaterialTheme.colorScheme.primary 
                                 else if (isPresent) MaterialTheme.colorScheme.onSurfaceVariant 
                                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
@@ -722,12 +632,11 @@ fun FastScroller(
             }
         }
         
-        // Large Bubble Indicator (Left of the scroller)
         AnimatedVisibility(
             visible = isDragging && activeChar != null,
             enter = fadeIn() + androidx.compose.animation.scaleIn(),
             exit = fadeOut() + androidx.compose.animation.scaleOut(),
-            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 50.dp) // Push to left
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 50.dp) 
         ) {
             Box(
                 modifier = Modifier
@@ -760,11 +669,11 @@ fun RecentlyAddedRow(
             text = "Recently Added",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
         )
         LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            contentPadding = PaddingValues(horizontal = 24.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(songs) { song ->
                 RecentlyAddedItem(song = song, onClick = { onSongClick(song) })
@@ -780,13 +689,13 @@ fun RecentlyAddedItem(
 ) {
     Column(
         modifier = Modifier
-            .width(100.dp)
+            .width(120.dp) // Slightly larger
             .clickable { onClick() }
     ) {
         Card(
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
-                .size(100.dp)
+                .size(120.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
         ) {
             AsyncImage(
@@ -796,7 +705,8 @@ fun RecentlyAddedItem(
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Album)
             )
         }
         Spacer(Modifier.height(8.dp))

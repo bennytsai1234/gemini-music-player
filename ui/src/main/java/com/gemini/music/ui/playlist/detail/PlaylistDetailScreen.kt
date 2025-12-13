@@ -411,6 +411,9 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
                         .size(120.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .shadow(8.dp, RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.AutoMirrored.Rounded.PlaylistPlay),
+                    placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.AutoMirrored.Rounded.PlaylistPlay)
                 )
             } else {
                  Box(
@@ -472,7 +475,8 @@ fun RenamePlaylistDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { if (text.isNotBlank()) onConfirm(text) }
+                onClick = { if (text.isNotBlank()) onConfirm(text) },
+                enabled = text.isNotBlank()
             ) {
                 Text("Save")
             }

@@ -74,6 +74,8 @@ class NowPlayingViewModel @Inject constructor(
     private val getSongWaveformUseCase: com.gemini.music.domain.usecase.GetSongWaveformUseCase,
     private val toggleFavoriteUseCase: com.gemini.music.domain.usecase.favorites.ToggleFavoriteUseCase,
     private val isSongFavoriteUseCase: com.gemini.music.domain.usecase.favorites.IsSongFavoriteUseCase,
+    private val setSleepTimerUseCase: com.gemini.music.domain.usecase.sleeptimer.SetSleepTimerUseCase,
+    private val cancelSleepTimerUseCase: com.gemini.music.domain.usecase.sleeptimer.CancelSleepTimerUseCase,
     private val musicRepository: MusicRepository
 ) : ViewModel() {
 
@@ -217,12 +219,22 @@ class NowPlayingViewModel @Inject constructor(
                     }
                 }
             }
+            is NowPlayingEvent.SetSleepTimer -> {
+                viewModelScope.launch {
+                    setSleepTimerUseCase(event.minutes)
+                }
+            }
+            is NowPlayingEvent.CancelSleepTimer -> {
+                viewModelScope.launch {
+                    cancelSleepTimerUseCase()
+                }
+            }
         }
     }
 
     private fun extractColors(bitmap: Bitmap?) {
-        bitmap?.let { bmp ->
-            Palette.from(bmp).generate { palette ->
+        if (bitmap != null) {
+            Palette.from(bitmap).generate { palette ->
                 val vibrant = palette?.vibrantSwatch?.rgb?.let { Color(it) } ?: Color(0xFF1E1E1E)
                 val darkVibrant = palette?.darkVibrantSwatch?.rgb?.let { Color(it) } ?: Color.Black
                 val muted = palette?.mutedSwatch?.rgb?.let { Color(it) } ?: Color.DarkGray
@@ -236,6 +248,10 @@ class NowPlayingViewModel @Inject constructor(
                 val bodyTextColor = palette?.dominantSwatch?.bodyTextColor ?: android.graphics.Color.WHITE
                 _onPaletteColor.value = Color(bodyTextColor)
             }
+        } else {
+            // Reset to defaults
+            _paletteColors.value = listOf(Color(0xFF1E1E1E), Color.Black)
+            _onPaletteColor.value = Color.White
         }
     }
 }
@@ -255,4 +271,6 @@ sealed class NowPlayingEvent {
     data class RemoveFromQueue(val index: Int) : NowPlayingEvent()
     data class AddToPlaylist(val playlistId: Long) : NowPlayingEvent()
     data class CreatePlaylistAndAdd(val name: String) : NowPlayingEvent()
+    data class SetSleepTimer(val minutes: Int) : NowPlayingEvent()
+    data object CancelSleepTimer : NowPlayingEvent()
 }

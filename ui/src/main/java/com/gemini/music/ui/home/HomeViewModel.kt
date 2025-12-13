@@ -41,6 +41,7 @@ data class HomeUiState(
     // Playlists
     val playlists: List<Playlist> = emptyList(),
     val isLoading: Boolean = false,
+    val filterFavorites: Boolean = false,
     // Selection Mode
     val isSelectionMode: Boolean = false,
     val selectedSongIds: Set<Long> = emptySet(),
@@ -59,6 +60,7 @@ class HomeViewModel @Inject constructor(
     private val scanLocalMusicUseCase: ScanLocalMusicUseCase,
     private val playSongUseCase: PlaySongUseCase,
     private val deleteSongUseCase: com.gemini.music.domain.usecase.DeleteSongUseCase,
+    private val getFavoriteSongsUseCase: com.gemini.music.domain.usecase.favorites.GetFavoriteSongsUseCase,
     private val musicRepository: MusicRepository, // Direct Access for Playlist MVP
     private val savedStateHandle: androidx.lifecycle.SavedStateHandle
 ) : ViewModel() {
@@ -69,21 +71,35 @@ class HomeViewModel @Inject constructor(
     private val _isSelectionMode = savedStateHandle.getStateFlow("is_selection_mode", false)
     private val _selectedSongIds = savedStateHandle.getStateFlow<Set<Long>>("selected_song_ids", emptySet())
     private val _sortOption = savedStateHandle.getStateFlow("sort_option", SortOption.TITLE)
+    private val _filterFavorites = savedStateHandle.getStateFlow("filter_favorites", false)
     private val _showAddToPlaylistDialog = MutableStateFlow(false)
     
     // Error Handling for Deletion (Android 10+)
     private val _recoverableAction = MutableStateFlow<android.app.RecoverableSecurityException?>(null)
     val recoverableAction: StateFlow<android.app.RecoverableSecurityException?> = _recoverableAction.asStateFlow()
 
-    // Group Data Flows
-    private val _dataFlow = combine(
+    // Group Data Flows - Using nested combine since Kotlin combine supports max 5 flows
+    private val _sourcesFlow = combine(
         getSongsUseCase(),
         getRecentlyAddedSongsUseCase(),
-        getAlbumsUseCase(),
+        getAlbumsUseCase()
+    ) { songs, recent, albums -> Triple(songs, recent, albums) }
+    
+    private val _extraDataFlow = combine(
         getArtistsUseCase(),
-        musicRepository.getPlaylists()
-    ) { songs, recent, albums, artists, playlists ->
-        DataState(songs, recent, albums, artists, playlists)
+        musicRepository.getPlaylists(),
+        getFavoriteSongsUseCase()
+    ) { artists, playlists, favorites -> Triple(artists, playlists, favorites) }
+    
+    private val _dataFlow = combine(_sourcesFlow, _extraDataFlow) { sources, extra ->
+        DataState(
+            songs = sources.first,
+            recent = sources.second,
+            albums = sources.third,
+            artists = extra.first,
+            playlists = extra.second,
+            favorites = extra.third
+        )
     }
 
     private val _controlsFlow = combine(
@@ -91,9 +107,9 @@ class HomeViewModel @Inject constructor(
         _isSelectionMode,
         _selectedSongIds,
         _showAddToPlaylistDialog,
-        _sortOption
-    ) { isLoading, isSelection, selected, showDialog, sort ->
-        ControlsState(isLoading, isSelection, selected, showDialog, sort)
+        combine(_sortOption, _filterFavorites) { sort, filter -> sort to filter }
+    ) { isLoading, isSelection, selected, showDialog, sortAndFilter ->
+        ControlsState(isLoading, isSelection, selected, showDialog, sortAndFilter.first, sortAndFilter.second)
     }
 
     // Combine Data with UI State
@@ -101,13 +117,16 @@ class HomeViewModel @Inject constructor(
         _dataFlow,
         _controlsFlow
     ) { data, controls ->
+        // Select source list based on filter
+        val sourceList = if (controls.filterFavorites) data.favorites else data.songs
+
         // Apply Sorting
         val sortedSongs = when (controls.sortOption) {
-            SortOption.TITLE -> data.songs.sortedBy { it.title }
-            SortOption.ARTIST -> data.songs.sortedBy { it.artist }
-            SortOption.ALBUM -> data.songs.sortedBy { it.album }
-            SortOption.DATE_ADDED -> data.songs.sortedByDescending { it.dateAdded }
-            SortOption.DURATION -> data.songs.sortedByDescending { it.duration }
+            SortOption.TITLE -> sourceList.sortedBy { it.title }
+            SortOption.ARTIST -> sourceList.sortedBy { it.artist }
+            SortOption.ALBUM -> sourceList.sortedBy { it.album }
+            SortOption.DATE_ADDED -> sourceList.sortedByDescending { it.dateAdded }
+            SortOption.DURATION -> sourceList.sortedByDescending { it.duration }
         }
 
         HomeUiState(
@@ -117,6 +136,7 @@ class HomeViewModel @Inject constructor(
             artists = data.artists,
             playlists = data.playlists,
             isLoading = controls.isLoading,
+            filterFavorites = controls.filterFavorites,
             isSelectionMode = controls.isSelectionMode,
             selectedSongIds = controls.selectedSongIds,
             showAddToPlaylistDialog = controls.showAddToPlaylistDialog,
@@ -140,7 +160,8 @@ class HomeViewModel @Inject constructor(
         val recent: List<Song>,
         val albums: List<Album>,
         val artists: List<Artist>,
-        val playlists: List<Playlist>
+        val playlists: List<Playlist>,
+        val favorites: List<Song>
     )
 
     data class ControlsState(
@@ -148,7 +169,8 @@ class HomeViewModel @Inject constructor(
         val isSelectionMode: Boolean,
         val selectedSongIds: Set<Long>,
         val showAddToPlaylistDialog: Boolean,
-        val sortOption: SortOption
+        val sortOption: SortOption,
+        val filterFavorites: Boolean
     )
 
     fun scanMusic() {
@@ -313,5 +335,9 @@ class HomeViewModel @Inject constructor(
     
     fun setSortOption(option: SortOption) {
         savedStateHandle["sort_option"] = option
+    }
+    
+    fun toggleFavoritesFilter() {
+        savedStateHandle["filter_favorites"] = !(_filterFavorites.value)
     }
 }

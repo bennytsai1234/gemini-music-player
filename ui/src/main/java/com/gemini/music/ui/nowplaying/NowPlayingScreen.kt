@@ -40,16 +40,35 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.RepeatOne
+import androidx.compose.material.icons.rounded.Replay10
+import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.scale
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Album
+import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -106,17 +125,18 @@ fun NowPlayingScreen(
     onQueueClick: () -> Unit,
     onAlbumClick: (albumId: Long) -> Unit = {},
     onInternalEqualizerClick: () -> Unit = {},
-    onArtworkLoaded: (Bitmap) -> Unit = {},
+    onArtworkLoaded: (Bitmap?) -> Unit = {},
     viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
+    // State management
     var showLyrics by rememberSaveable { mutableStateOf(false) }
-
     var showMoreOptions by rememberSaveable { mutableStateOf(false) }
-    
     var showAddToPlaylist by rememberSaveable { mutableStateOf(false) }
+    var showSleepTimer by rememberSaveable { mutableStateOf(false) }
 
+    // Bottom Sheet for Options
     if (showMoreOptions) {
         ModalBottomSheet(
             onDismissRequest = { showMoreOptions = false },
@@ -137,186 +157,173 @@ fun NowPlayingScreen(
                     color = Color.White.copy(alpha = 0.5f)
                 )
                 
-                // Add to Playlist
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { 
-                            showMoreOptions = false
-                            showAddToPlaylist = true
-                        }
-                        .padding(horizontal = 24.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.size(16.dp))
-                    Text(text = "Add to Playlist", style = MaterialTheme.typography.bodyLarge)
-                }
+                // Option Items
+                OptionItem(
+                    icon = Icons.AutoMirrored.Rounded.QueueMusic,
+                    text = "Add to Playlist",
+                    onClick = { 
+                        showMoreOptions = false
+                        showAddToPlaylist = true
+                    }
+                )
 
-                // Go to Album
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { 
-                            showMoreOptions = false
-                            uiState.song?.albumId?.let { albumId ->
-                                onAlbumClick(albumId)
-                            }
-                        }
-                        .padding(horizontal = 24.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Album,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.size(16.dp))
-                    Text(text = "Go to Album", style = MaterialTheme.typography.bodyLarge)
-                }
+                OptionItem(
+                    icon = Icons.Rounded.Album,
+                    text = "Go to Album",
+                    onClick = { 
+                        showMoreOptions = false
+                        uiState.song?.albumId?.let { onAlbumClick(it) }
+                    }
+                )
 
-                // Equalizer
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showMoreOptions = false
-                            onInternalEqualizerClick()
-                        }
-                        .padding(horizontal = 24.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.GraphicEq,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.size(16.dp))
-                    Text(text = "Equalizer", style = MaterialTheme.typography.bodyLarge)
-                }
+                OptionItem(
+                    icon = Icons.Rounded.GraphicEq,
+                    text = "Equalizer",
+                    onClick = {
+                        showMoreOptions = false
+                        onInternalEqualizerClick()
+                    }
+                )
+
+                OptionItem(
+                    icon = Icons.Rounded.Timer,
+                    text = "Sleep Timer",
+                    onClick = {
+                        showMoreOptions = false
+                        showSleepTimer = true
+                    }
+                )
                 
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
 
+    // Sheet Dialogs
+    if (showSleepTimer) {
+        com.gemini.music.ui.settings.SleepTimerDialog(
+            onDismiss = { showSleepTimer = false },
+            onSetTimer = { minutes ->
+                viewModel.onEvent(NowPlayingEvent.SetSleepTimer(minutes))
+                showSleepTimer = false
+            },
+            onCancelTimer = {
+                viewModel.onEvent(NowPlayingEvent.CancelSleepTimer)
+                showSleepTimer = false
+            }
+        )
+    }
+
     if (showAddToPlaylist) {
-        AddToPlaylistDialog(
+        com.gemini.music.ui.component.AddToPlaylistDialog(
             playlists = uiState.playlists,
             onDismiss = { showAddToPlaylist = false },
-            onPlaylistSelected = { playlist ->
+            onPlaylistSelected = { playlist -> 
                 viewModel.onEvent(NowPlayingEvent.AddToPlaylist(playlist.id))
                 showAddToPlaylist = false
             },
             onCreateNewPlaylist = { name ->
                 viewModel.onEvent(NowPlayingEvent.CreatePlaylistAndAdd(name))
-                showAddToPlaylist = false
             }
         )
     }
 
-    val startColor by animateColorAsState(
-        targetValue = uiState.gradientColors.getOrElse(0) { Color(0xFF1E1E1E) },
-        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
-        label = "StartColor"
-    )
-    val endColor by animateColorAsState(
-        targetValue = uiState.gradientColors.getOrElse(1) { Color.Black },
-        animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
-        label = "EndColor"
-    )
-
-    // Use a clean, dynamic color gradient background
+    // MAIN UI STRUCTURE
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black) // Base fallback
+        modifier = Modifier.fillMaxSize()
     ) {
-        // 1. Main Gradient Background
-        val mainGradientBrush = remember(startColor, endColor) {
-             Brush.verticalGradient(colors = listOf(startColor, endColor))
-        }
+        // 1. Immersive Background (Blurred Art)
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(uiState.song?.albumArtUri)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(25.dp),
+            alpha = 0.6f 
+        )
+        
+        // 2. Gradient Overlay for readability
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(mainGradientBrush)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.3f), // Top
+                            Color.Black.copy(alpha = 0.6f), // Middle
+                            Color.Black.copy(alpha = 0.95f) // Bottom (Controls)
+                        )
+                    )
+                )
         )
 
-        // 2. Subtle Radial Glow for depth
-        val radialGlowBrush = remember(startColor) {
-            Brush.radialGradient(
-                colors = listOf(
-                    startColor.copy(alpha = 0.4f),
-                    Color.Transparent
-                ),
-                center = Offset(0.5f, -0.2f), // Glow from top center
-                radius = 2000f
-            )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(radialGlowBrush)
-        )
-
+        // 3. Main Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 24.dp), // Reduce padding slightly for more space
+                .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. Top Control Bar
-            TopControls(
-                onBackClick = onBackClick,
-                onQueueClick = onQueueClick,
-                onLyricsClick = { showLyrics = !showLyrics },
-                onMoreClick = { showMoreOptions = true },
-                isLyricsVisible = showLyrics,
-                modifier = Modifier.statusBarsPadding()
-            )
+            // Top Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = "Collapse",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                
+                Spacer(Modifier.weight(1f))
+                
+                Text(
+                    text = "NOW PLAYING",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+                
+                Spacer(Modifier.weight(1f))
+                
+                IconButton(onClick = { showMoreOptions = true }) {
+                    Icon(
+                        imageVector = Icons.Rounded.MoreVert,
+                        contentDescription = "Options",
+                        tint = Color.White
+                    )
+                }
+            }
 
-            Spacer(modifier = Modifier.weight(0.1f))
-
-            // 2. Main Content
-            AnimatedContent(
-                targetState = showLyrics,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing)) togetherWith fadeOut(animationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing))
-                },
-                label = "ContentSwitcher",
+            // Expandable Content (Lyrics or Art)
+            Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-            ) { isLyrics ->
-                if (isLyrics) {
-                    // Use KaraokeLyrics for enhanced word-by-word highlighting
-                    val currentPositionMs = ((uiState.song?.duration ?: 0L) * uiState.progress).toLong()
+            ) {
+                if (showLyrics) {
                     KaraokeLyrics(
                         lyrics = uiState.lyrics,
-                        currentPosition = currentPositionMs,
-                        highlightColor = uiState.backgroundColor,
-                        normalColor = Color.White.copy(alpha = 0.5f),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable { showLyrics = false }
+                        currentPosition = (uiState.progress * (uiState.song?.duration ?: 1L)).toLong(),
+                        modifier = Modifier.fillMaxSize()
                     )
                 } else {
                     HeroImage(
                         artUri = uiState.song?.albumArtUri,
                         isPlaying = uiState.isPlaying,
-                        onImageLoaded = { bitmap ->
-                            viewModel.onEvent(NowPlayingEvent.UpdatePalette(bitmap))
-                            onArtworkLoaded(bitmap)
-                        },
-                        onClick = { showLyrics = true },
+                        onImageLoaded = onArtworkLoaded,
+                        onClick = { showLyrics = !showLyrics },
                         onSwipeLeft = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
                         onSwipeRight = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
                         onDoubleTapLeft = { viewModel.onEvent(NowPlayingEvent.SeekBackward10s) },
@@ -325,47 +332,227 @@ fun NowPlayingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            // Bottom Control Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 24.dp)
+            ) {
+                // Song Info
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = uiState.song?.title ?: "Unknown Title",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = uiState.song?.artist ?: "Unknown Artist",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
-            // 3. Song Info
-            // 3. Song Info (Centered and Larger)
-            SongInfo(
-                title = uiState.song?.title ?: "No Audio",
-                artist = uiState.song?.artist ?: "Unknown Artist",
-                isFavorite = uiState.isFavorite,
-                onToggleFavorite = { viewModel.onEvent(NowPlayingEvent.ToggleFavorite) },
-                modifier = Modifier.padding(vertical = 16.dp)
+                Spacer(Modifier.height(24.dp))
+
+                // Seek Bar (Waveform if available, else Slider)
+                if (uiState.waveform.isNotEmpty()) {
+                    WaveformSeekBar(
+                        waveform = uiState.waveform,
+                        progress = uiState.progress,
+                        onValueChange = { viewModel.onEvent(NowPlayingEvent.SeekTo(it)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    )
+                } else {
+                    Slider(
+                        value = uiState.progress,
+                        onValueChange = { viewModel.onEvent(NowPlayingEvent.SeekTo(it)) },
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color.White,
+                            activeTrackColor = Color.White,
+                            inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                
+                // Time Labels
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = uiState.currentTime, style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.7f))
+                    Text(text = uiState.totalTime, style = MaterialTheme.typography.labelMedium, color = Color.White.copy(alpha = 0.7f))
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Playback Controls
+                PlayerControls(
+                    isPlaying = uiState.isPlaying,
+                    onPlayPause = { viewModel.onEvent(NowPlayingEvent.PlayPauseToggle) },
+                    onSkipNext = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
+                    onSkipPrevious = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
+                    shuffleEnabled = uiState.shuffleModeEnabled,
+                    repeatMode = uiState.repeatMode,
+                    onShuffleToggle = { viewModel.onEvent(NowPlayingEvent.ToggleShuffle) },
+                    onRepeatToggle = { viewModel.onEvent(NowPlayingEvent.ToggleRepeat) },
+                    isFavorite = uiState.isFavorite,
+                    onFavoriteToggle = { viewModel.onEvent(NowPlayingEvent.ToggleFavorite) },
+                    onQueueClick = onQueueClick
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun OptionItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.size(16.dp))
+        Text(text = text, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+fun PlayerControls(
+    isPlaying: Boolean,
+    onPlayPause: () -> Unit,
+    onSkipNext: () -> Unit,
+    onSkipPrevious: () -> Unit,
+    shuffleEnabled: Boolean,
+    repeatMode: RepeatMode,
+    onShuffleToggle: () -> Unit,
+    onRepeatToggle: () -> Unit,
+    isFavorite: Boolean,
+    onFavoriteToggle: () -> Unit,
+    onQueueClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Shuffle Button
+        IconButton(onClick = onShuffleToggle) {
+            Icon(
+                imageVector = Icons.Rounded.Shuffle,
+                contentDescription = "Shuffle",
+                tint = if (shuffleEnabled) Color.White else Color.White.copy(alpha = 0.5f),
+                modifier = Modifier.size(24.dp)
             )
+        }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // 4. Time Controls
-            TimeControls(
-                progress = uiState.progress,
-                currentTime = uiState.currentTime,
-                totalTime = uiState.totalTime,
-                activeColor = uiState.backgroundColor,
-                onSeek = { viewModel.onEvent(NowPlayingEvent.SeekTo(it)) },
-                waveform = uiState.waveform
+        // Previous Button
+        IconButton(onClick = onSkipPrevious) {
+            Icon(
+                imageVector = Icons.Rounded.SkipPrevious,
+                contentDescription = "Previous",
+                tint = Color.White,
+                modifier = Modifier.size(36.dp)
             )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 5. Media Controls
-            // 5. Media Controls (Refined)
-            MediaControls(
-                isPlaying = uiState.isPlaying,
-                shuffleModeEnabled = uiState.shuffleModeEnabled,
-                repeatMode = uiState.repeatMode,
-                accentColor = uiState.backgroundColor, // Pass dynamic color
-                onPlayPause = { viewModel.onEvent(NowPlayingEvent.PlayPauseToggle) },
-                onNext = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
-                onPrev = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
-                onShuffleToggle = { viewModel.onEvent(NowPlayingEvent.ToggleShuffle) },
-                onRepeatToggle = { viewModel.onEvent(NowPlayingEvent.ToggleRepeat) }
+        // Play/Pause Button
+        IconButton(
+            onClick = onPlayPause,
+            modifier = Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(Color.White)
+        ) {
+            Icon(
+                imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                contentDescription = if (isPlaying) "Pause" else "Play",
+                tint = Color.Black,
+                modifier = Modifier.size(48.dp)
             )
-            
-            Spacer(modifier = Modifier.height(48.dp))
+        }
+
+        // Next Button
+        IconButton(onClick = onSkipNext) {
+            Icon(
+                imageVector = Icons.Rounded.SkipNext,
+                contentDescription = "Next",
+                tint = Color.White,
+                modifier = Modifier.size(36.dp)
+            )
+        }
+
+        // Repeat Button
+        IconButton(onClick = onRepeatToggle) {
+            val icon = when (repeatMode) {
+                RepeatMode.OFF -> Icons.Rounded.Repeat
+                RepeatMode.ALL -> Icons.Rounded.Repeat
+                RepeatMode.ONE -> Icons.Rounded.RepeatOne
+            }
+            val tint = if (repeatMode == RepeatMode.OFF) Color.White.copy(alpha = 0.5f) else Color.White
+            Icon(
+                imageVector = icon,
+                contentDescription = "Repeat",
+                tint = tint,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Favorite Button
+        IconButton(onClick = onFavoriteToggle) {
+            Icon(
+                imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                contentDescription = "Favorite",
+                tint = if (isFavorite) Color.Red else Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        // Lyrics Button
+        IconButton(onClick = { /* Handled by HeroImage click or separate button if needed */ }) {
+            Icon(
+                imageVector = Icons.Rounded.Description,
+                contentDescription = "Lyrics",
+                tint = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        // Queue Button
+        IconButton(onClick = onQueueClick) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                contentDescription = "Queue",
+                tint = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
@@ -427,7 +614,7 @@ fun TopControls(
 fun HeroImage(
     artUri: String?,
     isPlaying: Boolean,
-    onImageLoaded: (Bitmap) -> Unit,
+    onImageLoaded: (Bitmap?) -> Unit,
     onClick: () -> Unit,
     onSwipeLeft: () -> Unit = {},
     onSwipeRight: () -> Unit = {},
@@ -458,15 +645,9 @@ fun HeroImage(
         label = "SwipeOffset"
     )
     
-    // Double tap indicator
-    var showDoubleTapIndicator by remember { mutableStateOf<String?>(null) }
-    
-    LaunchedEffect(showDoubleTapIndicator) {
-        if (showDoubleTapIndicator != null) {
-            kotlinx.coroutines.delay(500)
-            showDoubleTapIndicator = null
-        }
-    }
+    // Double tap hint indicators
+    var showDoubleTapHintLeft by remember { mutableStateOf(false) }
+    var showDoubleTapHintRight by remember { mutableStateOf(false) }
     
     val currentOnSwipeLeft by rememberUpdatedState(onSwipeLeft)
     val currentOnSwipeRight by rememberUpdatedState(onSwipeRight)
@@ -498,58 +679,51 @@ fun HeroImage(
             }
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { offset ->
-                        currentOnClick()
-                    },
+                    onTap = { currentOnClick() },
                     onDoubleTap = { offset ->
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                        val width = size.width
-                        if (offset.x < width / 2) {
-                            // Left side - go back 10 seconds
-                            showDoubleTapIndicator = "-10s"
+                        if (offset.x < size.width / 2) {
                             currentOnDoubleTapLeft()
+                            showDoubleTapHintLeft = true
                         } else {
-                            // Right side - skip 10 seconds
-                            showDoubleTapIndicator = "+10s"
                             currentOnDoubleTapRight()
+                            showDoubleTapHintRight = true
                         }
                     }
                 )
             },
         contentAlignment = Alignment.Center
     ) {
-        // Pseudo-glow layer
+        // Shadow/Glow Background
         Box(
             modifier = Modifier
                 .aspectRatio(1f)
-                .graphicsLayer {
-                    scaleX = scale * 0.9f
-                    scaleY = scale * 0.9f
-                    alpha = 0.5f
-                    translationX = animatedOffset * 0.3f
-                }
-                .blur(32.dp)
-                .background(Color.White.copy(0.2f), CircleShape)
+                .scale(scale * 0.95f) // Slightly smaller than image
+                .shadow(
+                    elevation = animatedShadowElevation.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = Color.Black,
+                    ambientColor = Color.Black
+                )
+                .background(Color.Black, RoundedCornerShape(24.dp))
         )
 
-        Box(
+        // Main Image
+        Card(
             modifier = Modifier
-                .fillMaxWidth()
                 .aspectRatio(1f)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    shadowElevation = animatedShadowElevation
-                    shape = RoundedCornerShape(28.dp)
-                    clip = true
-                    translationX = animatedOffset
-                }
-                .background(Color.DarkGray)
+                .scale(scale)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = Color.Black.copy(alpha = 0.5f)
+                ),
+            shape = RoundedCornerShape(24.dp),
+            elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 0.dp) // Handled by modifier
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(context)
+             AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
                     .data(artUri)
-                    .allowHardware(false)
                     .crossfade(true)
                     .build(),
                 contentDescription = "Album Art",
@@ -559,32 +733,62 @@ fun HeroImage(
                     val resultBitmap = result.result.drawable.toBitmap()
                     onImageLoaded(resultBitmap)
                 },
-                error = painterResource(id = android.R.drawable.ic_menu_gallery)
+                onError = {
+                     onImageLoaded(null)
+                },
+                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Album)
             )
-            
-            // Double Tap Indicator Overlay
-            androidx.compose.animation.AnimatedVisibility(
-                visible = showDoubleTapIndicator != null,
-                enter = fadeIn() + scaleIn(),
-                exit = fadeOut(),
-                modifier = Modifier.align(
-                    if (showDoubleTapIndicator == "-10s") Alignment.CenterStart 
-                    else Alignment.CenterEnd
-                )
+        }
+        
+        // Double Tap Indicators - Left
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showDoubleTapHintLeft,
+            enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(),
+            exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(),
+            modifier = Modifier.align(Alignment.CenterStart).padding(start = 32.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp)
-                        .background(Color.Black.copy(alpha = 0.7f), CircleShape)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = showDoubleTapIndicator ?: "",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Rounded.Replay10,
+                    contentDescription = "-10s",
+                    tint = Color.White
+                )
+            }
+            // Auto hide hint
+            LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(600)
+                showDoubleTapHintLeft = false
+            }
+        }
+        
+        // Double Tap Indicators - Right
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showDoubleTapHintRight,
+            enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(),
+            exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(),
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 32.dp)
+        ) {
+             Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Forward10,
+                    contentDescription = "+10s",
+                    tint = Color.White
+                )
+            }
+             // Auto hide hint
+            LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(600)
+                showDoubleTapHintRight = false
             }
         }
     }

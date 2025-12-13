@@ -1,13 +1,16 @@
 package com.gemini.music.ui.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
@@ -65,7 +68,7 @@ fun SearchScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 LazyColumn(
-                    contentPadding = PaddingValues(bottom = 80.dp), // Space for MiniPlayer
+                    contentPadding = PaddingValues(bottom = 100.dp), // Space for MiniPlayer
                     modifier = Modifier.fillMaxSize()
                 ) {
                     val hasResults = uiState.songs.isNotEmpty() || uiState.albums.isNotEmpty() || uiState.artists.isNotEmpty()
@@ -149,7 +152,22 @@ fun SearchScreen(
                                 ListItem(
                                     headlineContent = { Text(album.title) },
                                     supportingContent = { Text(album.artist) },
-                                    leadingContent = { Icon(Icons.Rounded.Album, null) },
+                                    leadingContent = { 
+                                        coil.compose.AsyncImage(
+                                            model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                                                .data(album.artUri)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = null,
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                                            error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Album),
+                                            placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Album)
+                                        )
+                                    },
                                     modifier = Modifier.clickable { 
                                         onAlbumClick(album.id)
                                     }

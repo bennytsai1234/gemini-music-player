@@ -54,16 +54,32 @@
 *   **Process Death 防護**: 所有關鍵 UI 狀態（尤其是 **Bottom Sheets**, **Expanded Views**, **Complex Navigation State**）**必須**使用 `rememberSaveable` 而非 `remember`。對於 ViewModel 層級的狀態，**必須**使用 `SavedStateHandle` 進行持久化，確保應用在後台被系統回收後，用戶返回時能看到一致的畫面（如排序選項、選取模式）。
 *   **動態佈局適配**: 對於依賴容器尺寸計算的狀態（如 `AnchoredDraggableState` 的 anchors），應在 `LaunchedEffect` 或 `onSizeChanged` 中更新配置，**嚴禁**因尺寸變化而重新創建 (Re-create) 狀態物件，這會導致互動中斷或狀態重置。
 
-#### **§2 極致使用者體驗 (UX Excellence)**
+#### **§3 極致使用者體驗 (UX Excellence)**
 *   **智慧列表定位 (Smart List Positioning)**: 
     *   當進入一個長列表且有明確「活躍項目」時，應自動滾動至該項目 (Auto-scroll to active item)。
 *   **容錯互動設計 (Forgiving Interactions)**:
     *   **手勢導航**: 自定義滑動控件（如側邊索引欄）應具備「吸附」或「智慧查找」功能。若用戶手指滑到無效區域，應自動定位至最近的有效內容，而非無反應。
     *   **視覺反饋**: 任何拖動、長按操作都必須提供即時的視覺提示（如氣泡、高亮、震動回饋）。
+*   **沉浸式設計 (Immersive Design)**:
+    *   **全屏模糊**: 播放介面 (`NowPlayingScreen`) 應使用專輯封面的全屏模糊作為背景，並疊加動態漸變，創造深度感與氛圍感。
+    *   **玻璃擬態 (Glassmorphism)**: 控件層與浮動面板應採用半透明視效 (Glassmorphism)，以區分層級並保持背景的可見性。
 *   **誠實 UI (Honest UI)**: 
     *   若某 UI 元素看似可互動（如 Drag Handle），則必須具備相應功能。若功能未實作，應隱藏該元素或替換為資訊性組件（如 Metadata 標籤），避免欺騙用戶預期。
+*   **邊界與空狀態處理 (Edge Cases & Empty States)**:
+    *   **內容填充 (Content Padding)**: 所有滾動列表（`LazyColumn`/`LazyGrid`）**必須**設置足夠的 `contentPadding` (bottom)，以避開懸浮組件（如 MiniPlayer, FAB）。避免內容被遮擋無法觸及。
+    *   **優雅失敗 (Graceful Failure)**: 圖片加載失敗時，**必須**顯示佔位符 (Placeholder) 或圖標 (Icon)，嚴禁留白。對於動態主題 (Dynamic Theme)，若圖片加載失敗，應回退至預設或中性色。
+    *   **輸入防呆**: 關鍵輸入（如創建播放清單）**必須**在 UI 層級（如按鈕 `enabled` 狀態）即時反應有效性，防止無效提交。
+    *   **空狀態反饋**: 無數據時（如空播放清單、無搜尋結果），應顯示明確的圖示與引導文字，而非空白畫面。
 
-#### **§3 系統兼容性與除錯 (System Compatibility & Debugging)**
+#### **§4 探索與導航優化 (Discovery & Navigation)**
+*   **儀表板佈局 (Dashboard Layout)**:
+    *   在主頁面 (`HomeScreen`) 頂部應提供高價值的概覽資訊，如「問候語 (Greeting)」結合「動態背景」，以及「最近新增 (Recently Added)」的橫向捲動列。這能讓用戶一進入 App 就感受到內容的豐富性。
+*   **快速過濾 (Quick Access Filters)**:
+    *   在列表控制列 (`ControlRow`) 提供高頻率使用的過濾器（如「僅顯示最愛 (Favorites Only)」）。這比進入深層選單更能提升日常使用體驗。
+*   **偏移感知捲動 (Offset-Aware Scrolling)**:
+    *   當列表包含 Header（如儀表板、廣告、搜尋列）時，`FastScroller` 或類似的跳轉邏輯必須加上 `headerOffset`，確保跳轉後的定位精準對齊列表項，而非 Header。
+
+#### **§5 系統兼容性與除錯 (System Compatibility & Debugging)**
 *   **權限策略 (Permission Strategy)**: 
     *   針對 Android 13+ (API 33+) 的 `POST_NOTIFICATIONS` 與細分媒體權限 (`READ_MEDIA_AUDIO` 等)，**必須**在相關功能啟動前 (如 `MainActivity.onCreate` 或播放前) 進行檢查與請求。永遠不要假設權限已被授予。
 *   **Release 模式驗證 (Verifying in Release Mode)**:
