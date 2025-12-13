@@ -55,12 +55,10 @@ import com.gemini.music.ui.component.SongListItem
 @Composable
 fun AlbumDetailScreen(
     onBackClick: () -> Unit,
-    onSongClick: (Song) -> Unit,
     viewModel: AlbumDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val album = uiState.album
-    val songs = uiState.songs
 
     Scaffold(
         topBar = {

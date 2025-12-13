@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
@@ -97,7 +98,6 @@ fun ArtistDetailScreen(
             // Artist Header
             item {
                 ArtistHeader(
-                    artistName = uiState.artistName,
                     songCount = uiState.songs.size,
                     albumCount = uiState.albums.size,
                     coverArtUri = uiState.songs.firstOrNull()?.albumArtUri,
@@ -176,7 +176,6 @@ fun ArtistDetailScreen(
 
 @Composable
 private fun ArtistHeader(
-    artistName: String,
     songCount: Int,
     albumCount: Int,
     coverArtUri: String?,
@@ -331,8 +330,8 @@ private fun AlbumGridItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surfaceVariant),
-                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person),
-                placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person)
+                error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Album),
+                placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Album)
             )
         }
         

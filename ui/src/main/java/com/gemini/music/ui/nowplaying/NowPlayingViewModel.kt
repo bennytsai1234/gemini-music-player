@@ -237,9 +237,8 @@ class NowPlayingViewModel @Inject constructor(
             Palette.from(bitmap).generate { palette ->
                 val vibrant = palette?.vibrantSwatch?.rgb?.let { Color(it) } ?: Color(0xFF1E1E1E)
                 val darkVibrant = palette?.darkVibrantSwatch?.rgb?.let { Color(it) } ?: Color.Black
-                val muted = palette?.mutedSwatch?.rgb?.let { Color(it) } ?: Color.DarkGray
                 
-                // Construct a rich gradient: Vibrant -> Muted/Dark
+                // Construct a rich gradient: Vibrant -> Dark
                 val gradient = listOf(vibrant, darkVibrant)
                 
                 _paletteColors.value = gradient

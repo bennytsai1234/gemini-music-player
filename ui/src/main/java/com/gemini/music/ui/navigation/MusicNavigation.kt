@@ -187,10 +187,7 @@ fun MusicNavigation(navController: NavHostController) {
                 ) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
                         AlbumDetailScreen(
-                            onBackClick = { navController.safePopBackStack() },
-                            onSongClick = { _ -> 
-                                // Just play, don't navigate
-                            }
+                            onBackClick = { navController.safePopBackStack() }
                         )
                     }
                 }

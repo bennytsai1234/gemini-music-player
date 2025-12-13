@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -621,7 +622,6 @@ fun HeroImage(
     onDoubleTapLeft: () -> Unit = {},
     onDoubleTapRight: () -> Unit = {}
 ) {
-    val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
     
     val scale by animateFloatAsState(
@@ -713,6 +713,7 @@ fun HeroImage(
             modifier = Modifier
                 .aspectRatio(1f)
                 .scale(scale)
+                .offset(x = animatedOffset.dp)
                 .shadow(
                     elevation = 8.dp,
                     shape = RoundedCornerShape(24.dp),
