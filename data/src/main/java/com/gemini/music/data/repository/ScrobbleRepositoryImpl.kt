@@ -151,15 +151,15 @@ class ScrobbleRepositoryImpl @Inject constructor(
     
     // === Last.fm Authentication ===
     
-    suspend fun getAuthToken(): String? {
+    override suspend fun getAuthToken(): String? {
         return lastFmService.getAuthToken()
     }
     
-    fun getAuthUrl(token: String): String {
+    override fun getAuthUrl(token: String): String {
         return lastFmService.getAuthUrl(token)
     }
     
-    suspend fun completeAuthentication(token: String): Boolean {
+    override suspend fun completeAuthentication(token: String): Boolean {
         return withContext(Dispatchers.IO) {
             val session = lastFmService.getSession(token) ?: return@withContext false
             
@@ -173,7 +173,7 @@ class ScrobbleRepositoryImpl @Inject constructor(
         }
     }
     
-    suspend fun logout() {
+    override suspend fun logout() {
         withContext(Dispatchers.IO) {
             context.lastFmDataStore.edit { prefs ->
                 prefs.remove(KEY_SESSION)
@@ -183,7 +183,7 @@ class ScrobbleRepositoryImpl @Inject constructor(
         }
     }
     
-    suspend fun getUsername(): String? {
+    override suspend fun getUsername(): String? {
         return context.lastFmDataStore.data.first()[KEY_USERNAME]
     }
     

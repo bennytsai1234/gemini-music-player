@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Language
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.AlarmOff
 import android.content.Intent
 import android.media.audiofx.AudioEffect
+import android.net.Uri
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
@@ -171,6 +173,10 @@ fun SettingsScreen(
                     }
                 )
             }
+            
+            // Last.fm Integration
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            LastFmSection()
 
             // Min Duration Slider
             Text(
@@ -460,3 +466,151 @@ fun SleepTimerDialog(
         }
     )
 }
+
+@Composable
+fun LastFmSection(
+    viewModel: LastFmSettingsViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = "Last.fm Scrobbling",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(Modifier.height(8.dp))
+        
+        if (uiState.isConnected) {
+            // Connected state
+            ListItem(
+                headlineContent = { 
+                    Text("已連接到 Last.fm") 
+                },
+                supportingContent = { 
+                    Text("用戶名: ${uiState.username ?: "載入中..."}") 
+                },
+                leadingContent = {
+                    Icon(
+                        imageVector = Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
+            
+            // Pending scrobbles
+            if (uiState.pendingScrobbleCount > 0) {
+                ListItem(
+                    headlineContent = { Text("待同步 Scrobbles") },
+                    supportingContent = { Text("${uiState.pendingScrobbleCount} 筆記錄等待同步") },
+                    trailingContent = {
+                        Button(
+                            onClick = { viewModel.syncPendingScrobbles() },
+                            enabled = !uiState.isLoading
+                        ) {
+                            if (uiState.isLoading) {
+                                androidx.compose.material3.CircularProgressIndicator(
+                                    modifier = Modifier.width(16.dp).height(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text("同步")
+                            }
+                        }
+                    }
+                )
+            }
+            
+            // Logout button
+            androidx.compose.material3.TextButton(
+                onClick = { viewModel.logout() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("登出 Last.fm", color = MaterialTheme.colorScheme.error)
+            }
+        } else {
+            // Not connected state
+            Text(
+                text = "連接 Last.fm 帳戶以自動記錄您的播放歷史到 Last.fm。",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(12.dp))
+            
+            // Auth URL available - show confirm button
+            if (uiState.authUrl != null) {
+                Column {
+                    Text(
+                        text = "請在瀏覽器中完成授權後，點擊下方按鈕確認。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uiState.authUrl))
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("在瀏覽器中授權")
+                        }
+                        Button(
+                            onClick = { viewModel.completeAuthentication() },
+                            enabled = !uiState.isLoading,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            if (uiState.isLoading) {
+                                androidx.compose.material3.CircularProgressIndicator(
+                                    modifier = Modifier.width(16.dp).height(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text("已完成授權")
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    androidx.compose.material3.TextButton(
+                        onClick = { viewModel.clearAuthState() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("取消")
+                    }
+                }
+            } else {
+                // Start auth button
+                Button(
+                    onClick = { viewModel.startAuthentication() },
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (uiState.isLoading) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            modifier = Modifier.width(16.dp).height(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    Text("連接 Last.fm 帳戶")
+                }
+            }
+        }
+        
+        // Error message
+        uiState.error?.let { error ->
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = error,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+

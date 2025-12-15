@@ -178,7 +178,7 @@
     *   播放服務自動記錄 Scrobble（符合 50% 或 4 分鐘標準）。
     *   Last.fm API 整合架構（認證、Scrobble、Now Playing）。
     *   待同步 Scrobble 隊列管理。
-*   🔲 **Last.fm 帳戶連接 UI**: 設定頁面中新增 Last.fm 帳戶連接介面。
+*   ✅ **Last.fm 帳戶連接 UI**: 設定頁面中新增 Last.fm 帳戶連接介面，支援登入/登出和同步功能。
 
 #### **長期目標 (Long-term)**
 *   **雲端備份與同步 (Cloud Backup)**: 整合 Google Drive，備份播放清單與最愛歌曲設定。

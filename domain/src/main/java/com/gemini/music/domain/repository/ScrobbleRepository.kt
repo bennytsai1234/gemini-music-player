@@ -60,4 +60,32 @@ interface ScrobbleRepository {
      * 檢查是否已連接外部 Scrobbling 服務。
      */
     fun isExternalServiceConnected(): Flow<Boolean>
+    
+    // === Last.fm Authentication ===
+    
+    /**
+     * 獲取 Last.fm 認證 Token
+     */
+    suspend fun getAuthToken(): String?
+    
+    /**
+     * 獲取認證 URL
+     */
+    fun getAuthUrl(token: String): String
+    
+    /**
+     * 完成認證流程
+     */
+    suspend fun completeAuthentication(token: String): Boolean
+    
+    /**
+     * 登出外部服務
+     */
+    suspend fun logout()
+    
+    /**
+     * 獲取已連接的用戶名
+     */
+    suspend fun getUsername(): String?
 }
+
