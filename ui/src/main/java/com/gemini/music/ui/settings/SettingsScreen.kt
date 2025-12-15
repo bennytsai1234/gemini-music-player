@@ -177,6 +177,10 @@ fun SettingsScreen(
             // Last.fm Integration
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             LastFmSection()
+            
+            // Cloud Backup
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            com.gemini.music.ui.settings.backup.BackupSection()
 
             // Min Duration Slider
             Text(

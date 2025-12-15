@@ -67,6 +67,36 @@ abstract class DataModule {
     abstract fun bindLyricsEditRepository(
         lyricsEditRepositoryImpl: com.gemini.music.data.repository.LyricsEditRepositoryImpl
     ): com.gemini.music.domain.repository.LyricsEditRepository
+    
+    @Binds
+    abstract fun bindBackupRepository(
+        backupRepositoryImpl: com.gemini.music.data.repository.BackupRepositoryImpl
+    ): com.gemini.music.domain.repository.BackupRepository
+
+    @Binds
+    abstract fun bindGoogleAuthProvider(
+        googleDriveService: com.gemini.music.data.source.GoogleDriveService
+    ): com.gemini.music.core.common.auth.GoogleAuthProvider
+
+    @Binds
+    abstract fun bindThemeRepository(
+        themeRepositoryImpl: com.gemini.music.data.repository.ThemeRepositoryImpl
+    ): com.gemini.music.domain.repository.ThemeRepository
+
+    @Binds
+    abstract fun bindDrivingModeRepository(
+        drivingModeRepositoryImpl: com.gemini.music.data.repository.DrivingModeRepositoryImpl
+    ): com.gemini.music.domain.repository.DrivingModeRepository
+
+    @Binds
+    abstract fun bindSyncRepository(
+        syncRepositoryImpl: com.gemini.music.data.repository.SyncRepositoryImpl
+    ): com.gemini.music.domain.repository.SyncRepository
+
+    @Binds
+    abstract fun bindQueueRepository(
+        queueRepositoryImpl: com.gemini.music.data.repository.QueueRepositoryImpl
+    ): com.gemini.music.domain.repository.QueueRepository
 }
 
 

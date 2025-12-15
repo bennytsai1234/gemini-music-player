@@ -179,12 +179,29 @@
     *   Last.fm API 整合架構（認證、Scrobble、Now Playing）。
     *   待同步 Scrobble 隊列管理。
 *   ✅ **Last.fm 帳戶連接 UI**: 設定頁面中新增 Last.fm 帳戶連接介面，支援登入/登出和同步功能。
+*   ✅ **雲端備份 (Cloud Backup)**: 整合 Google Drive，支援備份/還原播放清單、最愛歌曲與設定 (採用 MVI 架構 + Clean Architecture)。
+*   🚧 **多主題引擎 (Theme Engine)**: 完整的主題系統架構，支援：
+    *   8 種預設調色盤 (Gemini, Ocean, Forest, Sunset, Cherry, Midnight, Gold, Monochrome)
+    *   Material You 動態顏色 (Android 12+)
+    *   AMOLED 純黑模式
+    *   自定義主題創建與管理
+*   🚧 **駕駛模式 (Driving Mode)**: 專為駕車設計的簡化 UI：
+    *   超大播放控制按鈕
+    *   觸覺反饋
+    *   簡化佇列檢視
+    *   藍牙設備白名單自動啟動
+*   🚧 **離線同步架構 (Offline Sync)**: 基於任務佇列的同步系統：
+    *   Scrobble 離線隊列
+    *   任務狀態管理 (Pending/Running/Failed/Completed)
+    *   自動重試機制
+    *   WorkManager 整合 (準備中)
+*   🚧 **播放佇列持久化 (Queue Persistence)**: Process Death 防護強化：
+    *   佇列快照儲存/恢復
+    *   播放歷史記錄
+    *   已命名佇列管理
 
 #### **長期目標 (Long-term)**
-*   **雲端備份與同步 (Cloud Backup)**: 整合 Google Drive，備份播放清單與最愛歌曲設定。
 *   **跨平台支援 (Cross-platform)**: 評估遷移至 Kotlin Multiplatform (KMP) 的可行性 (視需求而定)。
-*   **CarPlay-style 駕駛模式**: 大字體、簡化操作的駕駛模式 UI。
-*   **多主題支援 (Multiple Themes)**: 多種預設主題 + 自定義主題。
 
 ### 3. 優化方向 (Optimization Focus)
 

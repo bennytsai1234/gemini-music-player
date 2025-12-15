@@ -63,6 +63,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
     implementation(libs.androidx.activity.compose)
     implementation("androidx.appcompat:appcompat:1.6.1")
+
+    // Google Auth (For UI Intent handling)
+    implementation(libs.play.services.auth)
     
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

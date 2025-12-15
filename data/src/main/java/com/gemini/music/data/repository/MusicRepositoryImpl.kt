@@ -163,6 +163,23 @@ class MusicRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun addSongsToPlaylist(playlistId: Long, songIds: List<Long>) {
+        // Find existing max order to append
+        var nextOrder = playlistDao.getNextSortOrder(playlistId)
+        
+        val crossRefs = songIds.map { songId ->
+            com.gemini.music.data.database.PlaylistSongCrossRef(
+                playlistId = playlistId,
+                songId = songId,
+                sortOrder = nextOrder++
+            )
+        }
+        // Assuming implement insertPlaylistSongCrossRefs (plural) in DAO or loop insert
+        // Since DAO might not have plural insert, we loop for now or add it to DAO later.
+        // For efficiency, list insert is better. Check DAO.
+        crossRefs.forEach { playlistDao.insertPlaylistSongCrossRef(it) }
+    }
+
     override suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long) {
         playlistDao.removeSongFromPlaylist(playlistId, songId)
     }
