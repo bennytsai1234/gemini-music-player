@@ -18,7 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.gemini.music.ui.albumdetail.AlbumDetailScreen
-import com.gemini.music.ui.home.HomeScreen
+import com.gemini.music.ui.home.HomeScreenRedesigned
 import com.gemini.music.ui.nowplaying.NowPlayingScreen
 import com.gemini.music.ui.search.SearchScreen
 import com.gemini.music.ui.settings.SettingsScreen
@@ -129,7 +129,7 @@ fun MusicNavigation(navController: NavHostController) {
             ) {
                 composable(Screen.Home.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
-                        HomeScreen(
+                        HomeScreenRedesigned(
                             onSongClick = { _ -> 
                                 // Just play, don't navigate
                             },

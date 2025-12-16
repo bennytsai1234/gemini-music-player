@@ -234,10 +234,10 @@ fun HomeScreenRedesigned(
                                     subtitle = "${song.artist} · ${song.album}",
                                     albumArtUri = song.albumArtUri,
                                     isPlaying = false, // TODO: 連接播放狀態
-                                    isFavorite = false, // TODO: 連接最愛狀態
+                                    isFavorite = song.isFavorite,
                                     duration = formatDuration(song.duration),
                                     showDuration = true,
-                                    showFavorite = false, // 暫時隱藏
+                                    showFavorite = true,
                                     isSelected = isSelected,
                                     onClick = {
                                         if (uiState.isSelectionMode) {
@@ -246,6 +246,9 @@ fun HomeScreenRedesigned(
                                             viewModel.playSong(song)
                                             onSongClick(song)
                                         }
+                                    },
+                                    onFavoriteClick = {
+                                        viewModel.toggleFavorite(song.id)
                                     },
                                     modifier = Modifier.padding(horizontal = GeminiSpacing.xs)
                                 )

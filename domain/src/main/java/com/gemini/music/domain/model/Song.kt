@@ -15,7 +15,8 @@ data class Song(
     val dataPath: String,      // 檔案絕對路徑 (用於查找歌詞)
     val trackNumber: Int = 0,
     val year: Int = 0,
-    val dateAdded: Long = 0    // 用於「最近加入」排序
+    val dateAdded: Long = 0,   // 用於「最近加入」排序
+    val isFavorite: Boolean = false  // 是否為最愛
 ) {
     // 輔助屬性：產生專輯封面 Uri (用於 Coil)
     val albumArtUri: String

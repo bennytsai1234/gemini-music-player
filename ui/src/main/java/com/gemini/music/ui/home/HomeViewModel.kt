@@ -340,4 +340,13 @@ class HomeViewModel @Inject constructor(
     fun toggleFavoritesFilter() {
         savedStateHandle["filter_favorites"] = !(_filterFavorites.value)
     }
+    
+    /**
+     * 切換單曲的最愛狀態
+     */
+    fun toggleFavorite(songId: Long) {
+        viewModelScope.launch {
+            musicRepository.toggleFavorite(songId)
+        }
+    }
 }

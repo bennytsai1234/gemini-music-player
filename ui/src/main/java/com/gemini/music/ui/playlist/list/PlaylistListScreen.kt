@@ -1,56 +1,27 @@
 package com.gemini.music.ui.playlist.list
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.gemini.music.domain.model.Playlist
+import com.gemini.music.core.designsystem.GeminiSpacing
+import com.gemini.music.core.designsystem.component.GeminiEmptyState
+import com.gemini.music.core.designsystem.component.GeminiPlaylistGridCard
+import com.gemini.music.core.designsystem.component.GeminiTopBarWithBack
 import com.gemini.music.ui.component.CreatePlaylistDialog
-import com.gemini.music.ui.component.EmptyState
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import androidx.compose.material.icons.automirrored.rounded.List
+import com.gemini.music.domain.model.Playlist
 
+/**
+ * 重新設計的播放清單畫面 - 使用統一設計系統
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistListScreen(
@@ -79,16 +50,9 @@ fun PlaylistListScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Playlists") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+            GeminiTopBarWithBack(
+                title = "播放清單",
+                onBackClick = onBackClick
             )
         },
         floatingActionButton = {
@@ -103,25 +67,34 @@ fun PlaylistListScreen(
     ) { padding ->
         if (uiState.playlists.isEmpty()) {
             Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-                EmptyState(
+                GeminiEmptyState(
                     icon = Icons.AutoMirrored.Rounded.List,
-                    title = "No Playlists",
-                    message = "Create your first playlist!"
+                    title = "沒有播放清單",
+                    subtitle = "建立你的第一個播放清單吧！"
                 )
             }
         } else {
-            LazyColumn(
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 160.dp),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(bottom = 100.dp)
+                contentPadding = PaddingValues(
+                    start = GeminiSpacing.screenPaddingHorizontal,
+                    end = GeminiSpacing.screenPaddingHorizontal,
+                    top = GeminiSpacing.md,
+                    bottom = GeminiSpacing.bottomSafeArea
+                ),
+                horizontalArrangement = Arrangement.spacedBy(GeminiSpacing.cardSpacing),
+                verticalArrangement = Arrangement.spacedBy(GeminiSpacing.cardSpacing)
             ) {
-                items(uiState.playlists) { playlist ->
-                    PlaylistMsgItem(
+                items(
+                    items = uiState.playlists,
+                    key = { it.id }
+                ) { playlist ->
+                    PlaylistGridItem(
                         playlist = playlist,
-                        onClick = { onPlaylistClick(playlist.id) },
-                        onRename = { viewModel.showRenameDialog(playlist) },
-                        onDelete = { viewModel.deletePlaylist(playlist.id) }
+                        onClick = { onPlaylistClick(playlist.id) }
                     )
                 }
             }
@@ -130,88 +103,17 @@ fun PlaylistListScreen(
 }
 
 @Composable
-fun PlaylistMsgItem(
+private fun PlaylistGridItem(
     playlist: Playlist,
-    onClick: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit
+    onClick: () -> Unit
 ) {
-    var showMenu by remember { mutableStateOf(false) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant), 
-            contentAlignment = Alignment.Center
-        ) {
-            if (playlist.coverArtUri != null) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(playlist.coverArtUri)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.PlaylistPlay,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        }
-       
-        Spacer(modifier = Modifier.width(16.dp))
-        
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = playlist.name,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "${playlist.songCount} songs",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        Box {
-            IconButton(onClick = { showMenu = true }) {
-                Icon(Icons.Rounded.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            androidx.compose.material3.DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false }
-            ) {
-                androidx.compose.material3.DropdownMenuItem(
-                    text = { Text("Rename") },
-                    onClick = {
-                        showMenu = false
-                        onRename()
-                    },
-                    leadingIcon = { Icon(Icons.Rounded.Edit, null) }
-                )
-                androidx.compose.material3.DropdownMenuItem(
-                    text = { Text("Delete") },
-                    onClick = {
-                        showMenu = false
-                        onDelete()
-                    },
-                    leadingIcon = { Icon(Icons.Rounded.Delete, null) }
-                )
-            }
-        }
-    }
+    // 取得封面 URI 列表 (最多 4 個用於 2x2 拼圖)
+    val coverArts = listOfNotNull(playlist.coverArtUri)
+    
+    GeminiPlaylistGridCard(
+        title = playlist.name,
+        songCount = playlist.songCount,
+        coverArts = coverArts,
+        onClick = onClick
+    )
 }
