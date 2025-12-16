@@ -124,7 +124,7 @@
 ## 項目規劃與優化方向 (Project Roadmap & Optimization Directions)
 
 ### 1. 現狀分析 (Current Status Analysis)
-*   **版本 (Version)**: v1.2.0 (開發中)
+*   **版本 (Version)**: v1.2.0
 *   **各層架構 (Architecture)**: 專案採用標準的 Clean Architecture (UI -> Domain <- Data)，職責分離清晰。
 *   **核心功能 (Core Features)**: 本地音樂播放、搜尋、播放清單管理、歌詞顯示 (含各類動效)、我的最愛等基礎功能已完備。
 *   **UI/UX**: 具備高度客製化的現代感介面 (Glassmorphism, Dynamic Theme)，視覺體驗優秀。
