@@ -35,4 +35,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.core.ktx)
+    
+    // Extended icons
+    implementation(libs.androidx.compose.material.icons.extended)
+    
+    // Coil for image loading in list items
+    implementation(libs.coil.compose)
 }
