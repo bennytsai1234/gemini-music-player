@@ -242,36 +242,10 @@ fun NowPlayingScreen(
 
     // MAIN UI STRUCTURE
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF121212)) // 純色深色背景
     ) {
-        // 1. Immersive Background (Blurred Art)
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(uiState.song?.albumArtUri)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(25.dp),
-            alpha = 0.6f 
-        )
-        
-        // 2. Gradient Overlay for readability
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.3f), // Top
-                            Color.Black.copy(alpha = 0.6f), // Middle
-                            Color.Black.copy(alpha = 0.95f) // Bottom (Controls)
-                        )
-                    )
-                )
-        )
 
         // 3. Main Content
         Column(
