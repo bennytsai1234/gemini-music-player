@@ -3,6 +3,7 @@ package com.gemini.music.ui.nowplaying
 import com.gemini.music.domain.model.MusicState
 import com.gemini.music.domain.model.RepeatMode
 import com.gemini.music.domain.model.Song
+import com.gemini.music.domain.repository.MusicRepository
 import com.gemini.music.domain.usecase.CycleRepeatModeUseCase
 import com.gemini.music.domain.usecase.FormattedPlaybackState
 import com.gemini.music.domain.usecase.GetFormattedPlaybackStateUseCase
@@ -18,6 +19,8 @@ import com.gemini.music.domain.usecase.TogglePlayPauseUseCase
 import com.gemini.music.domain.usecase.ToggleShuffleUseCase
 import com.gemini.music.domain.usecase.favorites.IsSongFavoriteUseCase
 import com.gemini.music.domain.usecase.favorites.ToggleFavoriteUseCase
+import com.gemini.music.domain.usecase.sleeptimer.SetSleepTimerUseCase
+import com.gemini.music.domain.usecase.sleeptimer.CancelSleepTimerUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -65,6 +68,9 @@ class NowPlayingViewModelTest {
     private lateinit var getSongWaveformUseCase: GetSongWaveformUseCase
     private lateinit var toggleFavoriteUseCase: ToggleFavoriteUseCase
     private lateinit var isSongFavoriteUseCase: IsSongFavoriteUseCase
+    private lateinit var setSleepTimerUseCase: SetSleepTimerUseCase
+    private lateinit var cancelSleepTimerUseCase: CancelSleepTimerUseCase
+    private lateinit var musicRepository: MusicRepository
 
     private lateinit var viewModel: NowPlayingViewModel
 
@@ -87,6 +93,9 @@ class NowPlayingViewModelTest {
         getSongWaveformUseCase = mockk()
         toggleFavoriteUseCase = mockk(relaxed = true)
         isSongFavoriteUseCase = mockk()
+        setSleepTimerUseCase = mockk(relaxed = true)
+        cancelSleepTimerUseCase = mockk(relaxed = true)
+        musicRepository = mockk()
 
         // Default stubbing
         every { getMusicStateUseCase() } returns musicStateFlow
@@ -94,6 +103,7 @@ class NowPlayingViewModelTest {
         every { getFormattedPlaybackStateUseCase(any()) } returns MutableStateFlow(FormattedPlaybackState())
         coEvery { getSongWaveformUseCase(any()) } returns listOf(0)
         every { isSongFavoriteUseCase(any()) } returns MutableStateFlow(false)
+        every { musicRepository.getPlaylists() } returns MutableStateFlow(emptyList())
     }
 
     @After
@@ -115,7 +125,10 @@ class NowPlayingViewModelTest {
         removeQueueItemUseCase = removeQueueItemUseCase,
         getSongWaveformUseCase = getSongWaveformUseCase,
         toggleFavoriteUseCase = toggleFavoriteUseCase,
-        isSongFavoriteUseCase = isSongFavoriteUseCase
+        isSongFavoriteUseCase = isSongFavoriteUseCase,
+        setSleepTimerUseCase = setSleepTimerUseCase,
+        cancelSleepTimerUseCase = cancelSleepTimerUseCase,
+        musicRepository = musicRepository
     )
 
     // ===== 測試用假資料 =====

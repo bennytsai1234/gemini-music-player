@@ -5,10 +5,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Login
+import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudUpload
-import androidx.compose.material.icons.rounded.Login
-import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -88,7 +88,7 @@ fun BackupSection(
                         onClick = { viewModel.onEvent(BackupUiEvent.SignIn) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Rounded.Login, null)
+                        Icon(Icons.AutoMirrored.Rounded.Login, null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("登入 Google 雲端硬碟")
                     }
@@ -178,7 +178,7 @@ private fun SignedInContent(
         TextButton(
             onClick = onSignOut
         ) {
-            Icon(Icons.Rounded.Logout, null, modifier = Modifier.size(16.dp))
+            Icon(Icons.AutoMirrored.Rounded.Logout, null, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(4.dp))
             Text("登出")
         }

@@ -1,16 +1,20 @@
 package com.gemini.music.ui.home
 
 import app.cash.turbine.test
+import com.gemini.music.domain.model.MusicState
 import com.gemini.music.domain.model.ScanStatus
 import com.gemini.music.domain.model.Song
+import com.gemini.music.domain.repository.MusicController
 import com.gemini.music.domain.repository.MusicRepository
+import com.gemini.music.domain.usecase.DeleteSongUseCase
 import com.gemini.music.domain.usecase.GetAlbumsUseCase
 import com.gemini.music.domain.usecase.GetArtistsUseCase
 import com.gemini.music.domain.usecase.GetRecentlyAddedSongsUseCase
 import com.gemini.music.domain.usecase.GetSongsUseCase
 import com.gemini.music.domain.usecase.PlaySongUseCase
 import com.gemini.music.domain.usecase.ScanLocalMusicUseCase
-import com.gemini.music.domain.usecase.ToggleShuffleUseCase
+import com.gemini.music.domain.usecase.favorites.GetFavoriteSongsUseCase
+import androidx.lifecycle.SavedStateHandle
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -53,8 +57,11 @@ class HomeViewModelTest {
     private lateinit var getArtistsUseCase: GetArtistsUseCase
     private lateinit var scanLocalMusicUseCase: ScanLocalMusicUseCase
     private lateinit var playSongUseCase: PlaySongUseCase
-    private lateinit var toggleShuffleUseCase: ToggleShuffleUseCase
+    private lateinit var deleteSongUseCase: DeleteSongUseCase
+    private lateinit var getFavoriteSongsUseCase: GetFavoriteSongsUseCase
     private lateinit var musicRepository: MusicRepository
+    private lateinit var musicController: MusicController
+    private lateinit var savedStateHandle: SavedStateHandle
 
     private lateinit var viewModel: HomeViewModel
 
@@ -69,8 +76,11 @@ class HomeViewModelTest {
         getArtistsUseCase = mockk()
         scanLocalMusicUseCase = mockk()
         playSongUseCase = mockk(relaxed = true)
-        toggleShuffleUseCase = mockk(relaxed = true)
+        deleteSongUseCase = mockk(relaxed = true)
+        getFavoriteSongsUseCase = mockk()
         musicRepository = mockk()
+        musicController = mockk()
+        savedStateHandle = SavedStateHandle()
 
         // Default stubbing - 使用 MutableStateFlow 允許動態更新
         every { getSongsUseCase() } returns songsFlow
@@ -79,6 +89,8 @@ class HomeViewModelTest {
         every { getArtistsUseCase() } returns MutableStateFlow(emptyList())
         every { scanLocalMusicUseCase() } returns MutableStateFlow(ScanStatus.Completed(0))
         every { musicRepository.getPlaylists() } returns MutableStateFlow(emptyList())
+        every { getFavoriteSongsUseCase() } returns MutableStateFlow(emptyList())
+        every { musicController.musicState } returns MutableStateFlow(MusicState())
     }
 
     @After
@@ -93,8 +105,11 @@ class HomeViewModelTest {
         getArtistsUseCase = getArtistsUseCase,
         scanLocalMusicUseCase = scanLocalMusicUseCase,
         playSongUseCase = playSongUseCase,
-        toggleShuffleUseCase = toggleShuffleUseCase,
-        musicRepository = musicRepository
+        deleteSongUseCase = deleteSongUseCase,
+        getFavoriteSongsUseCase = getFavoriteSongsUseCase,
+        musicRepository = musicRepository,
+        musicController = musicController,
+        savedStateHandle = savedStateHandle
     )
 
     // ===== 測試用假資料 =====

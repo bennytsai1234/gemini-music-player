@@ -37,7 +37,7 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material.icons.rounded.TrendingUp
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -307,7 +307,7 @@ fun SmartPlaylistCard(
     onClick: () -> Unit
 ) {
     val icon = when (playlist.type) {
-        SmartPlaylistType.MOST_PLAYED -> Icons.Rounded.TrendingUp
+        SmartPlaylistType.MOST_PLAYED -> Icons.AutoMirrored.Rounded.TrendingUp
         SmartPlaylistType.RECENTLY_PLAYED -> Icons.Rounded.History
         SmartPlaylistType.RECENTLY_ADDED -> Icons.Rounded.NewReleases
         SmartPlaylistType.NEVER_PLAYED -> Icons.Rounded.Explore

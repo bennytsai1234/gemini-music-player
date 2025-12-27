@@ -18,9 +18,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Comment
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Comment
 import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.DiscFull
 import androidx.compose.material.icons.rounded.MusicNote
@@ -230,7 +230,7 @@ fun TagEditorScreen(
                     value = uiState.comment,
                     onValueChange = { viewModel.onEvent(TagEditorEvent.UpdateComment(it)) },
                     label = "Comment",
-                    leadingIcon = Icons.Rounded.Comment,
+                    leadingIcon = Icons.AutoMirrored.Rounded.Comment,
                     singleLine = false,
                     minLines = 3
                 )
