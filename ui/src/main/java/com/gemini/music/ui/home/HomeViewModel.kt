@@ -71,17 +71,17 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
-    
+
     // Process Death Resilient States
     private val _isSelectionMode = savedStateHandle.getStateFlow("is_selection_mode", false)
     private val _selectedSongIds = savedStateHandle.getStateFlow<Set<Long>>("selected_song_ids", emptySet())
     private val _sortOption = savedStateHandle.getStateFlow("sort_option", SortOption.TITLE)
     private val _filterFavorites = savedStateHandle.getStateFlow("filter_favorites", false)
     private val _showAddToPlaylistDialog = MutableStateFlow(false)
-    
+
     // Error Handling for Deletion (Android 10+)
-    private val _recoverableAction = MutableStateFlow<android.app.RecoverableSecurityException?>(null)
-    val recoverableAction: StateFlow<android.app.RecoverableSecurityException?> = _recoverableAction.asStateFlow()
+    private val _recoverableAction = MutableStateFlow<android.content.IntentSender?>(null)
+    val recoverableAction: StateFlow<android.content.IntentSender?> = _recoverableAction.asStateFlow()
 
     // Group Data Flows - Using nested combine since Kotlin combine supports max 5 flows
     private val _sourcesFlow = combine(
@@ -89,13 +89,13 @@ class HomeViewModel @Inject constructor(
         getRecentlyAddedSongsUseCase(),
         getAlbumsUseCase()
     ) { songs, recent, albums -> Triple(songs, recent, albums) }
-    
+
     private val _extraDataFlow = combine(
         getArtistsUseCase(),
         musicRepository.getPlaylists(),
         getFavoriteSongsUseCase()
     ) { artists, playlists, favorites -> Triple(artists, playlists, favorites) }
-    
+
     private val _dataFlow = combine(_sourcesFlow, _extraDataFlow) { sources, extra ->
         DataState(
             songs = sources.first,
@@ -261,7 +261,7 @@ class HomeViewModel @Inject constructor(
             exitSelectionMode()
         }
     }
-    
+
     fun addToPlaylistClicked() {
         if (_selectedSongIds.value.isNotEmpty()) {
             _showAddToPlaylistDialog.value = true
@@ -293,16 +293,16 @@ class HomeViewModel @Inject constructor(
             exitSelectionMode()
         }
     }
-    
+
     fun deleteSelected() {
         viewModelScope.launch {
              val selectedIds = _selectedSongIds.value
              val songsToDelete = uiState.value.songs.filter { it.id in selectedIds }
-             
+
              // Process sequentially to handle permissions one by one (though ideally batching is better but harder with RecoverableSecurityException loop)
              // For simplicity, we try to delete all. If one fails with RecoverableSecurityException, we stop and ask user.
              // User will have to retry deletion.
-             
+
              songsToDelete.forEach { song ->
                  try {
                      deleteSongUseCase(song)
@@ -310,7 +310,7 @@ class HomeViewModel @Inject constructor(
                      toggleSongSelection(song.id)
                  } catch (e: SecurityException) {
                      // RecoverableSecurityException is only available on API 29+
-                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q 
+                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
                          && e is android.app.RecoverableSecurityException) {
                          // Pause and ask for permission
                          _recoverableAction.value = e
@@ -323,32 +323,32 @@ class HomeViewModel @Inject constructor(
                      // Ignore other errors or show toast?
                  }
              }
-             
+
              if (_selectedSongIds.value.isEmpty()) {
                  exitSelectionMode()
              }
         }
     }
-    
+
     fun handleRecoverableAction(@Suppress("UNUSED_PARAMETER") resultCode: Int) {
         // If result is OK, user granted permission.
         // We could retry the deletion here.
         // For now, we clear the exception so UI can reset.
         _recoverableAction.value = null
-        // Ideally we would retry the last failed operation. 
+        // Ideally we would retry the last failed operation.
         // Simplest UX: User clicks delete again.
     }
 
     // --- Sorting ---
-    
+
     fun setSortOption(option: SortOption) {
         savedStateHandle["sort_option"] = option
     }
-    
+
     fun toggleFavoritesFilter() {
         savedStateHandle["filter_favorites"] = !(_filterFavorites.value)
     }
-    
+
     /**
      * 切換單曲的最愛狀態
      */

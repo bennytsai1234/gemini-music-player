@@ -115,7 +115,7 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    
+
     // Launcher for Android 10+ deletion permission
     val intentSenderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -124,18 +124,16 @@ fun HomeScreen(
     }
 
     androidx.compose.runtime.LaunchedEffect(recoverableAction) {
-        recoverableAction?.let { exception ->
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                val intentSenderRequest = IntentSenderRequest.Builder(exception.userAction.actionIntent.intentSender).build()
-                intentSenderLauncher.launch(intentSenderRequest)
-            }
+        recoverableAction?.let { sender ->
+             val intentSenderRequest = IntentSenderRequest.Builder(sender).build()
+             intentSenderLauncher.launch(intentSenderRequest)
         }
     }
 
     androidx.compose.runtime.LaunchedEffect(Unit) {
         viewModel.scanMusic()
     }
-    
+
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
@@ -170,7 +168,7 @@ fun HomeScreen(
                 NavigationDrawerItem(
                     label = { Text(stringResource(com.gemini.music.ui.R.string.albums)) },
                     selected = false,
-                    onClick = { 
+                    onClick = {
                         scope.launch { drawerState.close() }
                         onAlbumsClick()
                     },
@@ -197,7 +195,7 @@ fun HomeScreen(
                     icon = { Icon(Icons.Rounded.Favorite, null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
-                
+
                 Spacer(Modifier.height(12.dp))
                 Text(
                     "探索",
@@ -234,7 +232,7 @@ fun HomeScreen(
                     icon = { Icon(Icons.Rounded.Analytics, null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
-                
+
                 Spacer(Modifier.height(24.dp))
                 NavigationDrawerItem(
                     label = { Text(stringResource(com.gemini.music.ui.R.string.settings)) },
@@ -296,13 +294,13 @@ fun HomeScreen(
                             item {
                                 GreetingHeader()
                             }
-                            
+
                             // 2. Recently Added Carousel (Dashboard Style)
                             if (uiState.recentlyAdded.isNotEmpty()) {
                                 item {
                                     RecentlyAddedRow(
                                         songs = uiState.recentlyAdded.take(15),
-                                        onSongClick = { 
+                                        onSongClick = {
                                             viewModel.playSong(it)
                                             onSongClick(it)
                                         }
@@ -322,7 +320,7 @@ fun HomeScreen(
                                     onToggleFavorites = { viewModel.toggleFavoritesFilter() }
                                 )
                             }
-                            
+
                             // 4. All Songs List (Filtered by VM)
                             items(
                                 items = uiState.songs,
@@ -350,7 +348,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        
+
                         // FastScroller handles headers offset
                         val headerCount = 3 // Greeting, Recent, Controls
                         FastScroller(
@@ -429,14 +427,14 @@ fun HomeTopBar(
                     Icon(Icons.Rounded.Menu, contentDescription = "Menu")
                 }
             }
-            
+
             Text(
                 text = if (isSelectionMode) stringResource(com.gemini.music.ui.R.string.selected_count, selectedCount) else "",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
-            
+
             if (isSelectionMode) {
                 IconButton(onClick = onPlaySelected) {
                     Icon(Icons.Rounded.PlayArrow, contentDescription = "Play")
@@ -514,14 +512,14 @@ fun ControlRow(
                 IconButton(onClick = { showSortMenu = true }) {
                     Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = "Sort")
                 }
-                
+
                 androidx.compose.material3.DropdownMenu(
                     expanded = showSortMenu,
                     onDismissRequest = { showSortMenu = false }
                 ) {
                     SortOption.values().forEach { option ->
                         androidx.compose.material3.DropdownMenuItem(
-                            text = { 
+                            text = {
                                 val label = when(option) {
                                     SortOption.TITLE -> stringResource(com.gemini.music.ui.R.string.sort_title)
                                     SortOption.ARTIST -> stringResource(com.gemini.music.ui.R.string.sort_artist)
@@ -529,7 +527,7 @@ fun ControlRow(
                                     SortOption.DATE_ADDED -> stringResource(com.gemini.music.ui.R.string.sort_date_added)
                                     SortOption.DURATION -> stringResource(com.gemini.music.ui.R.string.sort_duration)
                                 }
-                                Text(label) 
+                                Text(label)
                             },
                             onClick = {
                                 onSortOptionSelected(option)
@@ -544,7 +542,7 @@ fun ControlRow(
                     }
                 }
             }
-            
+
             IconButton(onClick = onSelectModeClick) {
                 Icon(Icons.Rounded.CheckCircle, contentDescription = "Select")
             }
@@ -560,7 +558,7 @@ fun FastScroller(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
-    
+
     val sections = remember(songs) {
         val map = mutableMapOf<Char, Int>()
         songs.forEachIndexed { index, song ->
@@ -576,9 +574,9 @@ fun FastScroller(
     val alphabet = remember { ('A'..'Z').toList() + '#' }
 
     if (sections.isEmpty()) return
-    
+
     var isDragging by remember { androidx.compose.runtime.mutableStateOf(false) }
-    var activeChar by remember { androidx.compose.runtime.mutableStateOf<Char?>(null) } 
+    var activeChar by remember { androidx.compose.runtime.mutableStateOf<Char?>(null) }
 
     fun scrollToSection(char: Char) {
         activeChar = char
@@ -586,7 +584,7 @@ fun FastScroller(
             val nextChar = alphabet.dropWhile { it != char }.firstOrNull { sections.containsKey(it) }
             sections[nextChar]
         }
-        
+
         if (targetIndex != null) {
             scope.launch {
                 // Adjust for headers!
@@ -601,7 +599,7 @@ fun FastScroller(
         val index = (offsetY / itemHeight).toInt().coerceIn(0, alphabet.lastIndex)
         return alphabet.getOrNull(index)
     }
-    
+
     Box(
         modifier = modifier
             .width(40.dp)
@@ -614,12 +612,12 @@ fun FastScroller(
                         val char = getCharAtIndex(offset.y, size.height)
                         if (char != null) scrollToSection(char)
                     },
-                    onDragEnd = { 
-                        isDragging = false 
+                    onDragEnd = {
+                        isDragging = false
                         activeChar = null
                     },
-                    onDragCancel = { 
-                        isDragging = false 
+                    onDragCancel = {
+                        isDragging = false
                         activeChar = null
                     },
                     onVerticalDrag = { change, _ ->
@@ -649,8 +647,8 @@ fun FastScroller(
                 .width(24.dp)
                 .fillMaxHeight()
                 .background(
-                    if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f) 
-                    else Color.Transparent, 
+                    if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                    else Color.Transparent,
                     RoundedCornerShape(12.dp)
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -665,20 +663,20 @@ fun FastScroller(
                         text = char.toString(),
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 10.sp,
-                        color = if (activeChar == char) MaterialTheme.colorScheme.primary 
-                                else if (isPresent) MaterialTheme.colorScheme.onSurfaceVariant 
+                        color = if (activeChar == char) MaterialTheme.colorScheme.primary
+                                else if (isPresent) MaterialTheme.colorScheme.onSurfaceVariant
                                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                         fontWeight = if (activeChar == char) FontWeight.Bold else FontWeight.Medium,
                     )
                 }
             }
         }
-        
+
         AnimatedVisibility(
             visible = isDragging && activeChar != null,
             enter = fadeIn() + androidx.compose.animation.scaleIn(),
             exit = fadeOut() + androidx.compose.animation.scaleOut(),
-            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 50.dp) 
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 50.dp)
         ) {
             Box(
                 modifier = Modifier

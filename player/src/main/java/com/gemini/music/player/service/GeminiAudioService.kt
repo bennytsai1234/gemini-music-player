@@ -78,9 +78,12 @@ class GeminiAudioService : MediaLibraryService() {
             }
             return super.onCustomCommand(session, controller, customCommand, args)
         }
-        
+
         // ==================== Android Auto 媒體瀏覽支援 ====================
-        
+
+       @Inject
+        lateinit var musicRepository: com.gemini.music.domain.repository.MusicRepository
+
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
@@ -94,7 +97,7 @@ class GeminiAudioService : MediaLibraryService() {
                         .setIsBrowsable(true)
                         .setIsPlayable(false)
                         .setMediaType(androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
-                        .setTitle("Gemini Music")
+                        .setTitle(getString(com.gemini.music.R.string.browse_root_title))
                         .build()
                 )
                 .build()
@@ -111,25 +114,106 @@ class GeminiAudioService : MediaLibraryService() {
             pageSize: Int,
             params: LibraryParams?
         ): com.google.common.util.concurrent.ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<androidx.media3.common.MediaItem>>> {
-            val children = when (parentId) {
-                MEDIA_ROOT_ID -> {
-                    // Top-level categories for Android Auto
-                    listOf(
-                        buildBrowsableMediaItem(MEDIA_RECENT_ID, "Recently Played", androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS),
-                        buildBrowsableMediaItem(MEDIA_ALL_SONGS_ID, "All Songs", androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS),
-                        buildBrowsableMediaItem(MEDIA_ALBUMS_ID, "Albums", androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS),
-                        buildBrowsableMediaItem(MEDIA_ARTISTS_ID, "Artists", androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ARTISTS)
-                    )
-                }
-                // TODO: Implement actual content loading from MusicRepository
-                // For now, return empty for sub-categories until we inject repository
-                else -> emptyList()
-            }
-            return com.google.common.util.concurrent.Futures.immediateFuture(
-                LibraryResult.ofItemList(children, params)
+            return com.google.common.util.concurrent.Futures.submit(
+                {
+                    val children = when (parentId) {
+                        MEDIA_ROOT_ID -> {
+                            // Top-level categories for Android Auto
+                            listOf(
+                                buildBrowsableMediaItem(MEDIA_RECENT_ID, getString(com.gemini.music.R.string.browse_recent), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS),
+                                buildBrowsableMediaItem(MEDIA_ALL_SONGS_ID, getString(com.gemini.music.R.string.browse_all_songs), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS),
+                                buildBrowsableMediaItem(MEDIA_ALBUMS_ID, getString(com.gemini.music.R.string.browse_albums), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS),
+                                buildBrowsableMediaItem(MEDIA_ARTISTS_ID, getString(com.gemini.music.R.string.browse_artists), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ARTISTS)
+                            )
+                        }
+                        MEDIA_RECENT_ID -> {
+                            try {
+                                val recentSongs = kotlinx.coroutines.runBlocking { musicRepository.getRecentlyAdded().first() }
+                                recentSongs.map { it.toMediaItem() }
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                        }
+                        MEDIA_ALL_SONGS_ID -> {
+                            try {
+                                val allSongs = kotlinx.coroutines.runBlocking { musicRepository.getSongs().first() }
+                                allSongs.map { it.toMediaItem() }
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                        }
+                        MEDIA_ALBUMS_ID -> {
+                             try {
+                                val albums = kotlinx.coroutines.runBlocking { musicRepository.getAlbums().first() }
+                                albums.map { album ->
+                                    androidx.media3.common.MediaItem.Builder()
+                                        .setMediaId("album/${album.id}")
+                                        .setMediaMetadata(
+                                            androidx.media3.common.MediaMetadata.Builder()
+                                                .setIsBrowsable(true)
+                                                .setIsPlayable(false)
+                                                .setMediaType(androidx.media3.common.MediaMetadata.MEDIA_TYPE_ALBUM)
+                                                .setTitle(album.title)
+                                                .setArtist(album.artist)
+                                                .build()
+                                        )
+                                        .build()
+                                }
+                             } catch (e: Exception) {
+                                 emptyList()
+                             }
+                        }
+                        MEDIA_ARTISTS_ID -> {
+                            try {
+                                val artists = kotlinx.coroutines.runBlocking { musicRepository.getArtists().first() }
+                                artists.map { artist ->
+                                    androidx.media3.common.MediaItem.Builder()
+                                        .setMediaId("artist/${artist.name}")
+                                        .setMediaMetadata(
+                                            androidx.media3.common.MediaMetadata.Builder()
+                                                .setIsBrowsable(true)
+                                                .setIsPlayable(false)
+                                                .setMediaType(androidx.media3.common.MediaMetadata.MEDIA_TYPE_ARTIST)
+                                                .setTitle(artist.name)
+                                                .setSubtitle("${artist.songCount} songs")
+                                                .build()
+                                        )
+                                        .build()
+                                }
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                        }
+                        else -> {
+                           // Handle sub-categories (Album content, Artist content)
+                           if (parentId.startsWith("album/")) {
+                               val albumId = parentId.removePrefix("album/").toLongOrNull() ?: -1L
+                               if (albumId != -1L) {
+                                   try {
+                                       val songs = kotlinx.coroutines.runBlocking { musicRepository.getSongsByAlbumId(albumId).first() }
+                                       songs.map { it.toMediaItem() }
+                                   } catch (e: Exception) { emptyList() }
+                               } else emptyList()
+                           } else if (parentId.startsWith("artist/")) {
+                               // Note: Repository currently lacks getSongsByArtist, just filtering all songs for MVP
+                               // Efficient implementation should add getSongsByArtist to Repository later.
+                               try {
+                                   val artistName = parentId.removePrefix("artist/")
+                                   val allSongs = kotlinx.coroutines.runBlocking { musicRepository.getSongs().first() }
+                                   allSongs.filter { it.artist == artistName }.map { it.toMediaItem() }
+                               } catch (e: Exception) { emptyList() }
+                           }
+                           else {
+                               emptyList()
+                           }
+                        }
+                    }
+                    LibraryResult.ofItemList(children, params)
+                },
+                com.google.common.util.concurrent.MoreExecutors.directExecutor()
             )
         }
-        
+
         private fun buildBrowsableMediaItem(id: String, title: String, mediaType: Int): androidx.media3.common.MediaItem {
             return androidx.media3.common.MediaItem.Builder()
                 .setMediaId(id)
@@ -144,7 +228,38 @@ class GeminiAudioService : MediaLibraryService() {
                 .build()
         }
     }
-    
+
+    // Helper function moved from MusicServiceConnection for reusability if needed,
+    // but here we duplicate/implement locally to ensure Service independence or import it.
+    // For this context, we will perform simple mapping or reuse if accessible.
+    // Ideally, mapper should be in a shared utility or extension.
+    // Since MusicServiceConnection.kt is in 'manager' and this is 'service', let's implement a local helper
+    // or rely on the one defined at the bottom of THIS file if present?
+    // Checking file content... no toMediaItem extension in THIS file currently based on view_file output.
+    // Wait, I see toSong/toMediaItem at the bottom of MusicServiceConnection.kt.
+    // Let's add the extension here to avoid circular dependency or visibility issues.
+
+    private fun com.gemini.music.domain.model.Song.toMediaItem(): androidx.media3.common.MediaItem {
+        val extras = Bundle().apply {
+            putString("DATA_PATH", dataPath)
+            putLong("ALBUM_ID", albumId)
+        }
+        val metadata = androidx.media3.common.MediaMetadata.Builder()
+            .setTitle(title)
+            .setArtist(artist)
+            .setAlbumTitle(album)
+            .setExtras(extras)
+            .setIsBrowsable(false)
+            .setIsPlayable(true)
+            .build()
+
+        return androidx.media3.common.MediaItem.Builder()
+            .setMediaId(id.toString())
+            .setUri(contentUri)
+            .setMediaMetadata(metadata)
+            .build()
+    }
+
     companion object {
         const val MEDIA_ROOT_ID = "gemini_root"
         const val MEDIA_RECENT_ID = "recent"
@@ -158,33 +273,33 @@ class GeminiAudioService : MediaLibraryService() {
         sleepTimerJob = serviceScope.launch {
             val fadeEnabled = try { userPreferencesRepository.sleepTimerFadeOut.first() } catch (e: Exception) { false }
             val fadeDuration = try { userPreferencesRepository.sleepTimerFadeDuration.first() } catch (e: Exception) { 0 }
-            
+
             // Total sleep time in millis
             val totalTime = minutes * 60 * 1000L
             val fadeDurationMs = fadeDuration * 1000L
-            
+
             if (!fadeEnabled || fadeDuration <= 0 || totalTime <= fadeDurationMs) {
                  kotlinx.coroutines.delay(totalTime)
                  if (player.isPlaying) player.pause()
             } else {
                  // Wait until fade starts
                  kotlinx.coroutines.delay(totalTime - fadeDurationMs)
-                 
+
                  // Start fade out
                  val steps = 20
                  val stepDuration = fadeDurationMs / steps
                  val initialVolume = player.volume
-                 
+
                  for (i in 0..steps) {
                       val volume = initialVolume * (1f - i.toFloat() / steps)
                       player.volume = volume
                       kotlinx.coroutines.delay(stepDuration)
                  }
-                 
+
                  if (player.isPlaying) player.pause()
                  player.volume = initialVolume // Restore volume
             }
-            
+
             sleepTimerJob = null
         }
     }
@@ -196,7 +311,7 @@ class GeminiAudioService : MediaLibraryService() {
 
     override fun onCreate() {
         super.onCreate()
-        
+
         // Listen to Playback Speed settings
         serviceScope.launch {
              userPreferencesRepository.playbackSpeed.collect { speed ->
@@ -215,7 +330,7 @@ class GeminiAudioService : MediaLibraryService() {
         mediaLibrarySession = MediaLibrarySession.Builder(this, player, librarySessionCallback)
             .setSessionActivity(openActivityIntent)
             .build()
-            
+
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 updateWidget()
@@ -235,11 +350,11 @@ class GeminiAudioService : MediaLibraryService() {
         intent.putExtra("com.gemini.music.extra.IS_PLAYING", player.isPlaying)
         intent.putExtra("com.gemini.music.extra.TITLE", metadata?.title?.toString())
         intent.putExtra("com.gemini.music.extra.ARTIST", metadata?.artist?.toString())
-        
+
         // We can't access WidgetConstants directly if it's in core/common and player depends on it.
         // Assuming player depends on core/common (it should).
         // If not, we use string literals to match WidgetConstants.
-        
+
         sendBroadcast(intent)
     }
 

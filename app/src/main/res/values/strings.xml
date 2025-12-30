@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Gemini Music</string>
-    
+
     <!-- Widget Controls -->
     <string name="previous">Previous</string>
     <string name="play_pause">Play/Pause</string>
@@ -9,4 +9,10 @@
     <string name="no_music">No Music</string>
     <string name="select_a_song">Select a song</string>
     <string name="album_art">Album Art</string>
+    <!-- Media Browser -->
+    <string name="browse_root_title">Gemini Music</string>
+    <string name="browse_recent">Recently Played</string>
+    <string name="browse_all_songs">All Songs</string>
+    <string name="browse_albums">Albums</string>
+    <string name="browse_artists">Artists</string>
 </resources>
