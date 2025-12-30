@@ -55,14 +55,14 @@ import com.gemini.music.ui.nowplaying.components.PlayerControls
 
 /**
  * Now Playing Screen - Main music player interface
- * 
+ *
  * Displays:
  * - Album artwork with gesture controls
  * - Song information (title, artist)
  * - Playback controls (play/pause, skip, shuffle, repeat)
  * - Progress bar / Waveform seek bar
  * - Lyrics view (toggleable)
- * 
+ *
  * @param onBackClick Callback when back/collapse button is pressed
  * @param onQueueClick Callback when queue button is pressed
  * @param onAlbumClick Callback when navigating to album, with album ID
@@ -85,7 +85,7 @@ fun NowPlayingScreen(
     viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
     // State management
     var showLyrics by rememberSaveable { mutableStateOf(false) }
     var showMoreOptions by rememberSaveable { mutableStateOf(false) }
@@ -96,7 +96,7 @@ fun NowPlayingScreen(
     if (showMoreOptions) {
         OptionsBottomSheet(
             onDismiss = { showMoreOptions = false },
-            onAddToPlaylist = { 
+            onAddToPlaylist = {
                 showMoreOptions = false
                 showAddToPlaylist = true
             },
@@ -142,7 +142,7 @@ fun NowPlayingScreen(
         com.gemini.music.ui.component.AddToPlaylistDialog(
             playlists = uiState.playlists,
             onDismiss = { showAddToPlaylist = false },
-            onPlaylistSelected = { playlist -> 
+            onPlaylistSelected = { playlist ->
                 viewModel.onEvent(NowPlayingEvent.AddToPlaylist(playlist.id))
                 showAddToPlaylist = false
             },
@@ -202,6 +202,7 @@ fun NowPlayingScreen(
                         onClick = { showLyrics = !showLyrics },
                         onSwipeLeft = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
                         onSwipeRight = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
+                        onSwipeDown = onBackClick,
                         onDoubleTapLeft = { viewModel.onEvent(NowPlayingEvent.SeekBackward10s) },
                         onDoubleTapRight = { viewModel.onEvent(NowPlayingEvent.SeekForward10s) }
                     )
@@ -246,9 +247,9 @@ private fun NowPlayingTopBar(
                 modifier = Modifier.size(32.dp)
             )
         }
-        
+
         Spacer(Modifier.weight(1f))
-        
+
         Text(
             text = "NOW PLAYING",
             style = MaterialTheme.typography.labelMedium,
@@ -256,9 +257,9 @@ private fun NowPlayingTopBar(
             letterSpacing = 2.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        
+
         Spacer(Modifier.weight(1f))
-        
+
         IconButton(onClick = onMoreClick) {
             Icon(
                 imageVector = Icons.Rounded.MoreVert,
@@ -336,19 +337,19 @@ private fun NowPlayingBottomSection(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = uiState.currentTime, 
-                style = MaterialTheme.typography.labelMedium, 
+                text = uiState.currentTime,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = uiState.totalTime, 
-                style = MaterialTheme.typography.labelMedium, 
+                text = uiState.totalTime,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -404,7 +405,7 @@ private fun OptionsBottomSheet(
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 color = Color.White.copy(alpha = 0.5f)
             )
-            
+
             // Option Items
             OptionItem(
                 icon = Icons.AutoMirrored.Rounded.QueueMusic,
@@ -429,19 +430,19 @@ private fun OptionsBottomSheet(
                 text = "Sleep Timer",
                 onClick = onSleepTimer
             )
-            
+
             OptionItem(
                 icon = Icons.Rounded.Edit,
                 text = "Edit Tags",
                 onClick = onEditTags
             )
-            
+
             OptionItem(
                 icon = Icons.Rounded.Description,
                 text = "Edit Lyrics",
                 onClick = onEditLyrics
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }

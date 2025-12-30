@@ -607,7 +607,7 @@ fun FastScroller(
 
     Box(
         modifier = modifier
-            .width(40.dp)
+            .width(48.dp)
             .fillMaxHeight()
             .padding(vertical = 32.dp)
             .pointerInput(Unit) {

@@ -1,6 +1,6 @@
 # UI Spec Delta: Settings and Driving Mode
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Settings Screen
 > The Settings screen MUST provide streamlined configuration without redundant or misplaced options.

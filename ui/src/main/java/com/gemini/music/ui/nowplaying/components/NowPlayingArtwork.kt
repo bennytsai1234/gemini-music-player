@@ -10,7 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -69,6 +69,7 @@ fun HeroImage(
     onClick: () -> Unit,
     onSwipeLeft: () -> Unit = {},
     onSwipeRight: () -> Unit = {},
+    onSwipeDown: () -> Unit = {},
     onDoubleTapLeft: () -> Unit = {},
     onDoubleTapRight: () -> Unit = {}
 ) {
@@ -88,10 +89,12 @@ fun HeroImage(
 
     // Swipe offset animation for visual feedback
     var swipeOffset by remember { mutableStateOf(0f) }
+    var verticalSwipeOffset by remember { mutableStateOf(0f) }
+
     val animatedOffset by animateFloatAsState(
         targetValue = swipeOffset,
         animationSpec = tween(durationMillis = 150),
-        finishedListener = { swipeOffset = 0f },
+        finishedListener = { if (swipeOffset != 0f) swipeOffset = 0f },
         label = "SwipeOffset"
     )
 
@@ -101,6 +104,7 @@ fun HeroImage(
 
     val currentOnSwipeLeft by rememberUpdatedState(onSwipeLeft)
     val currentOnSwipeRight by rememberUpdatedState(onSwipeRight)
+    val currentOnSwipeDown by rememberUpdatedState(onSwipeDown)
     val currentOnClick by rememberUpdatedState(onClick)
     val currentOnDoubleTapLeft by rememberUpdatedState(onDoubleTapLeft)
     val currentOnDoubleTapRight by rememberUpdatedState(onDoubleTapRight)
@@ -110,7 +114,7 @@ fun HeroImage(
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .pointerInput(Unit) {
-                detectHorizontalDragGestures(
+                androidx.compose.foundation.gestures.detectDragGestures(
                     onDragEnd = {
                         if (abs(swipeOffset) > 100) {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -119,11 +123,20 @@ fun HeroImage(
                             } else {
                                 currentOnSwipeLeft() // Next
                             }
+                        } else if (verticalSwipeOffset > 100) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            currentOnSwipeDown()
                         }
                         swipeOffset = 0f
+                        verticalSwipeOffset = 0f
                     },
-                    onHorizontalDrag = { _, dragAmount ->
-                        swipeOffset = (swipeOffset + dragAmount).coerceIn(-200f, 200f)
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        if (abs(dragAmount.x) > abs(dragAmount.y) || abs(swipeOffset) > 10) {
+                            swipeOffset = (swipeOffset + dragAmount.x).coerceIn(-200f, 200f)
+                        } else {
+                            verticalSwipeOffset = (verticalSwipeOffset + dragAmount.y).coerceAtLeast(0f)
+                        }
                     }
                 )
             }
@@ -163,9 +176,9 @@ fun HeroImage(
             modifier = Modifier
                 .aspectRatio(1f)
                 .scale(scale)
-                .scale(scale)
                 .graphicsLayer {
                     translationX = animatedOffset
+                    translationY = verticalSwipeOffset * 0.5f // Visual feedback for vertical swipe
                 }
                 .shadow(
                     elevation = 8.dp,
