@@ -48,7 +48,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gemini.music.domain.model.Album
 import com.gemini.music.domain.model.Song
-import com.gemini.music.ui.component.EmptyState
+import com.gemini.music.core.designsystem.component.GeminiEmptyState
 import com.gemini.music.ui.component.SongListItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,10 +84,10 @@ fun AlbumDetailScreen(
                 CircularProgressIndicator()
             }
         } else if (album == null) {
-            EmptyState(
-                icon = Icons.Rounded.Shuffle, // Placeholder icon
+            GeminiEmptyState(
+                icon = Icons.Rounded.Album,
                 title = androidx.compose.ui.res.stringResource(com.gemini.music.ui.R.string.album_not_found),
-                message = androidx.compose.ui.res.stringResource(com.gemini.music.ui.R.string.album_not_found_message)
+                subtitle = androidx.compose.ui.res.stringResource(com.gemini.music.ui.R.string.album_not_found_message)
             )
         } else {
             LazyColumn(

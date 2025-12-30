@@ -73,6 +73,14 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         preferences[VIRTUALIZER_STRENGTH] ?: 0
     }
 
+    override val loudnessEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[LOUDNESS_ENABLED] ?: false
+    }
+
+    override val loudnessGain: Flow<Int> = dataStore.data.map { preferences ->
+        preferences[LOUDNESS_GAIN] ?: 0
+    }
+
     // ==================== Playback Settings ====================
 
     override val playbackSpeed: Flow<Float> = dataStore.data.map { preferences ->
@@ -177,6 +185,18 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setLoudnessEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[LOUDNESS_ENABLED] = enabled
+        }
+    }
+
+    override suspend fun setLoudnessGain(gain: Int) {
+        dataStore.edit { preferences ->
+            preferences[LOUDNESS_GAIN] = gain
+        }
+    }
+
     // ==================== Playback Settings ====================
 
     override suspend fun setPlaybackSpeed(speed: Float) {
@@ -243,6 +263,8 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         private val BASS_BOOST_STRENGTH = intPreferencesKey("bass_boost_strength")
         private val VIRTUALIZER_ENABLED = booleanPreferencesKey("virtualizer_enabled")
         private val VIRTUALIZER_STRENGTH = intPreferencesKey("virtualizer_strength")
+        private val LOUDNESS_ENABLED = booleanPreferencesKey("loudness_enabled")
+        private val LOUDNESS_GAIN = intPreferencesKey("loudness_gain")
 
         // Playback
         private val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")

@@ -92,7 +92,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gemini.music.domain.model.Song
-import com.gemini.music.ui.component.EmptyState
+import com.gemini.music.core.designsystem.component.GeminiEmptyState
 import com.gemini.music.ui.component.SongListItem
 import kotlinx.coroutines.launch
 
@@ -278,10 +278,15 @@ fun HomeScreen(
                 }
 
                 if (uiState.songs.isEmpty() && !uiState.isLoading) {
-                    EmptyState(
-                        icon = androidx.compose.material.icons.Icons.Rounded.Menu,
+                    GeminiEmptyState(
+                        icon = Icons.Rounded.Album,
                         title = stringResource(com.gemini.music.ui.R.string.no_songs),
-                        message = stringResource(com.gemini.music.ui.R.string.no_songs_message)
+                        subtitle = stringResource(com.gemini.music.ui.R.string.no_songs_message),
+                        action = {
+                            Button(onClick = { viewModel.scanMusic() }) {
+                                Text("Rescan")
+                            }
+                        }
                     )
                 } else {
                     Row(modifier = Modifier.fillMaxSize()) {

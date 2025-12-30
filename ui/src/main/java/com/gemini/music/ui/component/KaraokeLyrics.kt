@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,7 +62,7 @@ fun KaraokeLyrics(
         LoadingLyricsView(modifier)
         return
     }
-    
+
     if (lyrics.isEmpty()) {
         EmptyLyricsView(
             modifier = modifier,
@@ -72,11 +73,15 @@ fun KaraokeLyrics(
     }
 
     val listState = rememberLazyListState()
-    
+
     // Find current line index
     var currentLineIndex by remember { mutableIntStateOf(-1) }
-    
+
+    val isDragged by listState.interactionSource.collectIsDraggedAsState()
+
     LaunchedEffect(currentPosition, lyrics) {
+        if (isDragged) return@LaunchedEffect
+
         val newIndex = lyrics.indexOfLast { it.startTime <= currentPosition }
         if (newIndex != currentLineIndex && newIndex >= 0) {
             currentLineIndex = newIndex
@@ -94,11 +99,11 @@ fun KaraokeLyrics(
     ) {
         // Top spacer for centering effect
         item { Spacer(modifier = Modifier.height(100.dp)) }
-        
+
         itemsIndexed(lyrics) { index, lyricLine ->
             val isCurrentLine = index == currentLineIndex
             val isPastLine = index < currentLineIndex
-            
+
             LyricLineView(
                 lyricLine = lyricLine,
                 currentPosition = currentPosition,
@@ -108,7 +113,7 @@ fun KaraokeLyrics(
                 normalColor = normalColor
             )
         }
-        
+
         // Bottom spacer
         item { Spacer(modifier = Modifier.height(200.dp)) }
     }
@@ -128,7 +133,7 @@ private fun LyricLineView(
         animationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing),
         label = "LyricScale"
     )
-    
+
     val alpha by animateFloatAsState(
         targetValue = when {
             isCurrentLine -> 1f
@@ -203,7 +208,7 @@ private fun KaraokeWord(
     normalColor: Color
 ) {
     val progress = word.getProgress(currentPosition)
-    
+
     // Animate the progress for smoothness
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -224,7 +229,7 @@ private fun KaraokeWord(
                 color = normalColor
             )
         )
-        
+
         // Foreground text (highlighted with clip)
         Text(
             text = word.text,
@@ -243,9 +248,9 @@ private fun KaraokeWord(
                     size = Size(size.width - clipWidth, size.height),
                     blendMode = BlendMode.Clear
                 )
-            }.graphicsLayer { 
+            }.graphicsLayer {
                 // Required for BlendMode.Clear to work
-                compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen 
+                compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen
             }
         )
     }

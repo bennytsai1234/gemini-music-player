@@ -37,7 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gemini.music.domain.model.Song
-import com.gemini.music.ui.component.EmptyState
+import com.gemini.music.core.designsystem.component.GeminiEmptyState
 import com.gemini.music.ui.component.SongListItem
 import kotlinx.coroutines.launch
 
@@ -108,10 +108,10 @@ fun PlaylistDetailScreen(
     ) { padding ->
         if (uiState.songs.isEmpty()) {
             Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-                EmptyState(
+                GeminiEmptyState(
                     icon = Icons.AutoMirrored.Rounded.QueueMusic,
                     title = "Empty Playlist",
-                    message = "Add songs from your library!"
+                    subtitle = "Add songs from your library!"
                 )
             }
         } else {
@@ -142,7 +142,7 @@ private fun ReorderableSongList(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val hapticFeedback = LocalHapticFeedback.current
-    
+
     // Track dragging state
     var draggedItemIndex by remember { mutableStateOf<Int?>(null) }
     var draggedOverIndex by remember { mutableStateOf<Int?>(null) }
@@ -158,25 +158,25 @@ private fun ReorderableSongList(
                 PlaylistHeader(playlist = playlist)
             }
         }
-        
+
         itemsIndexed(
             items = songs,
             key = { _, song -> song.id }
         ) { index, song ->
             val isDragging = draggedItemIndex == index
             val isDraggedOver = draggedOverIndex == index && draggedItemIndex != null && draggedItemIndex != index
-            
+
             val elevation by animateDpAsState(
                 targetValue = if (isDragging) 8.dp else 0.dp,
                 label = "DragElevation"
             )
-            
+
             val backgroundColor = when {
                 isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
                 isDraggedOver -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 else -> Color.Transparent
             }
-            
+
             if (isReorderMode) {
                 // Reorder mode: show drag handle
                 DraggableSongItem(
@@ -274,7 +274,7 @@ private fun DraggableSongItem(
     scope: kotlinx.coroutines.CoroutineScope
 ) {
     var accumulatedDrag by remember { mutableStateOf(0f) }
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -306,20 +306,20 @@ private fun DraggableSongItem(
                         onDrag = { change, dragAmount ->
                             change.consume()
                             accumulatedDrag += dragAmount.y
-                            
+
                             // Calculate how many positions we've moved
                             val itemHeight = 72f // Approximate height of a song item
                             val positionOffset = (accumulatedDrag / itemHeight).toInt()
                             val newTargetIndex = (index + positionOffset).coerceIn(0, totalItems - 1)
-                            
+
                             onDragOver(newTargetIndex)
-                            
+
                             // Auto-scroll if near edges
                             val visibleItems = listState.layoutInfo.visibleItemsInfo
                             if (visibleItems.isNotEmpty()) {
                                 val firstVisible = visibleItems.first().index
                                 val lastVisible = visibleItems.last().index
-                                
+
                                 if (newTargetIndex <= firstVisible + 1 && firstVisible > 0) {
                                     scope.launch {
                                         listState.animateScrollToItem(firstVisible - 1)
@@ -334,7 +334,7 @@ private fun DraggableSongItem(
                     )
                 }
         )
-        
+
         // Song Info
         SongListItem(
             song = song,
@@ -352,7 +352,7 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
             .height(280.dp)
     ) {
         val coverArtUri = playlist.coverArtUri
-        
+
         // Background Image (Blurred)
         if (coverArtUri != null) {
             AsyncImage(
@@ -364,8 +364,8 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsLayer { 
-                         alpha = 0.6f 
+                    .graphicsLayer {
+                         alpha = 0.6f
                          renderEffect = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                              android.graphics.RenderEffect.createBlurEffect(50f, 50f, android.graphics.Shader.TileMode.MIRROR).asComposeRenderEffect()
                          } else {
@@ -374,7 +374,7 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
                     }
             )
         }
-        
+
         // Gradient Overlay
         Box(
             modifier = Modifier
@@ -431,9 +431,9 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.width(20.dp))
-            
+
             Column {
                 Text(
                     text = playlist.name,

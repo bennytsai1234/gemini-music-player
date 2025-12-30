@@ -54,7 +54,7 @@ import kotlin.math.abs
 
 /**
  * Hero image component displaying album artwork with gesture support
- * 
+ *
  * Supports:
  * - Single tap: Toggle lyrics
  * - Horizontal swipe: Skip to next/previous track
@@ -73,7 +73,7 @@ fun HeroImage(
     onDoubleTapRight: () -> Unit = {}
 ) {
     val hapticFeedback = LocalHapticFeedback.current
-    
+
     val scale by animateFloatAsState(
         targetValue = if (isPlaying) 1.0f else 0.85f,
         animationSpec = tween(durationMillis = 150, easing = LinearEasing),
@@ -85,7 +85,7 @@ fun HeroImage(
         animationSpec = tween(durationMillis = 150, easing = LinearEasing),
         label = "ShadowElevation"
     )
-    
+
     // Swipe offset animation for visual feedback
     var swipeOffset by remember { mutableStateOf(0f) }
     val animatedOffset by animateFloatAsState(
@@ -94,17 +94,17 @@ fun HeroImage(
         finishedListener = { swipeOffset = 0f },
         label = "SwipeOffset"
     )
-    
+
     // Double tap hint indicators
     var showDoubleTapHintLeft by remember { mutableStateOf(false) }
     var showDoubleTapHintRight by remember { mutableStateOf(false) }
-    
+
     val currentOnSwipeLeft by rememberUpdatedState(onSwipeLeft)
     val currentOnSwipeRight by rememberUpdatedState(onSwipeRight)
     val currentOnClick by rememberUpdatedState(onClick)
     val currentOnDoubleTapLeft by rememberUpdatedState(onDoubleTapLeft)
     val currentOnDoubleTapRight by rememberUpdatedState(onDoubleTapRight)
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -163,7 +163,10 @@ fun HeroImage(
             modifier = Modifier
                 .aspectRatio(1f)
                 .scale(scale)
-                .offset(x = animatedOffset.dp)
+                .scale(scale)
+                .graphicsLayer {
+                    translationX = animatedOffset
+                }
                 .shadow(
                     elevation = 8.dp,
                     shape = RoundedCornerShape(24.dp),
@@ -190,7 +193,7 @@ fun HeroImage(
                 error = rememberVectorPainter(Icons.Rounded.Album)
             )
         }
-        
+
         // Double Tap Indicators - Left
         AnimatedVisibility(
             visible = showDoubleTapHintLeft,
@@ -216,7 +219,7 @@ fun HeroImage(
                 showDoubleTapHintLeft = false
             }
         }
-        
+
         // Double Tap Indicators - Right
         AnimatedVisibility(
             visible = showDoubleTapHintRight,

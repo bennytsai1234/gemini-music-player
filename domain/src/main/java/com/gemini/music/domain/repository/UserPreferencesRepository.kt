@@ -16,6 +16,8 @@ interface UserPreferencesRepository {
     val bassBoostStrength: Flow<Int>
     val virtualizerEnabled: Flow<Boolean>
     val virtualizerStrength: Flow<Int>
+    val loudnessEnabled: Flow<Boolean>
+    val loudnessGain: Flow<Int>
 
     // Playback Settings
     val playbackSpeed: Flow<Float>
@@ -42,6 +44,8 @@ interface UserPreferencesRepository {
     suspend fun setBassBoostStrength(strength: Int)
     suspend fun setVirtualizerEnabled(enabled: Boolean)
     suspend fun setVirtualizerStrength(strength: Int)
+    suspend fun setLoudnessEnabled(enabled: Boolean)
+    suspend fun setLoudnessGain(gain: Int)
 
     // Playback Settings
     suspend fun setPlaybackSpeed(speed: Float)
