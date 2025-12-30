@@ -1,7 +1,8 @@
-# Spec: UI Polish - Empty States & Lyrics
+# ui-polish Specification
 
-## MODIFIED Requirements
-
+## Purpose
+TBD - created by archiving change polish-ui-and-ux. Update Purpose after archive.
+## Requirements
 ### Requirement: Premium Empty States
 All list screens (Home, Playlist, etc.) MUST display a visually appealing "Empty State" when no data is available. This includes a prominent icon (or illustration) and a clear text message.
 
@@ -20,3 +21,4 @@ The Karaoke Lyrics view MUST keep the currently playing line vertically centered
 - **When** the song progresses to the next line.
 - **Then** the list scrolls smoothly to bring the new line to the center.
 - **And** the current line scales up/highlights.
+

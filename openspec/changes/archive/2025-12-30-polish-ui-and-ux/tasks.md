@@ -24,5 +24,5 @@
     - Ensure Swipe Left/Right (Skip) works seamlessly.
 
 ## 4. Verification
-- [ ] **Manual Test**: Build and run.
-- [ ] **Manual Test**: Check EQ persistence after app restart.
+- [x] **Manual Test**: Build and run.
+- [x] **Manual Test**: Check EQ persistence after app restart.
