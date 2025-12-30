@@ -18,7 +18,7 @@ Instructions for AI coding assistants using OpenSpec for spec-driven development
 Create proposal when you need to:
 - Add features or functionality
 - Make breaking changes (API, schema)
-- Change architecture or patterns  
+- Change architecture or patterns
 - Optimize performance (changes behavior)
 - Update security patterns
 
@@ -62,6 +62,7 @@ After deployment, create separate PR to:
 - Update `specs/` if capabilities changed
 - Use `openspec archive <change-id> --skip-specs --yes` for tooling-only changes (always pass the change ID explicitly)
 - Run `openspec validate --strict` to confirm the archived change passes checks
+- **Git Push**: Run `git push` to ensure the archived change and spec updates are synced to the remote repository.
 
 ## Before Any Task
 
@@ -147,7 +148,7 @@ openspec/
 ```
 New request?
 ├─ Bug fix restoring spec behavior? → Fix directly
-├─ Typo/format/comment? → Fix directly  
+├─ Typo/format/comment? → Fix directly
 ├─ New feature/capability? → Create proposal
 ├─ Breaking change? → Create proposal
 ├─ Architecture change? → Create proposal

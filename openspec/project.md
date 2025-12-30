@@ -40,6 +40,8 @@ Gemini Music Player is a modern, premium Android music playback application focu
 ### Git Workflow
 - **Commit Style**: Conventional Commits (`feat:`, `fix:`, `chore:`, etc.).
 - **Branching**: Feature branching strategy.
+- **Sync Rule**: You MUST push changes to the remote repository (GitHub) immediately after completing a task or archiving a change.
+- **Command**: `git push origin <branch>` (or just `git push` if upstream is set).
 
 ## Domain Context
 - **Music Playback**: Core domain involves playback control, playlist management, and media library organization.
