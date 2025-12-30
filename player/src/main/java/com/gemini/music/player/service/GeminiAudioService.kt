@@ -97,7 +97,7 @@ class GeminiAudioService : MediaLibraryService() {
                         .setIsBrowsable(true)
                         .setIsPlayable(false)
                         .setMediaType(androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
-                        .setTitle(getString(com.gemini.music.R.string.browse_root_title))
+                        .setTitle(getString(com.gemini.music.player.R.string.browse_root_title))
                         .build()
                 )
                 .build()
@@ -115,15 +115,15 @@ class GeminiAudioService : MediaLibraryService() {
             params: LibraryParams?
         ): com.google.common.util.concurrent.ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<androidx.media3.common.MediaItem>>> {
             return com.google.common.util.concurrent.Futures.submit(
-                {
+                java.util.concurrent.Callable {
                     val children = when (parentId) {
                         MEDIA_ROOT_ID -> {
                             // Top-level categories for Android Auto
                             listOf(
-                                buildBrowsableMediaItem(MEDIA_RECENT_ID, getString(com.gemini.music.R.string.browse_recent), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS),
-                                buildBrowsableMediaItem(MEDIA_ALL_SONGS_ID, getString(com.gemini.music.R.string.browse_all_songs), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS),
-                                buildBrowsableMediaItem(MEDIA_ALBUMS_ID, getString(com.gemini.music.R.string.browse_albums), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS),
-                                buildBrowsableMediaItem(MEDIA_ARTISTS_ID, getString(com.gemini.music.R.string.browse_artists), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ARTISTS)
+                                buildBrowsableMediaItem(MEDIA_RECENT_ID, getString(com.gemini.music.player.R.string.browse_recent), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS),
+                                buildBrowsableMediaItem(MEDIA_ALL_SONGS_ID, getString(com.gemini.music.player.R.string.browse_all_songs), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS),
+                                buildBrowsableMediaItem(MEDIA_ALBUMS_ID, getString(com.gemini.music.player.R.string.browse_albums), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS),
+                                buildBrowsableMediaItem(MEDIA_ARTISTS_ID, getString(com.gemini.music.player.R.string.browse_artists), androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_ARTISTS)
                             )
                         }
                         MEDIA_RECENT_ID -> {

@@ -313,7 +313,7 @@ class HomeViewModel @Inject constructor(
                      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
                          && e is android.app.RecoverableSecurityException) {
                          // Pause and ask for permission
-                         _recoverableAction.value = e
+                         _recoverableAction.value = e.userAction.actionIntent.intentSender
                          return@launch // Stop processing to handle this one
                      } else {
                          e.printStackTrace()

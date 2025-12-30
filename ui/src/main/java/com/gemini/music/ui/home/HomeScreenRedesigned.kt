@@ -58,7 +58,7 @@ fun HomeScreenRedesigned(
     val recoverableAction by viewModel.recoverableAction.collectAsState()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    
+
     // 選單狀態
     var showMenu by remember { mutableStateOf(false) }
 
@@ -70,18 +70,16 @@ fun HomeScreenRedesigned(
     }
 
     LaunchedEffect(recoverableAction) {
-        recoverableAction?.let { exception ->
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                val intentSenderRequest = IntentSenderRequest.Builder(exception.userAction.actionIntent.intentSender).build()
-                intentSenderLauncher.launch(intentSenderRequest)
-            }
+        recoverableAction?.let { sender ->
+            val intentSenderRequest = IntentSenderRequest.Builder(sender).build()
+            intentSenderLauncher.launch(intentSenderRequest)
         }
     }
 
     LaunchedEffect(Unit) {
         viewModel.scanMusic()
     }
-    
+
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
@@ -190,7 +188,7 @@ fun HomeScreenRedesigned(
                         )
                     }
                 }
-                
+
                 // Title
                 Text(
                     text = "Gemini Music",
@@ -199,7 +197,7 @@ fun HomeScreenRedesigned(
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 // Search Button
                 IconButton(onClick = onSearchClick) {
                     Icon(
@@ -283,7 +281,7 @@ fun HomeScreenRedesigned(
                             )
                         }
                     }
-                    
+
                     // Fast Scroller A-Z
                     FastScrollerRedesigned(
                         listState = listState,
@@ -308,7 +306,7 @@ private fun SongControlRow(
     onPlayAll: () -> Unit
 ) {
     var showSortMenu by remember { mutableStateOf(false) }
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -322,7 +320,7 @@ private fun SongControlRow(
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f)
         )
-        
+
         // 排序按鈕
         Box {
             IconButton(onClick = { showSortMenu = true }) {
@@ -365,7 +363,7 @@ private fun SongControlRow(
                 }
             }
         }
-        
+
         // 隨機播放按鈕
         IconButton(onClick = onShuffleClick) {
             Icon(
@@ -373,7 +371,7 @@ private fun SongControlRow(
                 contentDescription = "隨機播放"
             )
         }
-        
+
         // 播放全部按鈕
         FilledTonalIconButton(
             onClick = onPlayAll,
@@ -418,9 +416,9 @@ private fun FastScrollerRedesigned(
     val alphabet = remember { ('A'..'Z').toList() + '#' }
 
     if (sections.isEmpty()) return
-    
+
     var isDragging by remember { mutableStateOf(false) }
-    var activeChar by remember { mutableStateOf<Char?>(null) } 
+    var activeChar by remember { mutableStateOf<Char?>(null) }
 
     fun scrollToSection(char: Char) {
         activeChar = char
@@ -428,7 +426,7 @@ private fun FastScrollerRedesigned(
             val nextChar = alphabet.dropWhile { it != char }.firstOrNull { sections.containsKey(it) }
             sections[nextChar]
         }
-        
+
         if (targetIndex != null) {
             scope.launch {
                 listState.scrollToItem(targetIndex)
@@ -442,7 +440,7 @@ private fun FastScrollerRedesigned(
         val index = (offsetY / itemHeight).toInt().coerceIn(0, alphabet.lastIndex)
         return alphabet.getOrNull(index)
     }
-    
+
     Box(
         modifier = Modifier
             .width(32.dp)
@@ -455,12 +453,12 @@ private fun FastScrollerRedesigned(
                         val char = getCharAtIndex(offset.y, size.height)
                         if (char != null) scrollToSection(char)
                     },
-                    onDragEnd = { 
-                        isDragging = false 
+                    onDragEnd = {
+                        isDragging = false
                         activeChar = null
                     },
-                    onDragCancel = { 
-                        isDragging = false 
+                    onDragCancel = {
+                        isDragging = false
                         activeChar = null
                     },
                     onVerticalDrag = { change, _ ->
@@ -490,8 +488,8 @@ private fun FastScrollerRedesigned(
                 .width(24.dp)
                 .fillMaxHeight()
                 .background(
-                    if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f) 
-                    else androidx.compose.ui.graphics.Color.Transparent, 
+                    if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                    else androidx.compose.ui.graphics.Color.Transparent,
                     RoundedCornerShape(12.dp)
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -506,21 +504,21 @@ private fun FastScrollerRedesigned(
                         text = char.toString(),
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 9.sp,
-                        color = if (activeChar == char) MaterialTheme.colorScheme.primary 
-                                else if (isPresent) MaterialTheme.colorScheme.onSurfaceVariant 
+                        color = if (activeChar == char) MaterialTheme.colorScheme.primary
+                                else if (isPresent) MaterialTheme.colorScheme.onSurfaceVariant
                                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                         fontWeight = if (activeChar == char) FontWeight.Bold else FontWeight.Medium,
                     )
                 }
             }
         }
-        
+
         // Active letter bubble
         androidx.compose.animation.AnimatedVisibility(
             visible = isDragging && activeChar != null,
             enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(),
             exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(),
-            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 50.dp) 
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 50.dp)
         ) {
             Box(
                 modifier = Modifier

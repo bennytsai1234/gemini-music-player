@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_root_title">Gemini Music</string>
+    <string name="browse_recent">Recently Played</string>
+    <string name="browse_all_songs">All Songs</string>
+    <string name="browse_albums">Albums</string>
+    <string name="browse_artists">Artists</string>
+</resources>
