@@ -35,7 +35,7 @@ import com.gemini.music.ui.driving.DrivingModeScreen
  * Prevents crashes and black screens from rapid double-tapping back
  */
 fun NavHostController.safePopBackStack(): Boolean {
-    return if (this.currentBackStackEntry != null && 
+    return if (this.currentBackStackEntry != null &&
                this.previousBackStackEntry != null) {
         this.popBackStack()
     } else {
@@ -122,7 +122,7 @@ fun MusicNavigation(navController: NavHostController) {
     SharedTransitionLayout {
         CompositionLocalProvider(LocalSharedTransitionScope provides this) {
             NavHost(
-                navController = navController, 
+                navController = navController,
                 startDestination = Screen.Home.route,
                 enterTransition = { enterTransition },
                 exitTransition = { exitTransition },
@@ -132,7 +132,7 @@ fun MusicNavigation(navController: NavHostController) {
                 composable(Screen.Home.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
                         HomeScreenRedesigned(
-                            onSongClick = { _ -> 
+                            onSongClick = { _ ->
                                 // Just play, don't navigate
                             },
                             onSettingsClick = {
@@ -161,6 +161,9 @@ fun MusicNavigation(navController: NavHostController) {
                             },
                             onDrivingModeClick = {
                                 navController.navigate(Screen.DrivingMode.route)
+                            },
+                            onPlaybackSettingsClick = {
+                                navController.navigate(Screen.PlaybackSettings.route)
                             }
                         )
                     }
@@ -169,11 +172,8 @@ fun MusicNavigation(navController: NavHostController) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
                         SettingsScreen(
                             onBackClick = { navController.safePopBackStack() },
-                            onInternalEqualizerClick = {
-                                navController.navigate(Screen.Equalizer.createRoute(0))
-                            },
-                            onPlaybackSettingsClick = {
-                                navController.navigate(Screen.PlaybackSettings.route)
+                            onInternalEqualizerClick = { sessionId ->
+                                navController.navigate(Screen.Equalizer.createRoute(sessionId))
                             }
                         )
                     }
@@ -280,7 +280,7 @@ fun MusicNavigation(navController: NavHostController) {
                         )
                     }
                 }
-                
+
                 // Stats Screen
                 composable(route = Screen.Stats.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
@@ -289,7 +289,7 @@ fun MusicNavigation(navController: NavHostController) {
                         )
                     }
                 }
-                
+
                 // Playback Settings Screen
                 composable(route = Screen.PlaybackSettings.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
@@ -298,7 +298,7 @@ fun MusicNavigation(navController: NavHostController) {
                         )
                     }
                 }
-                
+
                 // Folder Browser Screen
                 composable(route = Screen.Folders.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
@@ -307,14 +307,14 @@ fun MusicNavigation(navController: NavHostController) {
                         )
                     }
                 }
-                
+
                 // Discover Screen (Recommendations)
                 composable(route = Screen.Discover.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
                         DiscoverScreen()
                     }
                 }
-                
+
                 // Lyrics Editor Screen
                 composable(
                     route = Screen.LyricsEditor.route,
@@ -326,21 +326,9 @@ fun MusicNavigation(navController: NavHostController) {
                         )
                     }
                 }
-                
-                // Equalizer Screen
-                composable(
-                    route = Screen.Equalizer.route,
-                    arguments = listOf(navArgument(Screen.Equalizer.audioSessionIdArg) { type = NavType.IntType })
-                ) { backStackEntry ->
-                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
-                        val audioSessionId = backStackEntry.arguments?.getInt(Screen.Equalizer.audioSessionIdArg) ?: 0
-                        com.gemini.music.ui.equalizer.EqualizerScreen(
-                            audioSessionId = audioSessionId,
-                            onBackClick = { navController.safePopBackStack() }
-                        )
-                    }
-                }
-                
+
+
+
                 // Driving Mode Screen
                 composable(route = Screen.DrivingMode.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {

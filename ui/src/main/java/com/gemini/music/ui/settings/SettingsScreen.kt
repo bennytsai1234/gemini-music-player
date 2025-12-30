@@ -78,8 +78,7 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
-    onInternalEqualizerClick: () -> Unit,
-    onPlaybackSettingsClick: () -> Unit = {},
+    onInternalEqualizerClick: (Int) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -124,7 +123,7 @@ fun SettingsScreen(
 
             // Equalizer
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-            
+
             ListItem(
                 headlineContent = { Text("Use Internal Equalizer") },
                 supportingContent = { Text("Use the built-in 5-band equalizer instead of system default") },
@@ -141,7 +140,7 @@ fun SettingsScreen(
                 leadingContent = { Icon(Icons.Rounded.GraphicEq, null) },
                 modifier = Modifier.clickable {
                     if (uiState.useInternalEqualizer) {
-                        onInternalEqualizerClick()
+                        onInternalEqualizerClick(uiState.audioSessionId)
                     } else {
                         val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
                         if (intent.resolveActivity(context.packageManager) != null) {
@@ -154,44 +153,13 @@ fun SettingsScreen(
                     }
                 }
             )
-            
-            // Sleep Timer
-            var showSleepTimerDialog by remember { mutableStateOf(false) }
-            ListItem(
-                headlineContent = { Text("Sleep Timer") },
-                supportingContent = { Text("Stop playback after set time") },
-                leadingContent = { Icon(Icons.Rounded.Timer, null) },
-                modifier = Modifier.clickable { showSleepTimerDialog = true }
-            )
 
-            // Playback Settings
-            ListItem(
-                headlineContent = { Text("Playback Settings") },
-                supportingContent = { Text("Speed, crossfade, and more") },
-                leadingContent = { Icon(Icons.Rounded.Speed, null) },
-                modifier = Modifier.clickable { onPlaybackSettingsClick() }
-            )
 
-            if (showSleepTimerDialog) {
-                SleepTimerDialog(
-                    onDismiss = { showSleepTimerDialog = false },
-                    onSetTimer = { minutes ->
-                        viewModel.setSleepTimer(minutes)
-                        showSleepTimerDialog = false
-                        Toast.makeText(context, "Sleep timer set for $minutes minutes", Toast.LENGTH_SHORT).show()
-                    },
-                    onCancelTimer = {
-                        viewModel.cancelSleepTimer()
-                        showSleepTimerDialog = false
-                        Toast.makeText(context, "Sleep timer cancelled", Toast.LENGTH_SHORT).show()
-                    }
-                )
-            }
-            
+
             // Last.fm Integration
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             LastFmSection()
-            
+
             // Cloud Backup
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             com.gemini.music.ui.settings.backup.BackupSection()
@@ -236,7 +204,7 @@ fun SettingsScreen(
                     Text(stringResource(R.string.add_folder))
                 }
             }
-            
+
             if (uiState.includedFolders.isEmpty()) {
                 Text(
                     text = stringResource(R.string.scanning_default),
@@ -360,7 +328,7 @@ fun ThemeModeSelector(
                     disabledIndicatorColor = Color.Transparent
                 )
             )
-            
+
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false; focusManager.clearFocus() }
@@ -385,7 +353,7 @@ fun ThemeModeSelector(
 fun LanguageSelector() {
     val currentLocales = AppCompatDelegate.getApplicationLocales()
     val currentTag = if (!currentLocales.isEmpty) currentLocales[0]?.toLanguageTag() else "en-US"
-    
+
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.width(150.dp)) {
@@ -405,7 +373,7 @@ fun LanguageSelector() {
                     disabledIndicatorColor = Color.Transparent
                 )
             )
-            
+
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
@@ -491,22 +459,22 @@ fun LastFmSection(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    
+
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = "Last.fm Scrobbling",
             style = MaterialTheme.typography.titleMedium
         )
         Spacer(Modifier.height(8.dp))
-        
+
         if (uiState.isConnected) {
             // Connected state
             ListItem(
-                headlineContent = { 
-                    Text("已連接到 Last.fm") 
+                headlineContent = {
+                    Text("已連接到 Last.fm")
                 },
-                supportingContent = { 
-                    Text("用戶名: ${uiState.username ?: "載入中..."}") 
+                supportingContent = {
+                    Text("用戶名: ${uiState.username ?: "載入中..."}")
                 },
                 leadingContent = {
                     Icon(
@@ -516,7 +484,7 @@ fun LastFmSection(
                     )
                 }
             )
-            
+
             // Pending scrobbles
             if (uiState.pendingScrobbleCount > 0) {
                 ListItem(
@@ -539,7 +507,7 @@ fun LastFmSection(
                     }
                 )
             }
-            
+
             // Logout button
             androidx.compose.material3.TextButton(
                 onClick = { viewModel.logout() },
@@ -555,7 +523,7 @@ fun LastFmSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(12.dp))
-            
+
             // Auth URL available - show confirm button
             if (uiState.authUrl != null) {
                 Column {
@@ -619,7 +587,7 @@ fun LastFmSection(
                 }
             }
         }
-        
+
         // Error message
         uiState.error?.let { error ->
             Spacer(Modifier.height(8.dp))

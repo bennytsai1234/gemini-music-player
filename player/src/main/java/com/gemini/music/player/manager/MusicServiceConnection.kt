@@ -43,7 +43,7 @@ class MusicServiceConnection @Inject constructor(
     // 暴露給 UI 的狀態
     private val _musicState = MutableStateFlow(MusicState())
     override val musicState: StateFlow<MusicState> = _musicState.asStateFlow()
-    
+
     // Scrobbling 追蹤
     private var currentPlayingSong: Song? = null
     private var playStartTime: Long = 0L
@@ -53,14 +53,32 @@ class MusicServiceConnection @Inject constructor(
     init {
         val sessionToken = SessionToken(context, ComponentName(context, GeminiAudioService::class.java))
         controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
-        
+
         controllerFuture.addListener({
             try {
                 mediaController = controllerFuture.get()
                 setupPlayerListener()
+                requestAudioSessionId()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }, MoreExecutors.directExecutor())
+    }
+
+    private fun requestAudioSessionId() {
+        val command = androidx.media3.session.SessionCommand(
+            com.gemini.music.core.common.PlayerConstants.ACTION_GET_AUDIO_SESSION_ID,
+            Bundle.EMPTY
+        )
+        val future = mediaController?.sendCustomCommand(command, Bundle.EMPTY)
+        future?.addListener({
+             try {
+                 val result = future.get()
+                 val sessionId = result.extras.getInt(com.gemini.music.core.common.PlayerConstants.EXTRA_AUDIO_SESSION_ID)
+                 _musicState.update { it.copy(audioSessionId = sessionId) }
+             } catch (e: Exception) {
+                 e.printStackTrace()
+             }
         }, MoreExecutors.directExecutor())
     }
 
@@ -68,7 +86,7 @@ class MusicServiceConnection @Inject constructor(
         mediaController?.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 _musicState.update { it.copy(isPlaying = isPlaying) }
-                
+
                 // 更新 Scrobble 追蹤
                 if (isPlaying) {
                     // 開始播放，記錄開始時間
@@ -85,10 +103,10 @@ class MusicServiceConnection @Inject constructor(
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 // 先處理上一首歌的 Scrobble
                 tryRecordScrobble()
-                
+
                 // 更新當前歌曲
                 updateCurrentSong(mediaItem)
-                
+
                 // 重置 Scrobble 追蹤狀態
                 if (mediaItem != null) {
                     currentPlayingSong = mediaItem.toSong()
@@ -99,11 +117,11 @@ class MusicServiceConnection @Inject constructor(
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
-                _musicState.update { 
-                     it.copy(isBuffering = playbackState == Player.STATE_BUFFERING) 
+                _musicState.update {
+                     it.copy(isBuffering = playbackState == Player.STATE_BUFFERING)
                 }
             }
-            
+
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 _musicState.update { it.copy(shuffleModeEnabled = shuffleModeEnabled) }
             }
@@ -116,16 +134,16 @@ class MusicServiceConnection @Inject constructor(
                 updateQueue()
             }
         })
-        
+
         // 初始化狀態
         updateCurrentSong(mediaController?.currentMediaItem)
         updateQueue()
-        _musicState.update { 
+        _musicState.update {
             it.copy(
                 isPlaying = mediaController?.isPlaying == true,
                 shuffleModeEnabled = mediaController?.shuffleModeEnabled == true,
                 repeatMode = RepeatMode.fromInt(mediaController?.repeatMode ?: Player.REPEAT_MODE_OFF)
-            ) 
+            )
         }
     }
 
@@ -143,7 +161,7 @@ class MusicServiceConnection @Inject constructor(
         if (mediaItem == null) return
         _musicState.update { it.copy(currentSong = mediaItem.toSong()) }
     }
-    
+
     /**
      * 嘗試記錄 Scrobble。
      * 符合條件：播放超過 50% 或至少 4 分鐘。
@@ -151,17 +169,17 @@ class MusicServiceConnection @Inject constructor(
     private fun tryRecordScrobble() {
         val song = currentPlayingSong ?: return
         if (hasScrobbled) return
-        
+
         // 計算總播放時間
         var totalPlayedTime = accumulatedPlayTime
         if (playStartTime > 0) {
             totalPlayedTime += System.currentTimeMillis() - playStartTime
         }
-        
+
         // Scrobble 標準：播放超過 50% 或至少 4 分鐘（240 秒）
         val minDuration = (song.duration * 0.5).toLong()
         val scrobbleThreshold = minOf(minDuration, 240_000L).coerceAtLeast(30_000L)
-        
+
         if (totalPlayedTime >= scrobbleThreshold) {
             hasScrobbled = true
             scope.launch {
@@ -194,11 +212,11 @@ class MusicServiceConnection @Inject constructor(
     override fun removeSong(index: Int) {
         mediaController?.removeMediaItem(index)
     }
-    
+
     override fun moveSong(from: Int, to: Int) {
         mediaController?.moveMediaItem(from, to)
     }
-    
+
     override fun playSongAt(index: Int) {
         mediaController?.seekToDefaultPosition(index)
         mediaController?.play()
@@ -219,17 +237,17 @@ class MusicServiceConnection @Inject constructor(
     override fun skipToPrevious() {
         mediaController?.seekToPrevious()
     }
-    
+
     override fun seekTo(positionMs: Long) {
         mediaController?.seekTo(positionMs)
     }
-    
+
     override fun toggleShuffle() {
         mediaController?.let {
             it.shuffleModeEnabled = !it.shuffleModeEnabled
         }
     }
-    
+
     override fun cycleRepeatMode() {
         mediaController?.let {
             val nextMode = when (it.repeatMode) {
@@ -244,14 +262,14 @@ class MusicServiceConnection @Inject constructor(
     override fun getCurrentPosition(): Long {
         return mediaController?.currentPosition ?: 0L
     }
-    
+
     override fun getDuration(): Long {
         return mediaController?.duration ?: 0L
     }
 
     override fun setSleepTimer(minutes: Int) {
         val command = androidx.media3.session.SessionCommand(
-            com.gemini.music.core.common.PlayerConstants.ACTION_SET_SLEEP_TIMER, 
+            com.gemini.music.core.common.PlayerConstants.ACTION_SET_SLEEP_TIMER,
             Bundle.EMPTY
         )
         val args = Bundle().apply {
@@ -262,7 +280,7 @@ class MusicServiceConnection @Inject constructor(
 
     override fun cancelSleepTimer() {
         val command = androidx.media3.session.SessionCommand(
-            com.gemini.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER, 
+            com.gemini.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER,
             Bundle.EMPTY
         )
         mediaController?.sendCustomCommand(command, Bundle.EMPTY)
@@ -295,7 +313,7 @@ fun Song.toMediaItem(): MediaItem {
         .setAlbumTitle(album)
         .setExtras(extras)
         .build()
-        
+
     return MediaItem.Builder()
         .setMediaId(id.toString())
         .setUri(contentUri)

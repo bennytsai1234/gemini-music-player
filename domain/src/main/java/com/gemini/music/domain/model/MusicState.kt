@@ -6,5 +6,6 @@ data class MusicState(
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
     val shuffleModeEnabled: Boolean = false,
-    val repeatMode: RepeatMode = RepeatMode.OFF
+    val repeatMode: RepeatMode = RepeatMode.OFF,
+    val audioSessionId: Int = 0
 )

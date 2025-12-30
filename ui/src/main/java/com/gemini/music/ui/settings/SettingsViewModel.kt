@@ -20,15 +20,15 @@ data class SettingsUiState(
     val includedFolders: Set<String> = emptySet(),
     val themeMode: String = UserPreferencesRepository.THEME_SYSTEM,
     val useInternalEqualizer: Boolean = false,
-    val scanStatus: ScanStatus = ScanStatus.Idle
+    val scanStatus: ScanStatus = ScanStatus.Idle,
+    val audioSessionId: Int = 0
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val musicRepository: MusicRepository,
-    private val setSleepTimerUseCase: com.gemini.music.domain.usecase.sleeptimer.SetSleepTimerUseCase,
-    private val cancelSleepTimerUseCase: com.gemini.music.domain.usecase.sleeptimer.CancelSleepTimerUseCase
+    private val musicController: com.gemini.music.domain.repository.MusicController
 ) : ViewModel() {
 
     private val _scanStatus = MutableStateFlow<ScanStatus>(ScanStatus.Idle)
@@ -38,9 +38,10 @@ class SettingsViewModel @Inject constructor(
         userPreferencesRepository.includedFolders,
         userPreferencesRepository.themeMode,
         userPreferencesRepository.useInternalEqualizer,
-        _scanStatus
-    ) { duration, folders, theme, useInternal, scanStatus ->
-        SettingsUiState(duration, folders, theme, useInternal, scanStatus)
+        _scanStatus,
+        musicController.musicState
+    ) { duration, folders, theme, useInternal, scanStatus, musicState ->
+        SettingsUiState(duration, folders, theme, useInternal, scanStatus, musicState.audioSessionId)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -68,7 +69,7 @@ class SettingsViewModel @Inject constructor(
             userPreferencesRepository.setIncludedFolders(current)
         }
     }
-    
+
     fun updateThemeMode(mode: String) {
         viewModelScope.launch {
             userPreferencesRepository.setThemeMode(mode)
@@ -91,13 +92,5 @@ class SettingsViewModel @Inject constructor(
 
     fun resetScanStatus() {
         _scanStatus.value = ScanStatus.Idle
-    }
-
-    fun setSleepTimer(minutes: Int) {
-        setSleepTimerUseCase(minutes)
-    }
-
-    fun cancelSleepTimer() {
-        cancelSleepTimerUseCase()
     }
 }

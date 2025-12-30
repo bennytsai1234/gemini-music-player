@@ -1,9 +1,14 @@
 package com.gemini.music.ui.driving
 
+import android.content.Intent
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,7 +54,11 @@ fun DrivingModeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    
+
+    val voiceSearchLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { }
+
     // 處理副作用
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -68,19 +77,44 @@ fun DrivingModeScreen(
                     }
                 }
                 is DrivingModeUiEffect.Speak -> {
-                    // TODO: TTS
+                    Toast.makeText(context, "TTS: ${effect.text}", Toast.LENGTH_SHORT).show()
                 }
                 is DrivingModeUiEffect.LaunchVoiceSearch -> {
-                    // TODO: Voice Search
+                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    }
+                    try {
+                        voiceSearchLauncher.launch(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "Voice Search not available", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
     }
-    
+
+    var offsetX by remember { mutableFloatStateOf(0f) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
+            .pointerInput(Unit) {
+                androidx.compose.foundation.gestures.detectHorizontalDragGestures(
+                    onDragStart = { offsetX = 0f },
+                    onDragEnd = {
+                        if (offsetX > 100) {
+                            viewModel.onEvent(DrivingModeUiEvent.PreviousTrack)
+                        } else if (offsetX < -100) {
+                            viewModel.onEvent(DrivingModeUiEvent.NextTrack)
+                        }
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        change.consume()
+                        offsetX += dragAmount
+                    }
+                )
+            }
     ) {
         // 背景模糊專輯封面
         uiState.albumArtUri?.let { uri ->
@@ -103,7 +137,7 @@ fun DrivingModeScreen(
                     )
             )
         }
-        
+
         // 半透明疊層
         Box(
             modifier = Modifier
@@ -117,7 +151,7 @@ fun DrivingModeScreen(
                     )
                 )
         )
-        
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -130,9 +164,9 @@ fun DrivingModeScreen(
                 connectedDevice = uiState.connectedDevice,
                 onExit = { viewModel.onEvent(DrivingModeUiEvent.ExitDrivingMode) }
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             // 專輯封面
             AsyncImage(
                 model = ImageRequest.Builder(context)
@@ -145,9 +179,9 @@ fun DrivingModeScreen(
                     .size(200.dp)
                     .clip(RoundedCornerShape(16.dp))
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // 歌曲資訊
             Text(
                 text = uiState.currentSong?.title ?: "未播放",
@@ -157,9 +191,9 @@ fun DrivingModeScreen(
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = uiState.currentSong?.artist ?: "",
                 style = MaterialTheme.typography.titleMedium,
@@ -167,18 +201,18 @@ fun DrivingModeScreen(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
-            // 進度條 (簡化版)
-            DrivingModeProgressBar(
+
+            // 進度條與快進快退
+            DrivingModeSeekControls(
                 currentPosition = uiState.currentPositionMs,
                 duration = uiState.durationMs,
                 onSeek = { viewModel.onEvent(DrivingModeUiEvent.SeekTo(it)) }
             )
-            
+
             Spacer(modifier = Modifier.weight(1f))
-            
+
             // 主控制按鈕 (超大)
             DrivingModeControls(
                 isPlaying = uiState.isPlaying,
@@ -186,9 +220,9 @@ fun DrivingModeScreen(
                 onPrevious = { viewModel.onEvent(DrivingModeUiEvent.PreviousTrack) },
                 onNext = { viewModel.onEvent(DrivingModeUiEvent.NextTrack) }
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // 附加控制
             DrivingModeSecondaryControls(
                 onVolumeUp = { viewModel.onEvent(DrivingModeUiEvent.VolumeUp) },
@@ -196,7 +230,7 @@ fun DrivingModeScreen(
                 onQueue = { viewModel.onEvent(DrivingModeUiEvent.ToggleQueue) }
             )
         }
-        
+
         // 佇列面板
         AnimatedVisibility(
             visible = uiState.showQueue,
@@ -248,7 +282,7 @@ private fun DrivingModeHeader(
                 color = Color.White
             )
         }
-        
+
         // 退出按鈕
         IconButton(
             onClick = onExit,
@@ -265,28 +299,61 @@ private fun DrivingModeHeader(
     }
 }
 
-@Suppress("UNUSED_PARAMETER") // Seek 功能在駕駛模式下簡化，暫不實現拖曳
 @Composable
-private fun DrivingModeProgressBar(
+private fun DrivingModeSeekControls(
     currentPosition: Long,
     duration: Long,
     onSeek: (Long) -> Unit
 ) {
     val progress = if (duration > 0) currentPosition.toFloat() / duration else 0f
-    
+
     Column(modifier = Modifier.fillMaxWidth()) {
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp)),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = Color.White.copy(alpha = 0.2f)
-        )
-        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Rewind 10s
+            IconButton(
+                onClick = { onSeek((currentPosition - 10000).coerceAtLeast(0)) },
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Replay10,
+                    contentDescription = "-10s",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
+            // Progress Bar
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(12.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = Color.White.copy(alpha = 0.2f)
+            )
+
+            // Forward 30s
+            IconButton(
+                onClick = { onSeek((currentPosition + 30000).coerceAtMost(duration)) },
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Forward30,
+                    contentDescription = "+30s",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -323,7 +390,7 @@ private fun DrivingModeControls(
             size = 80.dp,
             onClick = onPrevious
         )
-        
+
         // Play/Pause - 超大按鈕
         DrivingControlButton(
             icon = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
@@ -331,7 +398,7 @@ private fun DrivingModeControls(
             isPrimary = true,
             onClick = onPlayPause
         )
-        
+
         // Next - 大按鈕
         DrivingControlButton(
             icon = Icons.Rounded.SkipNext,
@@ -382,13 +449,13 @@ private fun DrivingModeSecondaryControls(
             label = "音量-",
             onClick = onVolumeDown
         )
-        
+
         DrivingSecondaryButton(
             icon = Icons.AutoMirrored.Rounded.QueueMusic,
             label = "佇列",
             onClick = onQueue
         )
-        
+
         DrivingSecondaryButton(
             icon = Icons.AutoMirrored.Rounded.VolumeUp,
             label = "音量+",
@@ -460,9 +527,9 @@ private fun DrivingModeQueue(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             LazyColumn {
                 itemsIndexed(songs) { index, song ->
                     DrivingQueueItem(
@@ -503,7 +570,7 @@ private fun DrivingQueueItem(
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
-        
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = song.title,

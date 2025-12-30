@@ -49,6 +49,7 @@ class GeminiAudioService : MediaLibraryService() {
                 .buildUpon()
                 .add(androidx.media3.session.SessionCommand(com.gemini.music.core.common.PlayerConstants.ACTION_SET_SLEEP_TIMER, Bundle.EMPTY))
                 .add(androidx.media3.session.SessionCommand(com.gemini.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER, Bundle.EMPTY))
+                .add(androidx.media3.session.SessionCommand(com.gemini.music.core.common.PlayerConstants.ACTION_GET_AUDIO_SESSION_ID, Bundle.EMPTY))
                 .build()
             return MediaSession.ConnectionResult.accept(sessionCommands, connectionResult.availablePlayerCommands)
         }
@@ -67,6 +68,14 @@ class GeminiAudioService : MediaLibraryService() {
                     }
                     return com.google.common.util.concurrent.Futures.immediateFuture(
                         androidx.media3.session.SessionResult(androidx.media3.session.SessionResult.RESULT_SUCCESS)
+                    )
+                }
+                com.gemini.music.core.common.PlayerConstants.ACTION_GET_AUDIO_SESSION_ID -> {
+                    val resultArgs = Bundle().apply {
+                        putInt(com.gemini.music.core.common.PlayerConstants.EXTRA_AUDIO_SESSION_ID, player.audioSessionId)
+                    }
+                    return com.google.common.util.concurrent.Futures.immediateFuture(
+                        androidx.media3.session.SessionResult(androidx.media3.session.SessionResult.RESULT_SUCCESS, resultArgs)
                     )
                 }
                 com.gemini.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER -> {

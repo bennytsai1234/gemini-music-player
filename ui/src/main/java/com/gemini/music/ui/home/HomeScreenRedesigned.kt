@@ -52,7 +52,8 @@ fun HomeScreenRedesigned(
     onDiscoverClick: () -> Unit = {},
     onStatsClick: () -> Unit = {},
     onFoldersClick: () -> Unit = {},
-    onDrivingModeClick: () -> Unit = {}
+    onDrivingModeClick: () -> Unit = {},
+    onPlaybackSettingsClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val recoverableAction by viewModel.recoverableAction.collectAsState()
@@ -194,6 +195,14 @@ fun HomeScreenRedesigned(
                             onClick = {
                                 showMenu = false
                                 onDrivingModeClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("播放設定") },
+                            leadingIcon = { Icon(Icons.Rounded.Speed, null) },
+                            onClick = {
+                                showMenu = false
+                                onPlaybackSettingsClick()
                             }
                         )
                         DropdownMenuItem(
