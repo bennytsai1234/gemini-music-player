@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -114,7 +115,7 @@ fun HeroImage(
             .fillMaxSize()
             .padding(horizontal = 24.dp)
             .pointerInput(Unit) {
-                androidx.compose.foundation.gestures.detectDragGestures(
+                detectDragGestures(
                     onDragEnd = {
                         if (abs(swipeOffset) > 100) {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
