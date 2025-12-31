@@ -158,69 +158,83 @@ fun NowPlayingScreen(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.colorScheme.surfaceContainerLowest
-                    )
+                    colors = uiState.gradientColors
                 )
             )
     ) {
-        // Main Content
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Top Bar
-            NowPlayingTopBar(
-                onBackClick = onBackClick,
-                onMoreClick = { showMoreOptions = true }
-            )
+        // Create a dynamic color scheme for the content to ensure contrast
+        // We override onSurface and onSurfaceVariant to match the extracted 'on' color
+        val dynamicContentColor = uiState.onBackgroundColor
+        val dynamicColorScheme = MaterialTheme.colorScheme.copy(
+            onSurface = dynamicContentColor,
+            onSurfaceVariant = dynamicContentColor.copy(alpha = 0.7f),
+            primary = dynamicContentColor, // Optional: Adapt primary to be distinct or matching
+            outline = dynamicContentColor.copy(alpha = 0.5f)
+        )
 
-            // Expandable Content (Lyrics or Art)
-            Box(
+        MaterialTheme(colorScheme = dynamicColorScheme) {
+            // Main Content
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .navigationBarsPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (showLyrics) {
-                    KaraokeLyrics(
-                        lyrics = uiState.lyrics,
-                        currentPosition = (uiState.progress * (uiState.song?.duration ?: 1L)).toLong(),
-                        isLoading = uiState.lyricsLoading,
-                        hasError = uiState.lyricsError,
-                        onRetry = { viewModel.onEvent(NowPlayingEvent.RetryLoadLyrics) },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    HeroImage(
-                        artUri = uiState.song?.albumArtUri,
-                        isPlaying = uiState.isPlaying,
-                        onImageLoaded = onArtworkLoaded,
-                        onClick = { showLyrics = !showLyrics },
-                        onSwipeLeft = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
-                        onSwipeRight = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
-                        onSwipeDown = onBackClick,
-                        onDoubleTapLeft = { viewModel.onEvent(NowPlayingEvent.SeekBackward10s) },
-                        onDoubleTapRight = { viewModel.onEvent(NowPlayingEvent.SeekForward10s) }
-                    )
-                }
-            }
+                // Top Bar
+                NowPlayingTopBar(
+                    onBackClick = onBackClick,
+                    onMoreClick = { showMoreOptions = true }
+                )
 
-            // Bottom Control Section
-            NowPlayingBottomSection(
-                uiState = uiState,
-                onSeek = { viewModel.onEvent(NowPlayingEvent.SeekTo(it)) },
-                onPlayPause = { viewModel.onEvent(NowPlayingEvent.PlayPauseToggle) },
-                onSkipNext = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
-                onSkipPrevious = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
-                onShuffleToggle = { viewModel.onEvent(NowPlayingEvent.ToggleShuffle) },
-                onRepeatToggle = { viewModel.onEvent(NowPlayingEvent.ToggleRepeat) },
-                onFavoriteToggle = { viewModel.onEvent(NowPlayingEvent.ToggleFavorite) },
-                onQueueClick = onQueueClick
-            )
+                // Expandable Content (Lyrics or Art)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    if (showLyrics) {
+                        KaraokeLyrics(
+                            lyrics = uiState.lyrics,
+                            currentPosition = (uiState.progress * (uiState.song?.duration
+                                ?: 1L)).toLong(),
+                            isLoading = uiState.lyricsLoading,
+                            hasError = uiState.lyricsError,
+                            onRetry = { viewModel.onEvent(NowPlayingEvent.RetryLoadLyrics) },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        HeroImage(
+                            artUri = uiState.song?.albumArtUri,
+                            isPlaying = uiState.isPlaying,
+                            onImageLoaded = onArtworkLoaded,
+                            onClick = { showLyrics = !showLyrics },
+                            onSwipeLeft = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
+                            onSwipeRight = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
+                            onSwipeDown = onBackClick,
+                            onDoubleTapLeft = {
+                                viewModel.onEvent(NowPlayingEvent.SeekBackward10s)
+                            },
+                            onDoubleTapRight = {
+                                viewModel.onEvent(NowPlayingEvent.SeekForward10s)
+                            }
+                        )
+                    }
+                }
+
+                // Bottom Control Section
+                NowPlayingBottomSection(
+                    uiState = uiState,
+                    onSeek = { viewModel.onEvent(NowPlayingEvent.SeekTo(it)) },
+                    onPlayPause = { viewModel.onEvent(NowPlayingEvent.PlayPauseToggle) },
+                    onSkipNext = { viewModel.onEvent(NowPlayingEvent.SkipNext) },
+                    onSkipPrevious = { viewModel.onEvent(NowPlayingEvent.SkipPrevious) },
+                    onShuffleToggle = { viewModel.onEvent(NowPlayingEvent.ToggleShuffle) },
+                    onRepeatToggle = { viewModel.onEvent(NowPlayingEvent.ToggleRepeat) },
+                    onFavoriteToggle = { viewModel.onEvent(NowPlayingEvent.ToggleFavorite) },
+                    onQueueClick = onQueueClick
+                )
+            }
         }
     }
 }

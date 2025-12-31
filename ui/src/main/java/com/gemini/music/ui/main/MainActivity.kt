@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
-    
+
     // Observable permission state for the UI
     private val _permissionGranted = MutableStateFlow(false)
     val permissionGranted: StateFlow<Boolean> = _permissionGranted.asStateFlow()
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         _permissionGranted.value = allGranted
-        
+
         if (allGranted) {
             // Permission granted - trigger rescan via broadcast or event
             sendBroadcast(android.content.Intent("com.gemini.music.action.PERMISSION_GRANTED"))
@@ -56,10 +56,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install Splash Screen
         installSplashScreen()
-        
+
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        
+
         // Initial permission check
         _permissionGranted.value = hasRequiredPermissions()
         if (!_permissionGranted.value) {
@@ -68,16 +68,17 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             val themeMode by userPreferencesRepository.themeMode.collectAsState(initial = UserPreferencesRepository.THEME_SYSTEM)
+            val useDynamicColor by userPreferencesRepository.useDynamicColor.collectAsState(initial = false)
             val isSystemDark = isSystemInDarkTheme()
             val hasPermission by permissionGranted.collectAsState()
-            
+
             val darkTheme = when (themeMode) {
                  UserPreferencesRepository.THEME_LIGHT -> false
                  UserPreferencesRepository.THEME_DARK -> true
                  else -> isSystemDark
             }
 
-            GeminiTheme(darkTheme = darkTheme) {
+            GeminiTheme(darkTheme = darkTheme, dynamicColor = useDynamicColor) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     if (hasPermission) {
                         MainScreen()
@@ -90,7 +91,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     override fun onResume() {
         super.onResume()
         // Check if permissions were revoked while app was in background
@@ -103,7 +104,7 @@ class MainActivity : AppCompatActivity() {
             _permissionGranted.value = true
         }
     }
-    
+
     private fun hasRequiredPermissions(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
@@ -114,14 +115,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestPermissions() {
         val permissions = mutableListOf<String>()
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.READ_MEDIA_AUDIO)
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
-        
+
         val permissionsToRequest = permissions.filter {
              ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }

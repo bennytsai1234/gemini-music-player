@@ -59,6 +59,10 @@ interface UserPreferencesRepository {
     suspend fun setLastQueueMediaIds(mediaIds: List<String>)
     suspend fun setLastQueueIndex(index: Int)
 
+    // Theme Settings
+    val useDynamicColor: Flow<Boolean>
+    suspend fun setUseDynamicColor(use: Boolean)
+
 
     companion object {
         const val THEME_SYSTEM = "SYSTEM"

@@ -117,6 +117,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         preferences[LAST_QUEUE_INDEX] ?: 0
     }
 
+    override val useDynamicColor: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[USE_DYNAMIC_COLOR] ?: false
+    }
+
     override suspend fun setMinAudioDuration(durationMs: Long) {
         dataStore.edit { preferences ->
             preferences[MIN_AUDIO_DURATION] = durationMs
@@ -249,6 +253,12 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setUseDynamicColor(use: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[USE_DYNAMIC_COLOR] = use
+        }
+    }
+
     companion object {
         private val MIN_AUDIO_DURATION = longPreferencesKey("min_audio_duration")
         private val INCLUDED_FOLDERS = stringSetPreferencesKey("included_folders")
@@ -277,6 +287,8 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         private val LAST_PLAYED_POSITION = longPreferencesKey("last_played_position")
         private val LAST_QUEUE_MEDIA_IDS = stringPreferencesKey("last_queue_media_ids")
         private val LAST_QUEUE_INDEX = intPreferencesKey("last_queue_index")
+
+        private val USE_DYNAMIC_COLOR = booleanPreferencesKey("use_dynamic_color")
     }
 }
 
