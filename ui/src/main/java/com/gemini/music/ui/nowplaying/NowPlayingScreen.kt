@@ -164,11 +164,14 @@ fun NowPlayingScreen(
     ) {
         // Create a dynamic color scheme for the content to ensure contrast
         // We override onSurface and onSurfaceVariant to match the extracted 'on' color
+        // Keep primary vibrant for buttons and ensure onPrimary has proper contrast
         val dynamicContentColor = uiState.onBackgroundColor
+        val vibrantColor = uiState.gradientColors.firstOrNull() ?: MaterialTheme.colorScheme.primary
         val dynamicColorScheme = MaterialTheme.colorScheme.copy(
             onSurface = dynamicContentColor,
             onSurfaceVariant = dynamicContentColor.copy(alpha = 0.7f),
-            primary = dynamicContentColor, // Optional: Adapt primary to be distinct or matching
+            primary = vibrantColor,  // Use extracted vibrant color for buttons
+            onPrimary = Color.White,  // Ensure high contrast for icons on primary
             outline = dynamicContentColor.copy(alpha = 0.5f)
         )
 
