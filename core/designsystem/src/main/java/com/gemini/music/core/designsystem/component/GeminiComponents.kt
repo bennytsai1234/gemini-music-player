@@ -27,6 +27,10 @@ import androidx.compose.ui.unit.dp
 import com.gemini.music.core.designsystem.GeminiCorners
 import com.gemini.music.core.designsystem.GeminiSize
 import com.gemini.music.core.designsystem.GeminiSpacing
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.surfaceColorAtElevation
 
 /**
  * 統一的設定項目組件
@@ -49,7 +53,7 @@ fun GeminiSettingsItem(
         animationSpec = tween(100),
         label = "scale"
     )
-    
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -88,7 +92,7 @@ fun GeminiSettingsItem(
             }
             Spacer(modifier = Modifier.width(GeminiSpacing.lg))
         }
-        
+
         // Text Content
         Column(
             modifier = Modifier.weight(1f)
@@ -97,7 +101,7 @@ fun GeminiSettingsItem(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
-                color = if (enabled) MaterialTheme.colorScheme.onSurface 
+                color = if (enabled) MaterialTheme.colorScheme.onSurface
                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -107,14 +111,14 @@ fun GeminiSettingsItem(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant 
+                    color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant
                             else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
         }
-        
+
         // Trailing Content
         if (trailingContent != null) {
             Spacer(modifier = Modifier.width(GeminiSpacing.md))
@@ -194,7 +198,7 @@ fun GeminiSettingsSlider(
                 }
                 Spacer(modifier = Modifier.width(GeminiSpacing.lg))
             }
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -209,14 +213,14 @@ fun GeminiSettingsSlider(
                     )
                 }
             }
-            
+
             if (valueLabel != null) {
                 valueLabel()
             }
         }
-        
+
         Spacer(modifier = Modifier.height(GeminiSpacing.sm))
-        
+
         Slider(
             value = value,
             onValueChange = onValueChange,
@@ -277,7 +281,7 @@ fun GeminiCard(
         animationSpec = tween(100),
         label = "scale"
     )
-    
+
     Surface(
         modifier = modifier
             .scale(scale)
@@ -339,7 +343,7 @@ fun GeminiQuickAction(
         animationSpec = tween(100),
         label = "scale"
     )
-    
+
     Column(
         modifier = modifier
             .scale(scale)
@@ -367,7 +371,7 @@ fun GeminiQuickAction(
                     modifier = Modifier.size(GeminiSize.iconLg)
                 )
             }
-            
+
             // Badge
             if (badge != null) {
                 Surface(
@@ -386,9 +390,9 @@ fun GeminiQuickAction(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(GeminiSpacing.sm))
-        
+
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
@@ -470,16 +474,16 @@ fun GeminiEmptyState(
                 modifier = Modifier.size(40.dp)
             )
         }
-        
+
         Spacer(modifier = Modifier.height(GeminiSpacing.lg))
-        
+
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         if (subtitle != null) {
             Spacer(modifier = Modifier.height(GeminiSpacing.sm))
             Text(
@@ -488,10 +492,37 @@ fun GeminiEmptyState(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         if (action != null) {
             Spacer(modifier = Modifier.height(GeminiSpacing.lg))
             action()
         }
     }
+}
+
+/**
+ * 統一的頂部應用程式列 (Unified Top App Bar)
+ * Wraps [CenterAlignedTopAppBar] to ensure consistent styling across the app.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GeminiTopBar(
+    title: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    navigationIcon: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
+    colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+        containerColor = MaterialTheme.colorScheme.background,
+        scrolledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+    ),
+    scrollBehavior: TopAppBarScrollBehavior? = null
+) {
+    CenterAlignedTopAppBar(
+        title = title,
+        modifier = modifier,
+        navigationIcon = navigationIcon,
+        actions = actions,
+        colors = colors,
+        scrollBehavior = scrollBehavior
+    )
 }

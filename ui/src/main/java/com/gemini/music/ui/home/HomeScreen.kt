@@ -93,7 +93,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gemini.music.domain.model.Song
 import com.gemini.music.core.designsystem.component.GeminiEmptyState
+import com.gemini.music.core.designsystem.component.GeminiTopBar
 import com.gemini.music.ui.component.SongListItem
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -400,6 +403,8 @@ fun GreetingHeader() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun HomeTopBar(
     isSelectionMode: Boolean,
     selectedCount: Int,
@@ -411,36 +416,22 @@ fun HomeTopBar(
     onDelete: () -> Unit,
     onPlaySelected: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        color = MaterialTheme.colorScheme.background.copy(alpha = 0.95f) // Slight visual distinction
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (isSelectionMode) {
+    if (isSelectionMode) {
+        // Contextual Action Bar appearance for Selection Mode
+        GeminiTopBar(
+            title = {
+                Text(
+                    text = stringResource(com.gemini.music.ui.R.string.selected_count, selectedCount),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            navigationIcon = {
                 IconButton(onClick = onCloseSelection) {
                     Icon(Icons.Rounded.Close, contentDescription = "Close")
                 }
-            } else {
-                IconButton(onClick = onMenuClick) {
-                    Icon(Icons.Rounded.Menu, contentDescription = "Menu")
-                }
-            }
-
-            Text(
-                text = if (isSelectionMode) stringResource(com.gemini.music.ui.R.string.selected_count, selectedCount) else "",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-
-            if (isSelectionMode) {
+            },
+            actions = {
                 IconButton(onClick = onPlaySelected) {
                     Icon(Icons.Rounded.PlayArrow, contentDescription = "Play")
                 }
@@ -453,12 +444,29 @@ fun HomeTopBar(
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Rounded.Delete, contentDescription = "Delete")
                 }
-            } else {
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant, // Distinction for selection mode
+                titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        )
+    } else {
+        // Standard Home AppBar
+        GeminiTopBar(
+            title = { /* Empty or App Name if desired, keeping empty as per original functionality */ },
+            navigationIcon = {
+                IconButton(onClick = onMenuClick) {
+                    Icon(Icons.Rounded.Menu, contentDescription = "Menu")
+                }
+            },
+            actions = {
                 IconButton(onClick = onSearchClick) {
                     Icon(Icons.Rounded.Search, contentDescription = "Search")
                 }
             }
-        }
+        )
     }
 }
 
