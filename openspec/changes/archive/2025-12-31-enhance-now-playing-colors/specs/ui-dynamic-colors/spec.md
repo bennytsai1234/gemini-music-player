@@ -1,6 +1,6 @@
 # Spec: UI Dynamic Colors
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Now Playing Immersion
 The Full Screen Player MUST adapt its visual appearance to the content being played.
