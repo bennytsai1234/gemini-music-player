@@ -37,7 +37,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import com.gemini.music.domain.model.ScanStatus
 import com.gemini.music.core.designsystem.component.GeminiTopBar
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api

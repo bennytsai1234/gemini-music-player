@@ -31,7 +31,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
+import com.gemini.music.core.designsystem.component.GeminiTopBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,26 +66,12 @@ fun ArtistDetailScreen(
     viewModel: ArtistDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { 
-                    Text(
-                        uiState.artistName,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
-                )
+            GeminiTopBar(
+                title = uiState.artistName,
+                onNavigationClick = onBackClick
             )
         }
     ) { padding ->
@@ -105,7 +91,7 @@ fun ArtistDetailScreen(
                     onShuffle = { viewModel.shuffleAll() }
                 )
             }
-            
+
             // Albums Section
             if (uiState.albums.isNotEmpty()) {
                 item {
@@ -116,7 +102,7 @@ fun ArtistDetailScreen(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                     )
                 }
-                
+
                 item {
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
@@ -132,10 +118,10 @@ fun ArtistDetailScreen(
                         }
                     }
                 }
-                
+
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
-            
+
             // Songs Section
             item {
                 Row(
@@ -157,7 +143,7 @@ fun ArtistDetailScreen(
                     )
                 }
             }
-            
+
             itemsIndexed(
                 items = uiState.songs,
                 key = { _, song -> song.id }
@@ -202,7 +188,7 @@ private fun ArtistHeader(
             error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person),
             placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Person)
         )
-        
+
         // Gradient Overlay
         Box(
             modifier = Modifier
@@ -217,7 +203,7 @@ private fun ArtistHeader(
                     )
                 )
         )
-        
+
         // Content
         Column(
             modifier = Modifier
@@ -260,18 +246,18 @@ private fun ArtistHeader(
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Stats
             Text(
                 text = "$songCount songs • $albumCount albums",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Buttons
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -286,7 +272,7 @@ private fun ArtistHeader(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Play All")
                 }
-                
+
                 Button(
                     onClick = onShuffle,
                     colors = ButtonDefaults.buttonColors(
@@ -334,9 +320,9 @@ private fun AlbumGridItem(
                 placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.Album)
             )
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Text(
             text = albumName,
             style = MaterialTheme.typography.bodyMedium,
@@ -344,7 +330,7 @@ private fun AlbumGridItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        
+
         year?.let {
             Text(
                 text = it.toString(),

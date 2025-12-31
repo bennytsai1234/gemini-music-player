@@ -37,8 +37,8 @@ import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import com.gemini.music.core.designsystem.component.GeminiTopBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -79,41 +79,32 @@ fun FolderBrowserScreen(
     viewModel: FolderBrowserViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
     // Handle back navigation
     BackHandler(enabled = uiState.currentPath != null) {
         viewModel.navigateUp()
     }
-    
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { 
-                    Text(
-                        text = if (uiState.currentPath != null) {
-                            uiState.currentContent?.folder?.name ?: "Folders"
-                        } else "Folders",
-                        fontWeight = FontWeight.Bold
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (uiState.currentPath != null) {
-                            viewModel.navigateUp()
-                        } else {
-                            onBackClick()
-                        }
-                    }) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+            GeminiTopBar(
+                title = if (uiState.currentPath != null) {
+                    uiState.currentContent?.folder?.name ?: "Folders"
+                } else "Folders",
+                onNavigationClick = {
+                    if (uiState.currentPath != null) {
+                        viewModel.navigateUp()
+                    } else {
+                        onBackClick()
                     }
                 },
                 actions = {
                     // View mode toggle
                     IconButton(onClick = {
                         viewModel.setViewMode(
-                            if (uiState.viewMode == FolderViewMode.GRID) 
-                                FolderViewMode.LIST 
-                            else 
+                            if (uiState.viewMode == FolderViewMode.GRID)
+                                FolderViewMode.LIST
+                            else
                                 FolderViewMode.GRID
                         )
                     }) {
@@ -125,7 +116,7 @@ fun FolderBrowserScreen(
                             contentDescription = "Toggle View"
                         )
                     }
-                    
+
                     // Sort dropdown
                     var showSortMenu by remember { mutableStateOf(false) }
                     Box {
@@ -138,31 +129,28 @@ fun FolderBrowserScreen(
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Name") },
-                                onClick = { 
+                                onClick = {
                                     viewModel.setSortBy(FolderSortBy.NAME)
                                     showSortMenu = false
                                 }
                             )
                             DropdownMenuItem(
                                 text = { Text("Date") },
-                                onClick = { 
+                                onClick = {
                                     viewModel.setSortBy(FolderSortBy.DATE)
                                     showSortMenu = false
                                 }
                             )
                             DropdownMenuItem(
                                 text = { Text("Song Count") },
-                                onClick = { 
+                                onClick = {
                                     viewModel.setSortBy(FolderSortBy.SONG_COUNT)
                                     showSortMenu = false
                                 }
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
         }
     ) { padding ->
@@ -184,12 +172,12 @@ fun FolderBrowserScreen(
                         FilterChip(
                             selected = false,
                             onClick = { viewModel.navigateToRoot() },
-                            label = { 
+                            label = {
                                 Icon(
-                                    Icons.Rounded.Home, 
+                                    Icons.Rounded.Home,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
-                                ) 
+                                )
                             }
                         )
                     }
@@ -203,18 +191,18 @@ fun FolderBrowserScreen(
                         FilterChip(
                             selected = path == uiState.currentPath,
                             onClick = { viewModel.navigateToBreadcrumb(path) },
-                            label = { 
+                            label = {
                                 Text(
-                                    name, 
-                                    maxLines = 1, 
+                                    name,
+                                    maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
-                                ) 
+                                )
                             }
                         )
                     }
                 }
             }
-            
+
             // Search bar (when inside a folder)
             if (uiState.currentPath != null) {
                 OutlinedTextField(
@@ -241,7 +229,7 @@ fun FolderBrowserScreen(
                     )
                 )
             }
-            
+
             // Content
             if (uiState.isLoading) {
                 Box(
@@ -326,7 +314,7 @@ fun FolderBrowserScreen(
                             }
                             item { Spacer(modifier = Modifier.height(8.dp)) }
                         }
-                        
+
                         // Songs
                         if (content.songs.isNotEmpty()) {
                             item {
@@ -340,7 +328,7 @@ fun FolderBrowserScreen(
                                 SongListItem(song = song, onClick = { viewModel.playSong(song) })
                             }
                         }
-                        
+
                         if (content.songs.isEmpty() && content.subfolders.isEmpty()) {
                             item {
                                 EmptyState(message = "This folder is empty")
@@ -400,7 +388,7 @@ private fun FolderGridItem(
                     )
                 }
             }
-            
+
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
@@ -448,9 +436,9 @@ private fun FolderListItem(
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
-        
+
         Spacer(modifier = Modifier.width(12.dp))
-        
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = folder.name,
@@ -465,7 +453,7 @@ private fun FolderListItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         Icon(
             Icons.AutoMirrored.Rounded.NavigateNext,
             contentDescription = null,
@@ -501,9 +489,9 @@ private fun SongListItem(
                 contentScale = ContentScale.Crop
             )
         }
-        
+
         Spacer(modifier = Modifier.width(12.dp))
-        
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = song.title,
@@ -519,7 +507,7 @@ private fun SongListItem(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        
+
         Text(
             text = formatSongDuration(song.duration),
             style = MaterialTheme.typography.labelMedium,

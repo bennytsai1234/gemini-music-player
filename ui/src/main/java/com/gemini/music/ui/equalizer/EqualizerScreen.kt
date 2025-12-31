@@ -33,7 +33,7 @@ import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
+import com.gemini.music.core.designsystem.component.GeminiTopBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -73,33 +73,21 @@ fun EqualizerScreen(
     viewModel: EqualizerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
     LaunchedEffect(audioSessionId) {
         viewModel.initializeEqualizer(audioSessionId)
     }
-    
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { 
-                    Text(
-                        "Equalizer", 
-                        fontWeight = FontWeight.Bold
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
-                    }
-                },
+            GeminiTopBar(
+                title = "Equalizer",
+                onNavigationClick = onBackClick,
                 actions = {
                     IconButton(onClick = { viewModel.resetToFlat() }) {
                         Icon(Icons.Rounded.Refresh, contentDescription = "Reset")
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
         }
     ) { padding ->
@@ -154,9 +142,9 @@ fun EqualizerScreen(
                         )
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Presets
                 if (uiState.presets.isNotEmpty()) {
                     Text(
@@ -183,9 +171,9 @@ fun EqualizerScreen(
                         }
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(32.dp))
-                
+
                 // Equalizer Bands
                 Text(
                     text = "Frequency Bands",
@@ -193,7 +181,7 @@ fun EqualizerScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -208,9 +196,9 @@ fun EqualizerScreen(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(32.dp))
-                
+
                 // dB Labels
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -232,9 +220,9 @@ fun EqualizerScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(32.dp))
-                
+
                 // ==================== Bass Boost ====================
                 if (uiState.bassBoostAvailable) {
                     Row(
@@ -257,7 +245,7 @@ fun EqualizerScreen(
                             )
                         )
                     }
-                    
+
                     if (uiState.bassBoostEnabled && uiState.isEnabled) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(
@@ -287,10 +275,10 @@ fun EqualizerScreen(
                             )
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(16.dp))
                 }
-                
+
                 // ==================== Virtualizer ====================
                 if (uiState.virtualizerAvailable) {
                     Row(
@@ -313,7 +301,7 @@ fun EqualizerScreen(
                             )
                         )
                     }
-                    
+
                     if (uiState.virtualizerEnabled && uiState.isEnabled) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(
@@ -344,11 +332,11 @@ fun EqualizerScreen(
                         }
                     }
                 }
-                
+
                 // ==================== Loudness Enhancer ====================
                 if (uiState.loudnessAvailable) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -369,7 +357,7 @@ fun EqualizerScreen(
                             )
                         )
                     }
-                    
+
                     if (uiState.loudnessEnabled && uiState.isEnabled) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(
@@ -401,10 +389,10 @@ fun EqualizerScreen(
                         }
                     }
                 }
-                
+
                 // ==================== Custom Presets Section ====================
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -422,14 +410,14 @@ fun EqualizerScreen(
                         Icon(
                             Icons.Rounded.Add,
                             contentDescription = "Save as Preset",
-                            tint = if (uiState.isEnabled) 
-                                MaterialTheme.colorScheme.primary 
-                            else 
+                            tint = if (uiState.isEnabled)
+                                MaterialTheme.colorScheme.primary
+                            else
                                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                         )
                     }
                 }
-                
+
                 if (uiState.customPresets.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     LazyRow(
@@ -464,12 +452,12 @@ fun EqualizerScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(48.dp))
             }
         }
     }
-    
+
     // Save Preset Dialog
     if (uiState.showSavePresetDialog) {
         AlertDialog(
@@ -517,7 +505,7 @@ fun EqualizerBandSlider(
         animationSpec = tween(150, easing = androidx.compose.animation.core.LinearEasing),
         label = "ActiveColor"
     )
-    
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(48.dp)
@@ -537,7 +525,7 @@ fun EqualizerBandSlider(
                     .clip(RoundedCornerShape(4.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             )
-            
+
             // Active Track
             Box(
                 modifier = Modifier
@@ -551,7 +539,7 @@ fun EqualizerBandSlider(
                         )
                     )
             )
-            
+
             // Slider (invisible, for interaction)
             Slider(
                 value = band.normalizedLevel,
@@ -569,7 +557,7 @@ fun EqualizerBandSlider(
                     inactiveTrackColor = Color.Transparent
                 )
             )
-            
+
             // Level Indicator (Thumb)
             Box(
                 modifier = Modifier
@@ -581,9 +569,9 @@ fun EqualizerBandSlider(
                     .background(if (enabled) activeColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
             )
         }
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         // Frequency Label
         Text(
             text = band.label,

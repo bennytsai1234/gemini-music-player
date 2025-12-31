@@ -38,6 +38,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gemini.music.domain.model.Song
 import com.gemini.music.core.designsystem.component.GeminiEmptyState
+import com.gemini.music.core.designsystem.component.GeminiTopBar
 import com.gemini.music.ui.component.SongListItem
 import kotlinx.coroutines.launch
 
@@ -66,13 +67,9 @@ fun PlaylistDetailScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(uiState.playlist?.name ?: "Playlist") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
-                    }
-                },
+            GeminiTopBar(
+                title = uiState.playlist?.name ?: "Playlist",
+                onNavigationClick = onBackClick,
                 actions = {
                     // Reorder Toggle Button
                     if (uiState.songs.size > 1) {
@@ -98,10 +95,7 @@ fun PlaylistDetailScreen(
                             }
                         )
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
