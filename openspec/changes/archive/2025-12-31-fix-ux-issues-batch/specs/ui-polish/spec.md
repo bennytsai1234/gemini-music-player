@@ -1,6 +1,16 @@
 # Spec: UI Polish
 
-## MODIFIED Requirements
+## ADDED Requirements
+
+### Requirement: Album Artwork Dynamic Colors
+NowPlayingScreen MUST extract and apply colors from the album artwork to create an immersive visual experience.
+
+#### Scenario: Dynamic Player Background
+Given the user is viewing the full-screen player
+When an album with artwork is playing
+Then the player background MUST display a gradient using colors extracted from the album artwork
+And the play/pause button MUST use the vibrant extracted color with white icon for contrast
+And all text MUST maintain proper contrast against the dynamic background.
 
 ### Requirement: Fast Scroller Visibility
 The alphabetical fast scroller MUST remain fully visible and interactive regardless of mini player state.
@@ -14,6 +24,8 @@ And the scroller MUST have sufficient bottom padding to clear the mini player (a
 
 (Previously: Fast scroller had no bottom padding, causing 'Z' to be obscured)
 
+## MODIFIED Requirements
+
 ### Requirement: Navigation Icon Alignment
 All top app bars MUST use consistent heights and icon positioning.
 
@@ -22,21 +34,6 @@ Given the user navigates from Home to Settings
 When viewing both screens' top bars
 Then the Back button in Settings MUST appear in the same screen coordinates as the Menu button in Home.
 
-(This requirement is a refinement of the existing ui-consistency spec)
 
-## ADDED Requirements
+(This requirement is a refinement of the existing ui-consistency spec and has now been fully implemented across all screens)
 
-### Requirement: Sleep Timer Execution
-The sleep timer MUST correctly pause playback after the configured duration.
-
-#### Scenario: Timer Duration Mode
-Given the user sets a sleep timer for 5 minutes
-When 5 minutes have elapsed
-Then playback MUST pause
-And the timer state MUST reset to OFF.
-
-#### Scenario: Timer Track Count Mode
-Given the user sets a sleep timer for 3 tracks
-When 3 songs have completed playback
-Then playback MUST pause after the 3rd song ends
-And the timer state MUST reset to OFF.

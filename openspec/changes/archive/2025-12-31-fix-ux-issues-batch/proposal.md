@@ -9,6 +9,44 @@ Address four user-reported UX issues to improve the overall application experien
 3. **Sleep Timer Functionality**: Sleep timer may not be operating correctly
 4. **Navigation Button Misalignment**: Back buttons in sub-screens (e.g., from drawer menu items) are not vertically aligned with the menu button on the home screen
 
+## Why
+These UX issues directly impact user experience and the app's polish:
+- **Dynamic Colors**: Users expect album artwork colors to be reflected in the full-screen player, providing an immersive, Material You experience
+- **Fast Scroller**: The obstruction prevents users from quickly accessing songs starting with 'Z', breaking the core functionality of the fast scroller
+- **Navigation Consistency**: Misaligned navigation buttons create a jarring, unprofessional user experience when navigating between screens
+- **Sleep Timer**: Users rely on this feature to stop playback automatically, and any malfunction affects trust in the app
+
+## What Changes
+### Album Artwork Dynamic Colors (Fixed)
+- **Root Cause**: `NowPlayingScreen` was not extracting album artwork colors to its own ViewModel
+- **Changes Made**:
+  - Modified `NowPlayingScreen.kt` to connect `HeroImage.onImageLoaded` callback to trigger `NowPlayingEvent.UpdatePalette`
+  - Updated color scheme override to use extracted vibrant color for `primary` and `Color.White` for `onPrimary`
+  - Ensured proper contrast between button backgrounds and icons
+- **Files Modified**:
+  - `ui/src/main/java/com/gemini/music/ui/nowplaying/NowPlayingScreen.kt`
+
+### Fast Scroller Bottom Padding (Fixed)
+- **Changes Made**: Added 80dp bottom padding to `FastScroller` component in `HomeScreen.kt`
+- **Files Modified**:
+  - `ui/src/main/java/com/gemini/music/ui/home/HomeScreen.kt`
+
+### Navigation Button Consistency (Fixed)
+- **Changes Made**: Migrated remaining screens using `CenterAlignedTopAppBar` to use `GeminiTopBar`
+- **Screens Updated**:
+  - `StatsScreen.kt`
+  - `PlaybackSettingsScreen.kt`
+  - `QueueScreen.kt`
+- **Files Modified**:
+  - `ui/src/main/java/com/gemini/music/ui/stats/StatsScreen.kt`
+  - `ui/src/main/java/com/gemini/music/ui/settings/PlaybackSettingsScreen.kt`
+  - `ui/src/main/java/com/gemini/music/ui/queue/QueueScreen.kt`
+
+### Sleep Timer (Investigation Only)
+- **Status**: Code review shows implementation appears correct in `GeminiAudioService.kt`
+- **Action**: Deferred to runtime testing; no code changes made at this time
+
+
 ## Solutions
 
 ### 1. Dynamic Color Investigation
