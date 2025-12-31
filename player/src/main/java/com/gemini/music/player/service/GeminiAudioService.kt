@@ -32,6 +32,9 @@ class GeminiAudioService : MediaLibraryService() {
     @Inject
     lateinit var userPreferencesRepository: com.gemini.music.domain.repository.UserPreferencesRepository
 
+    @Inject
+    lateinit var musicRepository: com.gemini.music.domain.repository.MusicRepository
+
     private var mediaLibrarySession: MediaLibrarySession? = null
 
     private val serviceScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Main)
@@ -89,9 +92,6 @@ class GeminiAudioService : MediaLibraryService() {
         }
 
         // ==================== Android Auto 媒體瀏覽支援 ====================
-
-    @Inject
-    lateinit var musicRepository: com.gemini.music.domain.repository.MusicRepository
 
         override fun onGetLibraryRoot(
             session: MediaLibrarySession,

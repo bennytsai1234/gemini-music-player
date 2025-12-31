@@ -41,6 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -79,7 +81,7 @@ fun DrivingModeScreen(
                     }
                 }
                 is DrivingModeUiEffect.Speak -> {
-                    Toast.makeText(context, context.getString(R.string.driving_mode_tts_prefix, effect.text), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.driving_mode_tts_prefix, effect.message), Toast.LENGTH_SHORT).show()
                 }
                 is DrivingModeUiEffect.LaunchVoiceSearch -> {
                     val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -102,7 +104,7 @@ fun DrivingModeScreen(
             .fillMaxSize()
             .background(Color.Black)
             .pointerInput(Unit) {
-                androidx.compose.foundation.gestures.detectHorizontalDragGestures(
+                detectHorizontalDragGestures(
                     onDragStart = { offsetX = 0f },
                     onDragEnd = {
                         if (offsetX > 100) {
