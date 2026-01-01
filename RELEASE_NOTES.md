@@ -1,3 +1,21 @@
+# 🎵 Gemini Music Player v1.4.0
+
+## 🎨 全新品牌視覺 (Rebranding)
+- **全新 App 圖示**：採用現代化的 "Gemini Music" 雙音符設計，支援 Adaptive Icon 與深色模式漸層背景。
+- **動態啟動畫面**：新增 Android 12+ 原生 Splash Screen 動畫，帶來更流暢的啟動體驗。
+
+## 🧹 架構與代碼品質
+- **Lint 警告清零**：修正了數十個代碼警告，包括權限遺失、複數資源 (Plurals) 處理、與 URI 解析優化。
+- **Version Catalog 遷移**：全專案依賴項已遷移至 `libs.versions.toml` 統一管理。
+- **專案衛生清理**：移除了根目錄的臨時日誌與舊版批處理腳本，強制標準化 Git 流程。
+- **架構文檔更新**：明確定義了 `:player` 模組在 Clean Architecture 中的職責。
+
+## 📦 發布資訊
+- **版本**：v1.4.0 (Build 12)
+- **構建類型**：Signed Release (Debug Key)
+
+---
+
 # 🎵 Gemini Music Player v1.3.3
 
 ## 🐛 Bug 修復
