@@ -51,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -71,13 +72,13 @@ fun LyricsEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    
+
     var showImportDialog by remember { mutableStateOf(false) }
     var showOffsetDialog by remember { mutableStateOf(false) }
     var showAddLineDialog by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
     var editingLine by remember { mutableStateOf<EditableLyricLine?>(null) }
-    
+
     // Handle messages
     LaunchedEffect(uiState.error, uiState.successMessage) {
         uiState.error?.let {
@@ -89,7 +90,7 @@ fun LyricsEditorScreen(
             viewModel.clearMessages()
         }
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -196,7 +197,7 @@ fun LyricsEditorScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-                
+
                 itemsIndexed(
                     items = uiState.lyrics?.lines ?: emptyList(),
                     key = { index, _ -> index }
@@ -212,7 +213,7 @@ fun LyricsEditorScreen(
             }
         }
     }
-    
+
     // Import Dialog
     if (showImportDialog) {
         ImportLrcDialog(
@@ -223,7 +224,7 @@ fun LyricsEditorScreen(
             }
         )
     }
-    
+
     // Offset Dialog
     if (showOffsetDialog) {
         OffsetAdjustDialog(
@@ -235,7 +236,7 @@ fun LyricsEditorScreen(
             }
         )
     }
-    
+
     // Add Line Dialog
     if (showAddLineDialog) {
         AddLineDialog(
@@ -247,7 +248,7 @@ fun LyricsEditorScreen(
             }
         )
     }
-    
+
     // Edit Line Dialog
     editingLine?.let { line ->
         EditLineDialog(
@@ -342,7 +343,7 @@ private fun LyricLineItem(
         },
         label = "backgroundColor"
     )
-    
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -363,9 +364,9 @@ private fun LyricLineItem(
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             )
-            
+
             Spacer(modifier = Modifier.width(12.dp))
-            
+
             // Text
             Text(
                 text = line.text.ifEmpty { "(空白行)" },
@@ -377,7 +378,7 @@ private fun LyricLineItem(
                     MaterialTheme.colorScheme.onSurface
                 }
             )
-            
+
             if (isSelected) {
                 IconButton(onClick = onEdit) {
                     Icon(
@@ -404,7 +405,7 @@ private fun ImportLrcDialog(
     onImport: (String) -> Unit
 ) {
     var lrcContent by remember { mutableStateOf("") }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("匯入 LRC 歌詞") },
@@ -440,8 +441,8 @@ private fun OffsetAdjustDialog(
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit
 ) {
-    var offset by remember { mutableStateOf(currentOffset.toFloat()) }
-    
+    var offset by remember { mutableFloatStateOf(currentOffset.toFloat()) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("調整全局偏移") },
@@ -484,7 +485,7 @@ private fun AddLineDialog(
 ) {
     var timestampText by remember { mutableStateOf("") }
     var lineText by remember { mutableStateOf("") }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("新增歌詞行") },
@@ -532,7 +533,7 @@ private fun EditLineDialog(
 ) {
     var timestampText by remember { mutableStateOf(line.timestamp.toString()) }
     var lineText by remember { mutableStateOf(line.text) }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("編輯歌詞行") },
@@ -575,5 +576,7 @@ private fun formatTimestamp(ms: Long): String {
     val minutes = (ms / 60000).toInt()
     val seconds = ((ms % 60000) / 1000).toInt()
     val hundredths = ((ms % 1000) / 10).toInt()
-    return "%02d:%02d.%02d".format(minutes, seconds, hundredths)
+    return "%02d:%02d.%02d".format(java.util.Locale.ROOT, minutes, seconds, hundredths)
 }
+
+

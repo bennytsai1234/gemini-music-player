@@ -13,8 +13,8 @@ android {
         applicationId = "com.gemini.music"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.3.1"
+        versionCode = 11
+        versionName = "1.3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

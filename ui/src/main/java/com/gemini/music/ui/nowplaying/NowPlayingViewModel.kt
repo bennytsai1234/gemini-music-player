@@ -295,3 +295,5 @@ sealed class NowPlayingEvent {
     data object CancelSleepTimer : NowPlayingEvent()
     data object RetryLoadLyrics : NowPlayingEvent()
 }
+
+

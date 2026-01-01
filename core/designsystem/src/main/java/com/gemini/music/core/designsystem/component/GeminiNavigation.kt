@@ -49,7 +49,7 @@ fun GeminiTopBar(
     actions: @Composable RowScope.() -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
             Text(
                 text = title,
@@ -60,7 +60,7 @@ fun GeminiTopBar(
         navigationIcon = { navigationIcon?.invoke() },
         actions = actions,
         scrollBehavior = scrollBehavior,
-        colors = TopAppBarDefaults.topAppBarColors(
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
         ),
@@ -105,21 +105,21 @@ fun GeminiGreetingHeader(
     userName: String? = null
 ) {
     val hour = remember { Calendar.getInstance().get(Calendar.HOUR_OF_DAY) }
-    
+
     val greeting = when (hour) {
         in 5..11 -> "早安"
         in 12..17 -> "午安"
         in 18..21 -> "晚安"
         else -> "夜深了"
     }
-    
+
     val icon = when (hour) {
         in 5..11 -> "☀️"
         in 12..17 -> "🌤️"
         in 18..21 -> "🌙"
         else -> "🌃"
     }
-    
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -142,7 +142,7 @@ fun GeminiGreetingHeader(
                 fontWeight = FontWeight.Bold
             )
         }
-        
+
         if (userName != null) {
             Text(
                 text = userName,
@@ -150,9 +150,9 @@ fun GeminiGreetingHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         Spacer(modifier = Modifier.height(GeminiSpacing.xs))
-        
+
         Text(
             text = "來聽點音樂吧",
             style = MaterialTheme.typography.bodyMedium,
@@ -230,7 +230,7 @@ fun GeminiStatsCard(
                 }
                 Spacer(modifier = Modifier.width(GeminiSpacing.md))
             }
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -274,7 +274,7 @@ fun GeminiHorizontalCard(
         animationSpec = tween(100),
         label = "scale"
     )
-    
+
     Column(
         modifier = modifier
             .width(140.dp)
@@ -320,9 +320,9 @@ fun GeminiHorizontalCard(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(GeminiSpacing.sm))
-        
+
         Text(
             text = title,
             style = MaterialTheme.typography.bodyMedium,
@@ -330,7 +330,7 @@ fun GeminiHorizontalCard(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        
+
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
@@ -353,17 +353,17 @@ fun GeminiFilterChip(
     leadingIcon: ImageVector? = null
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer 
+        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
                       else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         label = "bg"
     )
-    
+
     val contentColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer 
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
                       else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "content"
     )
-    
+
     Surface(
         modifier = modifier
             .clip(RoundedCornerShape(GeminiCorners.chip))
@@ -387,7 +387,7 @@ fun GeminiFilterChip(
                 )
                 Spacer(modifier = Modifier.width(GeminiSpacing.xs))
             }
-            
+
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
@@ -431,7 +431,7 @@ fun GeminiControlRow(
             )
             filterChips()
         }
-        
+
         // 右側：播放按鈕
         Row(
             horizontalArrangement = Arrangement.spacedBy(GeminiSpacing.sm)
@@ -448,7 +448,7 @@ fun GeminiControlRow(
                     )
                 }
             }
-            
+
             if (onPlayAll != null) {
                 FilledIconButton(
                     onClick = onPlayAll,

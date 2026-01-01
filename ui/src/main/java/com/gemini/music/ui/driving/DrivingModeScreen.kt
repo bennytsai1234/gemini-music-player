@@ -76,9 +76,7 @@ fun DrivingModeScreen(
                         @Suppress("DEPRECATION")
                         context.getSystemService(Vibrator::class.java)
                     }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        vibrator?.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
-                    }
+                    vibrator?.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
                 }
                 is DrivingModeUiEffect.Speak -> {
                     Toast.makeText(context, context.getString(R.string.driving_mode_tts_prefix, effect.message), Toast.LENGTH_SHORT).show()
@@ -604,3 +602,5 @@ private fun formatTime(ms: Long): String {
     val seconds = totalSeconds % 60
     return "%d:%02d".format(minutes, seconds)
 }
+
+

@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Delete
@@ -36,17 +35,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.gemini.music.domain.model.Song
 import com.gemini.music.core.designsystem.component.GeminiEmptyState
-import com.gemini.music.core.designsystem.component.GeminiTopBar
+import com.gemini.music.core.designsystem.component.GeminiTopBarWithBack
+import com.gemini.music.domain.model.Song
 import com.gemini.music.ui.component.SongListItem
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistDetailScreen(
-    viewModel: PlaylistDetailViewModel = hiltViewModel(),
-    onBackClick: () -> Unit
+        viewModel: PlaylistDetailViewModel = hiltViewModel(),
+        onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -56,67 +55,67 @@ fun PlaylistDetailScreen(
 
     if (showRenameDialog) {
         RenamePlaylistDialog(
-            currentName = uiState.playlist?.name ?: "",
-            onDismiss = { showRenameDialog = false },
-            onConfirm = { newName ->
-                viewModel.renamePlaylist(newName)
-                showRenameDialog = false
-            }
+                currentName = uiState.playlist?.name ?: "",
+                onDismiss = { showRenameDialog = false },
+                onConfirm = { newName ->
+                    viewModel.renamePlaylist(newName)
+                    showRenameDialog = false
+                }
         )
     }
 
     Scaffold(
-        topBar = {
-            GeminiTopBar(
-                title = uiState.playlist?.name ?: "Playlist",
-                onNavigationClick = onBackClick,
-                actions = {
-                    // Reorder Toggle Button
-                    if (uiState.songs.size > 1) {
-                        TextButton(onClick = { isReorderMode = !isReorderMode }) {
-                            Text(if (isReorderMode) "Done" else "Edit")
-                        }
-                    }
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Rename Playlist") },
-                            onClick = {
-                                showMenu = false
-                                showRenameDialog = true
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Rounded.Edit, contentDescription = null)
+            topBar = {
+                GeminiTopBarWithBack(
+                        title = uiState.playlist?.name ?: "Playlist",
+                        onBackClick = onBackClick,
+                        actions = {
+                            // Reorder Toggle Button
+                            if (uiState.songs.size > 1) {
+                                TextButton(onClick = { isReorderMode = !isReorderMode }) {
+                                    Text(if (isReorderMode) "Done" else "Edit")
+                                }
                             }
-                        )
-                    }
-                }
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
+                            }
+                            DropdownMenu(
+                                    expanded = showMenu,
+                                    onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                        text = { Text("Rename Playlist") },
+                                        onClick = {
+                                            showMenu = false
+                                            showRenameDialog = true
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Rounded.Edit, contentDescription = null)
+                                        }
+                                )
+                            }
+                        }
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (uiState.songs.isEmpty()) {
             Box(modifier = Modifier.padding(padding).fillMaxSize()) {
                 GeminiEmptyState(
-                    icon = Icons.AutoMirrored.Rounded.QueueMusic,
-                    title = "Empty Playlist",
-                    subtitle = "Add songs from your library!"
+                        icon = Icons.AutoMirrored.Rounded.QueueMusic,
+                        title = "Empty Playlist",
+                        subtitle = "Add songs from your library!"
                 )
             }
         } else {
             ReorderableSongList(
-                songs = uiState.songs,
-                playlist = uiState.playlist,
-                isReorderMode = isReorderMode,
-                onSongClick = { viewModel.playSong(it) },
-                onRemoveSong = { viewModel.removeSong(it.id) },
-                onMoveSong = { from, to -> viewModel.moveSong(from, to) },
-                modifier = Modifier.padding(padding)
+                    songs = uiState.songs,
+                    playlist = uiState.playlist,
+                    isReorderMode = isReorderMode,
+                    onSongClick = { viewModel.playSong(it) },
+                    onRemoveSong = { viewModel.removeSong(it.id) },
+                    onMoveSong = { from, to -> viewModel.moveSong(from, to) },
+                    modifier = Modifier.padding(padding)
             )
         }
     }
@@ -125,13 +124,13 @@ fun PlaylistDetailScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ReorderableSongList(
-    songs: List<Song>,
-    playlist: com.gemini.music.domain.model.Playlist?,
-    isReorderMode: Boolean,
-    onSongClick: (Song) -> Unit,
-    onRemoveSong: (Song) -> Unit,
-    onMoveSong: (fromIndex: Int, toIndex: Int) -> Unit,
-    modifier: Modifier = Modifier
+        songs: List<Song>,
+        playlist: com.gemini.music.domain.model.Playlist?,
+        isReorderMode: Boolean,
+        onSongClick: (Song) -> Unit,
+        onRemoveSong: (Song) -> Unit,
+        onMoveSong: (fromIndex: Int, toIndex: Int) -> Unit,
+        modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -142,9 +141,9 @@ private fun ReorderableSongList(
     var draggedOverIndex by remember { mutableStateOf<Int?>(null) }
 
     LazyColumn(
-        state = listState,
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 100.dp)
+            state = listState,
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 100.dp)
     ) {
         // Header
         item {
@@ -153,57 +152,62 @@ private fun ReorderableSongList(
             }
         }
 
-        itemsIndexed(
-            items = songs,
-            key = { _, song -> song.id }
-        ) { index, song ->
+        itemsIndexed(items = songs, key = { _, song -> song.id }) { index, song ->
             val isDragging = draggedItemIndex == index
-            val isDraggedOver = draggedOverIndex == index && draggedItemIndex != null && draggedItemIndex != index
+            val isDraggedOver =
+                    draggedOverIndex == index &&
+                            draggedItemIndex != null &&
+                            draggedItemIndex != index
 
-            val elevation by animateDpAsState(
-                targetValue = if (isDragging) 8.dp else 0.dp,
-                label = "DragElevation"
-            )
+            val elevation by
+                    animateDpAsState(
+                            targetValue = if (isDragging) 8.dp else 0.dp,
+                            label = "DragElevation"
+                    )
 
-            val backgroundColor = when {
-                isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
-                isDraggedOver -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                else -> Color.Transparent
-            }
+            val backgroundColor =
+                    when {
+                        isDragging -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+                        isDraggedOver -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        else -> Color.Transparent
+                    }
 
             if (isReorderMode) {
                 // Reorder mode: show drag handle
                 DraggableSongItem(
-                    song = song,
-                    index = index,
-                    elevation = elevation,
-                    backgroundColor = backgroundColor,
-                    onDragStart = {
-                        draggedItemIndex = index
-                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                    },
-                    onDragEnd = {
-                        if (draggedItemIndex != null && draggedOverIndex != null && draggedItemIndex != draggedOverIndex) {
-                            onMoveSong(draggedItemIndex!!, draggedOverIndex!!)
-                        }
-                        draggedItemIndex = null
-                        draggedOverIndex = null
-                    },
-                    onDragOver = { targetIndex ->
-                        if (targetIndex in songs.indices && targetIndex != draggedItemIndex) {
-                            draggedOverIndex = targetIndex
-                        }
-                    },
-                    totalItems = songs.size,
-                    listState = listState,
-                    scope = scope
+                        song = song,
+                        index = index,
+                        elevation = elevation,
+                        backgroundColor = backgroundColor,
+                        onDragStart = {
+                            draggedItemIndex = index
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        },
+                        onDragEnd = {
+                            if (draggedItemIndex != null &&
+                                            draggedOverIndex != null &&
+                                            draggedItemIndex != draggedOverIndex
+                            ) {
+                                onMoveSong(draggedItemIndex!!, draggedOverIndex!!)
+                            }
+                            draggedItemIndex = null
+                            draggedOverIndex = null
+                        },
+                        onDragOver = { targetIndex ->
+                            if (targetIndex in songs.indices && targetIndex != draggedItemIndex) {
+                                draggedOverIndex = targetIndex
+                            }
+                        },
+                        totalItems = songs.size,
+                        listState = listState,
+                        scope = scope
                 )
             } else {
                 // Normal mode: swipe to dismiss
                 SwipeToDeleteSongItem(
-                    song = song,
-                    onClick = { onSongClick(song) },
-                    onRemove = { onRemoveSong(song) }
+                        song = song,
+                        onClick = { onSongClick(song) },
+                        onRemove = { onRemoveSong(song) }
                 )
             }
         }
@@ -212,216 +216,220 @@ private fun ReorderableSongList(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SwipeToDeleteSongItem(
-    song: Song,
-    onClick: () -> Unit,
-    onRemove: () -> Unit
-) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            if (it == SwipeToDismissBoxValue.EndToStart) {
-                onRemove()
-                true
-            } else {
-                false
-            }
-        }
-    )
+private fun SwipeToDeleteSongItem(song: Song, onClick: () -> Unit, onRemove: () -> Unit) {
+    val dismissState =
+            rememberSwipeToDismissBoxState(
+                    confirmValueChange = {
+                        if (it == SwipeToDismissBoxValue.EndToStart) {
+                            onRemove()
+                            true
+                        } else {
+                            false
+                        }
+                    }
+            )
 
     SwipeToDismissBox(
-        state = dismissState,
-        backgroundContent = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Icon(
-                    Icons.Rounded.Delete,
-                    contentDescription = "Remove",
-                    tint = MaterialTheme.colorScheme.error
+            state = dismissState,
+            backgroundContent = {
+                Box(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                        contentAlignment = Alignment.CenterEnd
+                ) {
+                    Icon(
+                            Icons.Rounded.Delete,
+                            contentDescription = "Remove",
+                            tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            content = {
+                SongListItem(
+                        song = song,
+                        onClick = onClick,
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background)
                 )
             }
-        },
-        content = {
-            SongListItem(
-                song = song,
-                onClick = onClick,
-                modifier = Modifier.background(MaterialTheme.colorScheme.background)
-            )
-        }
     )
 }
 
 @Composable
 private fun DraggableSongItem(
-    song: Song,
-    index: Int,
-    elevation: androidx.compose.ui.unit.Dp,
-    backgroundColor: Color,
-    onDragStart: () -> Unit,
-    onDragEnd: () -> Unit,
-    onDragOver: (Int) -> Unit,
-    totalItems: Int,
-    listState: androidx.compose.foundation.lazy.LazyListState,
-    scope: kotlinx.coroutines.CoroutineScope
+        song: Song,
+        index: Int,
+        elevation: androidx.compose.ui.unit.Dp,
+        backgroundColor: Color,
+        onDragStart: () -> Unit,
+        onDragEnd: () -> Unit,
+        onDragOver: (Int) -> Unit,
+        totalItems: Int,
+        listState: androidx.compose.foundation.lazy.LazyListState,
+        scope: kotlinx.coroutines.CoroutineScope
 ) {
-    var accumulatedDrag by remember { mutableStateOf(0f) }
+    var accumulatedDrag by remember { mutableFloatStateOf(0f) }
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(elevation = elevation)
-            .background(backgroundColor)
-            .padding(horizontal = 4.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+            modifier =
+                    Modifier.fillMaxWidth()
+                            .shadow(elevation = elevation)
+                            .background(backgroundColor)
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
     ) {
         // Drag Handle
         Icon(
-            imageVector = Icons.Rounded.DragIndicator,
-            contentDescription = "Drag to reorder",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .padding(8.dp)
-                .size(24.dp)
-                .pointerInput(Unit) {
-                    detectDragGesturesAfterLongPress(
-                        onDragStart = {
-                            accumulatedDrag = 0f
-                            onDragStart()
-                        },
-                        onDragEnd = {
-                            onDragEnd()
-                        },
-                        onDragCancel = {
-                            onDragEnd()
-                        },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            accumulatedDrag += dragAmount.y
+                imageVector = Icons.Rounded.DragIndicator,
+                contentDescription = "Drag to reorder",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier =
+                        Modifier.padding(8.dp).size(24.dp).pointerInput(Unit) {
+                            detectDragGesturesAfterLongPress(
+                                    onDragStart = {
+                                        accumulatedDrag = 0f
+                                        onDragStart()
+                                    },
+                                    onDragEnd = { onDragEnd() },
+                                    onDragCancel = { onDragEnd() },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        accumulatedDrag += dragAmount.y
 
-                            // Calculate how many positions we've moved
-                            val itemHeight = 72f // Approximate height of a song item
-                            val positionOffset = (accumulatedDrag / itemHeight).toInt()
-                            val newTargetIndex = (index + positionOffset).coerceIn(0, totalItems - 1)
+                                        // Calculate how many positions we've moved
+                                        val itemHeight = 72f // Approximate height of a song item
+                                        val positionOffset = (accumulatedDrag / itemHeight).toInt()
+                                        val newTargetIndex =
+                                                (index + positionOffset).coerceIn(0, totalItems - 1)
 
-                            onDragOver(newTargetIndex)
+                                        onDragOver(newTargetIndex)
 
-                            // Auto-scroll if near edges
-                            val visibleItems = listState.layoutInfo.visibleItemsInfo
-                            if (visibleItems.isNotEmpty()) {
-                                val firstVisible = visibleItems.first().index
-                                val lastVisible = visibleItems.last().index
+                                        // Auto-scroll if near edges
+                                        val visibleItems = listState.layoutInfo.visibleItemsInfo
+                                        if (visibleItems.isNotEmpty()) {
+                                            val firstVisible = visibleItems.first().index
+                                            val lastVisible = visibleItems.last().index
 
-                                if (newTargetIndex <= firstVisible + 1 && firstVisible > 0) {
-                                    scope.launch {
-                                        listState.animateScrollToItem(firstVisible - 1)
+                                            if (newTargetIndex <= firstVisible + 1 &&
+                                                            firstVisible > 0
+                                            ) {
+                                                scope.launch {
+                                                    listState.animateScrollToItem(firstVisible - 1)
+                                                }
+                                            } else if (newTargetIndex >= lastVisible - 1 &&
+                                                            lastVisible < totalItems - 1
+                                            ) {
+                                                scope.launch {
+                                                    listState.animateScrollToItem(firstVisible + 1)
+                                                }
+                                            }
+                                        }
                                     }
-                                } else if (newTargetIndex >= lastVisible - 1 && lastVisible < totalItems - 1) {
-                                    scope.launch {
-                                        listState.animateScrollToItem(firstVisible + 1)
-                                    }
-                                }
-                            }
+                            )
                         }
-                    )
-                }
         )
 
         // Song Info
         SongListItem(
-            song = song,
-            onClick = { /* Disabled during reorder mode */ },
-            modifier = Modifier.weight(1f)
+                song = song,
+                onClick = { /* Disabled during reorder mode */},
+                modifier = Modifier.weight(1f)
         )
     }
 }
 
 @Composable
 fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(280.dp)
-    ) {
+    Box(modifier = Modifier.fillMaxWidth().height(280.dp)) {
         val coverArtUri = playlist.coverArtUri
 
         // Background Image (Blurred)
         if (coverArtUri != null) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(coverArtUri)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                         alpha = 0.6f
-                         renderEffect = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                             android.graphics.RenderEffect.createBlurEffect(50f, 50f, android.graphics.Shader.TileMode.MIRROR).asComposeRenderEffect()
-                         } else {
-                             null
-                         }
-                    }
+                    model =
+                            ImageRequest.Builder(LocalContext.current)
+                                    .data(coverArtUri)
+                                    .crossfade(true)
+                                    .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier =
+                            Modifier.fillMaxSize().graphicsLayer {
+                                alpha = 0.6f
+                                renderEffect =
+                                        if (android.os.Build.VERSION.SDK_INT >=
+                                                        android.os.Build.VERSION_CODES.S
+                                        ) {
+                                            android.graphics.RenderEffect.createBlurEffect(
+                                                            50f,
+                                                            50f,
+                                                            android.graphics.Shader.TileMode.MIRROR
+                                                    )
+                                                    .asComposeRenderEffect()
+                                        } else {
+                                            null
+                                        }
+                            }
             )
         }
 
         // Gradient Overlay
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
+                modifier =
+                        Modifier.fillMaxSize()
+                                .background(
+                                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                                                colors =
+                                                        listOf(
+                                                                Color.Transparent,
+                                                                MaterialTheme.colorScheme.background
+                                                                        .copy(alpha = 0.5f),
+                                                                MaterialTheme.colorScheme.background
+                                                        )
+                                        )
+                                )
         )
 
         // Content
         Row(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(24.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.align(Alignment.BottomStart).padding(24.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
         ) {
             // Foreground Image
             if (coverArtUri != null) {
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(coverArtUri)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .shadow(8.dp, RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.AutoMirrored.Rounded.PlaylistPlay),
-                    placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.AutoMirrored.Rounded.PlaylistPlay)
+                        model =
+                                ImageRequest.Builder(LocalContext.current)
+                                        .data(coverArtUri)
+                                        .crossfade(true)
+                                        .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier =
+                                Modifier.size(120.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .shadow(8.dp, RoundedCornerShape(12.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        error =
+                                androidx.compose.ui.graphics.vector.rememberVectorPainter(
+                                        Icons.AutoMirrored.Rounded.PlaylistPlay
+                                ),
+                        placeholder =
+                                androidx.compose.ui.graphics.vector.rememberVectorPainter(
+                                        Icons.AutoMirrored.Rounded.PlaylistPlay
+                                )
                 )
             } else {
-                 Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
+                Box(
+                        modifier =
+                                Modifier.size(120.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.PlaylistPlay,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(48.dp)
+                            imageVector = Icons.AutoMirrored.Rounded.PlaylistPlay,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(48.dp)
                     )
                 }
             }
@@ -430,18 +438,18 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
 
             Column {
                 Text(
-                    text = playlist.name,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        text = playlist.name,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "${playlist.songCount} songs",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.8f)
+                        text = "${playlist.songCount} songs",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White.copy(alpha = 0.8f)
                 )
             }
         }
@@ -449,36 +457,28 @@ fun PlaylistHeader(playlist: com.gemini.music.domain.model.Playlist) {
 }
 
 @Composable
-fun RenamePlaylistDialog(
-    currentName: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
+fun RenamePlaylistDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var text by remember { mutableStateOf(currentName) }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Rename Playlist") },
-        text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                label = { Text("Name") },
-                singleLine = true
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (text.isNotBlank()) onConfirm(text) },
-                enabled = text.isNotBlank()
-            ) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
+            onDismissRequest = onDismiss,
+            title = { Text("Rename Playlist") },
+            text = {
+                OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it },
+                        label = { Text("Name") },
+                        singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                        onClick = { if (text.isNotBlank()) onConfirm(text) },
+                        enabled = text.isNotBlank()
+                ) { Text("Save") }
+            },
+            dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
+
+

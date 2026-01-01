@@ -10,7 +10,9 @@
     <string name="shuffle_all">隨機播放全部</string>
     <string name="sort">排序</string>
     <string name="select">選取</string>
-    <string name="selected_count">已選取 %d 首</string>
+    <plurals name="selected_count">
+        <item quantity="other">已選取 %d 首</item>
+    </plurals>
     <string name="no_songs">沒有歌曲</string>
     <string name="no_songs_message">新增一些音樂吧！</string>
     <string name="no_albums">找不到專輯</string>
@@ -23,10 +25,12 @@
     <string name="add_folder">新增資料夾</string>
     <string name="scanning_default">掃描所有資料夾 (預設)</string>
     <string name="rescan_library">立即重新掃描</string>
-    <string name="scanning">正在掃描音樂庫...</string>
+    <string name="scanning">正在掃描音樂庫…</string>
     <string name="scan_completed">掃描完成</string>
     <string name="scan_failed">掃描失敗</string>
-    <string name="scan_success_message">成功新增 %d 首歌曲至音樂庫。</string>
+    <plurals name="scan_success_message">
+        <item quantity="other">成功新增 %d 首歌曲至音樂庫。</item>
+    </plurals>
     <string name="scan_error_message">錯誤: %s</string>
     <string name="mini_player_no_music">未播放音樂</string>
     <string name="mini_player_select_song">請選擇歌曲播放</string>

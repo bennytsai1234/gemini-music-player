@@ -10,7 +10,10 @@
     <string name="shuffle_all">Shuffle All</string>
     <string name="sort">Sort</string>
     <string name="select">Select</string>
-    <string name="selected_count">%d Selected</string>
+    <plurals name="selected_count">
+        <item quantity="one">%d Selected</item>
+        <item quantity="other">%d Selected</item>
+    </plurals>
     <string name="no_songs">No Songs</string>
     <string name="no_songs_message">Add some music!</string>
     <string name="no_albums">No albums found</string>
@@ -23,10 +26,13 @@
     <string name="add_folder">Add Folder</string>
     <string name="scanning_default">Scanning all folders (Default)</string>
     <string name="rescan_library">Rescan Library Now</string>
-    <string name="scanning">Scanning Library...</string>
+    <string name="scanning">Scanning Library…</string>
     <string name="scan_completed">Scan Completed</string>
     <string name="scan_failed">Scan Failed</string>
-    <string name="scan_success_message">Successfully added %d songs to the library.</string>
+    <plurals name="scan_success_message">
+        <item quantity="one">Successfully added %d song to the library.</item>
+        <item quantity="other">Successfully added %d songs to the library.</item>
+    </plurals>
     <string name="scan_error_message">Error: %s</string>
     <string name="mini_player_no_music">No music playing</string>
     <string name="mini_player_select_song">Select a song to play</string>

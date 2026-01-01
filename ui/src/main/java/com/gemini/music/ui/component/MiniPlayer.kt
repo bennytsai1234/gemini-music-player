@@ -52,25 +52,25 @@ fun MiniPlayer(
     song: Song?,
     isPlaying: Boolean,
     progress: Float,
-    dynamicTheme: DynamicThemeState? = null,
     onPlayPauseClick: () -> Unit,
     onQueueClick: () -> Unit,
     onClick: () -> Unit,
-    onArtworkLoaded: (android.graphics.Bitmap) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dynamicTheme: DynamicThemeState? = null,
+    onArtworkLoaded: (android.graphics.Bitmap) -> Unit = {}
 ) {
     val isClickable = song != null
-    
+
     // Get animated dynamic colors if available
     val animatedColors = dynamicTheme?.animatedColors()
-    
+
     // Animated background color
     val backgroundColor by animateColorAsState(
         targetValue = animatedColors?.surface ?: MaterialTheme.colorScheme.surfaceVariant,
         animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
         label = "MiniPlayerBg"
     )
-    
+
     val accentColor by animateColorAsState(
         targetValue = animatedColors?.accent ?: MaterialTheme.colorScheme.primary,
         animationSpec = tween(durationMillis = 150, easing = androidx.compose.animation.core.LinearEasing),
@@ -262,3 +262,5 @@ private fun FullMiniPlayer(
         )
     }
 }
+
+

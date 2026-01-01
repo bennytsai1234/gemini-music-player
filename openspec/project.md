@@ -7,7 +7,7 @@ Gemini Music Player is a modern, premium Android music playback application focu
 - **Language**: Kotlin (Target JVM 17)
 - **Framework**: Android SDK (Min SDK 26, Target SDK 36)
 - **UI Framework**: Jetpack Compose (Declarative UI)
-- **Architecture**: MVVM + Clean Architecture (Multi-module: app, core, data, domain, ui)
+- **Architecture**: MVVM + Clean Architecture (Multi-module: app, core, data, domain, player, ui)
 - **Dependency Injection**: Hilt (Dagger)
 - **Build System**: Gradle (Kotlin DSL)
 - **Asynchronous**: Coroutines & Flow
@@ -19,6 +19,7 @@ Gemini Music Player is a modern, premium Android music playback application focu
 - **Architecture**: Strict separation of concerns.
     - **Domain**: Pure Kotlin, no Android dependencies.
     - **Data**: Hides implementation details (API arm, DB, etc.).
+    - **Player**: Media playback implementation (ExoPlayer), kept separate from UI.
     - **UI**: MVVM pattern, Unidirectional Data Flow (UDF), Statelsss components where possible.
 - **State Management**:
     - Use `rememberSaveable` for process death resilience.

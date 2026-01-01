@@ -20,3 +20,12 @@ TBD - created by archiving change publish-release-v1-2. Update Purpose after arc
 - **When** Preparing for release v1.3.0.
 - **Then** `RELEASE_NOTES.md` MUST reflect these changes in a structured format.
 
+### Requirement: Versioning
+The application MUST adhere to semantic versioning.
+
+#### Scenario: v1.3.1 Release
+Given the application source code includes recent UI consistency fixes
+When the release build is generated
+Then the version name MUST be "1.3.1"
+And the version code MUST be greater than the previous version (8).
+

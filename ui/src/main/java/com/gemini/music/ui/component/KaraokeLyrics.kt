@@ -51,12 +51,12 @@ import com.gemini.music.domain.model.LyricWord
 fun KaraokeLyrics(
     lyrics: List<LyricLine>,
     currentPosition: Long,
+    modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     hasError: Boolean = false,
     onRetry: () -> Unit = {},
     highlightColor: Color = MaterialTheme.colorScheme.primary,
-    normalColor: Color = Color.White.copy(alpha = 0.5f),
-    modifier: Modifier = Modifier
+    normalColor: Color = Color.White.copy(alpha = 0.5f)
 ) {
     if (isLoading) {
         LoadingLyricsView(modifier)
@@ -347,3 +347,5 @@ private fun LoadingLyricsView(modifier: Modifier = Modifier) {
         }
     }
 }
+
+

@@ -1,3 +1,36 @@
+# 🎵 Gemini Music Player v1.3.3
+
+## 🐛 Bug 修復
+
+### 動態色彩問題
+- **修復 Mini Player 動態色彩丟失**：修正了點擊 Mini Player 後動態主題色永久丟失的問題，現在全螢幕播放器能正確保持與專輯封面同步的動態色彩。
+- **改進 Palette 提取**：優化圖片載入配置以確保 Bitmap 正確傳遞給 Palette 色彩提取。
+
+### FastScroller 顯示問題
+- **修復字母索引被遮擋**：修正了歌曲列表右側 A-Z 快速滾動器底部字母（特別是 Z 和 #）被 Mini Player 遮蓋的問題，優化了底部間距配置。
+
+### 導航一致性
+- **統一 TopBar 設計**：將所有頁面的 TopBar 統一使用 `CenterAlignedTopAppBar`，確保返回按鈕與首頁選單按鈕位置完全一致，不再有「額頭」偏移問題。
+
+## 📦 發布資訊
+- **版本**：v1.3.3 (Build 11)
+- **構建類型**：Signed Release (Debug Key)
+
+---
+
+# 🎵 Gemini Music Player v1.3.2
+
+## 🔧 架構與 UI 元件優化
+- **導航欄重構**：統一將帶有返回按鈕的頁面標題列遷移至 `GeminiTopBarWithBack`，確保全應用導航體驗一致。
+- **代碼標準化**：修復了 `GeminiTopBar` 在不同模組定義衝突的編譯問題，提升專案穩定性。
+- **介面細節修正**：優化了設定頁面與各個詳情頁面的標題列顯示邏輯。
+
+## 📦 發布資訊
+- **版本**：v1.3.2 (Build 10)
+- **構建類型**：Signed Release (Debug Key)
+
+---
+
 # 🎵 Gemini Music Player v1.3.0
 
 ## 🎨 視覺與體驗優化

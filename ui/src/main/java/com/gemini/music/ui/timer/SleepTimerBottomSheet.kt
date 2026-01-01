@@ -39,6 +39,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,7 +60,7 @@ fun SleepTimerBottomSheet(
 ) {
     val timerState by viewModel.timerState.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -89,7 +90,7 @@ fun SleepTimerBottomSheet(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                
+
                 if (timerState.isActive) {
                     IconButton(
                         onClick = { viewModel.cancelTimer() }
@@ -102,9 +103,9 @@ fun SleepTimerBottomSheet(
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             if (timerState.isActive) {
                 // Active timer display
                 ActiveTimerCard(
@@ -115,8 +116,8 @@ fun SleepTimerBottomSheet(
                 )
             } else {
                 // Timer options
-                var selectedTab by remember { mutableStateOf(0) }
-                
+                var selectedTab by remember { mutableIntStateOf(0) }
+
                 // Tab selection
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -147,9 +148,9 @@ fun SleepTimerBottomSheet(
                         )
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(20.dp))
-                
+
                 when (selectedTab) {
                     0 -> DurationOptions(
                         onSelect = { durationMs ->
@@ -173,9 +174,9 @@ fun SleepTimerBottomSheet(
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Fade out settings
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -212,7 +213,7 @@ fun SleepTimerBottomSheet(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
@@ -249,9 +250,9 @@ private fun ActiveTimerCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = when (state.mode) {
                     SleepTimerMode.DURATION -> "remaining"
@@ -262,18 +263,18 @@ private fun ActiveTimerCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             LinearProgressIndicator(
                 progress = { state.progress },
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -292,7 +293,7 @@ private fun ActiveTimerCard(
                 ) {
                     Icon(Icons.Rounded.Add, contentDescription = "Add")
                 }
-                
+
                 // Cancel button
                 FilledIconButton(
                     onClick = onCancel,
@@ -319,7 +320,7 @@ private fun DurationOptions(onSelect: (Long) -> Unit) {
         90L * 60 * 1000 to "1.5h",
         120L * 60 * 1000 to "2h"
     )
-    
+
     Column {
         Text(
             text = "Select Duration",
@@ -343,7 +344,7 @@ private fun DurationOptions(onSelect: (Long) -> Unit) {
 @Composable
 private fun TrackCountOptions(onSelect: (Int) -> Unit) {
     val presets = listOf(1, 2, 3, 5, 10, 15, 20)
-    
+
     Column {
         Text(
             text = "Stop after tracks",
@@ -437,3 +438,5 @@ private fun TimeChip(
         }
     }
 }
+
+

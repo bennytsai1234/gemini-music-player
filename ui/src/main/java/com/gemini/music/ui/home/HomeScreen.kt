@@ -83,6 +83,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -420,7 +421,7 @@ fun HomeTopBar(
         GeminiTopBar(
             title = {
                 Text(
-                    text = stringResource(com.gemini.music.ui.R.string.selected_count, selectedCount),
+                    text = pluralStringResource(com.gemini.music.ui.R.plurals.selected_count, selectedCount, selectedCount),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -566,8 +567,8 @@ fun ControlRow(
 fun FastScroller(
     listState: LazyListState,
     songs: List<Song>,
-    headerOffset: Int = 0,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    headerOffset: Int = 0
 ) {
     val scope = rememberCoroutineScope()
 
@@ -616,7 +617,7 @@ fun FastScroller(
         modifier = modifier
             .width(48.dp)
             .fillMaxHeight()
-            .padding(vertical = 32.dp, bottom = 80.dp)
+            .padding(top = 32.dp, bottom = 8.dp) // 底部間距由外部 modifier 處理
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
                     onDragStart = { offset ->
@@ -778,3 +779,5 @@ fun RecentlyAddedItem(
         )
     }
 }
+
+

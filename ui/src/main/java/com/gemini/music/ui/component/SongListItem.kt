@@ -43,11 +43,11 @@ import com.gemini.music.domain.model.Song
 @Composable
 fun SongListItem(
     song: Song,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     isSelectionMode: Boolean = false,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    onLongClick: () -> Unit = {}
 ) {
     val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent
 
@@ -83,7 +83,7 @@ fun SongListItem(
                 error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.MusicNote),
                 placeholder = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Rounded.MusicNote)
             )
-            
+
             // Selection Overlay
             if (isSelectionMode) {
                 Box(
@@ -101,9 +101,9 @@ fun SongListItem(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.width(16.dp))
-        
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = song.title,
@@ -123,3 +123,5 @@ fun SongListItem(
         }
     }
 }
+
+

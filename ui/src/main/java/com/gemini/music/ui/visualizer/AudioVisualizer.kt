@@ -55,12 +55,12 @@ fun AudioVisualizer(
     height: Dp = 120.dp
 ) {
     // Simulated audio data (in real app, would come from audio session)
-    var audioData by remember { mutableStateOf(FloatArray(barCount) { 0f }) }
-    
+    var audioData by remember { mutableStateOf(FloatArray(barCount)) }
+
     // Animate data changes
     LaunchedEffect(isPlaying) {
         while (isPlaying) {
-            audioData = FloatArray(barCount) { 
+            audioData = FloatArray(barCount) {
                 (Random.nextFloat() * sensitivity).coerceIn(0f, 1f)
             }
             delay(50) // 20 FPS update
@@ -73,7 +73,7 @@ fun AudioVisualizer(
             }
         }
     }
-    
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -121,12 +121,12 @@ private fun BarVisualizer(
         val barWidth = size.width / (audioData.size * 1.5f)
         val gap = barWidth * 0.5f
         val maxHeight = size.height * 0.9f
-        
+
         audioData.forEachIndexed { index, value ->
             val barHeight = (value * maxHeight).coerceAtLeast(4f)
             val x = index * (barWidth + gap) + gap / 2
             val y = (size.height - barHeight) / 2
-            
+
             val color = when (colorMode) {
                 VisualizerColorMode.GRADIENT -> {
                     val progress = index.toFloat() / audioData.size
@@ -141,7 +141,7 @@ private fun BarVisualizer(
                 }
                 else -> primaryColor
             }
-            
+
             drawRoundRect(
                 color = color,
                 topLeft = Offset(x, y),
@@ -168,23 +168,23 @@ private fun WaveVisualizer(
         ),
         label = "phase"
     )
-    
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         val path = Path()
         val centerY = size.height / 2
         val amplitude = size.height * 0.35f
-        
+
         path.moveTo(0f, centerY)
-        
+
         for (i in 0 until size.width.toInt() step 2) {
             val progress = i / size.width
             val dataIndex = (progress * audioData.size).toInt().coerceIn(0, audioData.size - 1)
             val audioValue = audioData[dataIndex]
-            
+
             val wave = sin(progress * PI * 4 + phase) * audioValue * amplitude
             path.lineTo(i.toFloat(), centerY + wave.toFloat())
         }
-        
+
         drawPath(
             path = path,
             brush = Brush.horizontalGradient(listOf(primaryColor, secondaryColor)),
@@ -209,27 +209,27 @@ private fun CircleVisualizer(
         ),
         label = "rotation"
     )
-    
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         val center = Offset(size.width / 2, size.height / 2)
         val baseRadius = minOf(size.width, size.height) * 0.25f
         val maxExtend = minOf(size.width, size.height) * 0.2f
-        
+
         audioData.forEachIndexed { index, value ->
             val angle = (index.toFloat() / audioData.size * 360f + rotation) * (PI / 180f)
             val extend = value * maxExtend
-            
+
             val innerRadius = baseRadius
             val outerRadius = baseRadius + extend
-            
+
             val startX = center.x + cos(angle).toFloat() * innerRadius
             val startY = center.y + sin(angle).toFloat() * innerRadius
             val endX = center.x + cos(angle).toFloat() * outerRadius
             val endY = center.y + sin(angle).toFloat() * outerRadius
-            
+
             val progress = index.toFloat() / audioData.size
             val color = lerp(primaryColor, secondaryColor, progress)
-            
+
             drawLine(
                 color = color,
                 start = Offset(startX, startY),
@@ -252,46 +252,46 @@ private fun LineVisualizer(
         val stepX = size.width / (audioData.size - 1)
         val centerY = size.height / 2
         val amplitude = size.height * 0.4f
-        
+
         path.moveTo(0f, centerY - audioData[0] * amplitude)
-        
+
         for (i in 1 until audioData.size) {
             val x = i * stepX
             val y = centerY - audioData[i] * amplitude
-            
+
             // Smooth curve using cubic bezier
             val prevX = (i - 1) * stepX
             val prevY = centerY - audioData[i - 1] * amplitude
             val controlX = (prevX + x) / 2
-            
+
             path.cubicTo(
                 controlX, prevY,
                 controlX, y,
                 x, y
             )
         }
-        
+
         drawPath(
             path = path,
             brush = Brush.horizontalGradient(listOf(primaryColor, secondaryColor)),
             style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
         )
-        
+
         // Mirror effect
         val mirrorPath = Path()
         mirrorPath.moveTo(0f, centerY + audioData[0] * amplitude * 0.5f)
-        
+
         for (i in 1 until audioData.size) {
             val x = i * stepX
             val y = centerY + audioData[i] * amplitude * 0.5f
-            
+
             val prevX = (i - 1) * stepX
             val prevY = centerY + audioData[i - 1] * amplitude * 0.5f
             val controlX = (prevX + x) / 2
-            
+
             mirrorPath.cubicTo(controlX, prevY, controlX, y, x, y)
         }
-        
+
         drawPath(
             path = mirrorPath,
             brush = Brush.horizontalGradient(
@@ -316,9 +316,9 @@ private fun ParticleVisualizer(
         var size: Float,
         var alpha: Float
     )
-    
-    var particles by remember { 
-        mutableStateOf(List(50) { 
+
+    var particles by remember {
+        mutableStateOf(List(50) {
             Particle(
                 x = Random.nextFloat(),
                 y = Random.nextFloat(),
@@ -329,20 +329,20 @@ private fun ParticleVisualizer(
             )
         })
     }
-    
+
     LaunchedEffect(isPlaying) {
         while (isPlaying) {
             val avgIntensity = audioData.average().toFloat()
             particles = particles.map { p ->
                 var newX = p.x + p.vx * (1 + avgIntensity * 2)
                 var newY = p.y + p.vy * (1 + avgIntensity * 2)
-                
+
                 // Wrap around
                 if (newX < 0) newX = 1f
                 if (newX > 1) newX = 0f
                 if (newY < 0) newY = 1f
                 if (newY > 1) newY = 0f
-                
+
                 p.copy(
                     x = newX,
                     y = newY,
@@ -352,7 +352,7 @@ private fun ParticleVisualizer(
             delay(30)
         }
     }
-    
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         particles.forEach { particle ->
             drawCircle(
@@ -373,3 +373,5 @@ private fun lerp(start: Color, end: Color, fraction: Float): Color {
         alpha = start.alpha + (end.alpha - start.alpha) * fraction
     )
 }
+
+

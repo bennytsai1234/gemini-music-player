@@ -197,3 +197,5 @@ data class AnimatedDynamicColors(
     val gradientEnd: Color,
     val secondaryAccent: Color
 )
+
+

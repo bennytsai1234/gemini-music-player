@@ -35,7 +35,7 @@ fun SettingsScreenRedesigned(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    
+
     val folderPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
@@ -46,7 +46,7 @@ fun SettingsScreenRedesigned(
             viewModel.addIncludedFolder(it.toString())
         }
     }
-    
+
     var showSleepTimerDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -65,14 +65,14 @@ fun SettingsScreenRedesigned(
         ) {
             // ===== 外觀設定 =====
             GeminiSectionHeader(title = "外觀")
-            
+
             GeminiSettingsItem(
                 title = "主題設定",
                 subtitle = "調色盤、暗色模式、AMOLED 黑",
                 leadingIcon = Icons.Rounded.Palette,
                 onClick = onThemeClick
             )
-            
+
             GeminiSettingsItem(
                 title = stringResource(R.string.language),
                 subtitle = "繁體中文",
@@ -81,12 +81,12 @@ fun SettingsScreenRedesigned(
                     LanguageSelectorCompact()
                 }
             )
-            
+
             Spacer(modifier = Modifier.height(GeminiSpacing.sectionSpacing))
-            
+
             // ===== 播放設定 =====
             GeminiSectionHeader(title = "播放")
-            
+
             GeminiSettingsSwitch(
                 title = "使用內建等化器",
                 subtitle = "使用 5 段等化器取代系統預設",
@@ -94,7 +94,7 @@ fun SettingsScreenRedesigned(
                 onCheckedChange = viewModel::updateUseInternalEqualizer,
                 leadingIcon = Icons.Rounded.Tune
             )
-            
+
             GeminiSettingsItem(
                 title = stringResource(R.string.equalizer),
                 subtitle = if (uiState.useInternalEqualizer) "內建 5 段等化器" else "系統等化器",
@@ -112,14 +112,14 @@ fun SettingsScreenRedesigned(
                     }
                 }
             )
-            
+
             GeminiSettingsItem(
                 title = "睡眠定時器",
                 subtitle = "設定時間後自動停止播放",
                 leadingIcon = Icons.Rounded.Timer,
                 onClick = { showSleepTimerDialog = true }
             )
-            
+
             GeminiSettingsSlider(
                 title = stringResource(R.string.min_duration, uiState.minAudioDuration / 1000),
                 subtitle = stringResource(R.string.min_duration_desc),
@@ -136,7 +136,7 @@ fun SettingsScreenRedesigned(
                     )
                 }
             )
-            
+
             // 播放設定入口 (更多播放設定)
             GeminiSettingsItem(
                 title = "更多播放設定",
@@ -144,56 +144,56 @@ fun SettingsScreenRedesigned(
                 leadingIcon = Icons.Rounded.Speed,
                 onClick = { /* Navigate to PlaybackSettingsScreen */ }
             )
-            
+
             Spacer(modifier = Modifier.height(GeminiSpacing.sectionSpacing))
-            
+
             // ===== 駕駛模式 =====
             GeminiSectionHeader(title = "駕駛模式")
-            
+
             GeminiSettingsItem(
                 title = "駕駛模式設定",
                 subtitle = "大按鈕控制、藍牙自動啟動",
                 leadingIcon = Icons.Rounded.DirectionsCar,
                 onClick = onDrivingModeClick
             )
-            
+
             Spacer(modifier = Modifier.height(GeminiSpacing.sectionSpacing))
-            
+
             // ===== 帳戶與同步 =====
             GeminiSectionHeader(title = "帳戶與同步")
-            
+
             // Last.fm
             LastFmSectionCompact()
-            
+
             GeminiDivider(startIndent = 72.dp)
-            
+
             // Cloud Backup
             com.gemini.music.ui.settings.backup.BackupSection()
-            
+
             Spacer(modifier = Modifier.height(GeminiSpacing.sectionSpacing))
-            
+
             // ===== 資料庫 =====
             GeminiSectionHeader(title = "資料庫")
-            
+
             GeminiSettingsItem(
                 title = "重新掃描音樂庫",
                 subtitle = "重新掃描裝置上的音樂檔案",
                 leadingIcon = Icons.Rounded.Refresh,
                 onClick = { viewModel.rescanLibrary() }
             )
-            
+
             GeminiSettingsItem(
                 title = "管理資料夾",
                 subtitle = "選擇要掃描的資料夾",
                 leadingIcon = Icons.Rounded.Folder,
                 onClick = { folderPickerLauncher.launch(null) }
             )
-            
+
             Spacer(modifier = Modifier.height(GeminiSpacing.sectionSpacing))
-            
+
             // ===== 關於 =====
             GeminiSectionHeader(title = "關於")
-            
+
             GeminiSettingsItem(
                 title = "版本",
                 subtitle = "v1.2.0",
@@ -211,12 +211,12 @@ fun SettingsScreenRedesigned(
                     }
                 }
             )
-            
+
             // 底部安全區域
             Spacer(modifier = Modifier.height(GeminiSpacing.bottomSafeArea))
         }
     }
-    
+
     // Dialogs
     if (showSleepTimerDialog) {
         SleepTimerDialogRedesigned(
@@ -250,7 +250,7 @@ private fun LanguageSelectorCompact() {
         "日本語" to "ja"
     )
     var selectedLanguage by remember { mutableStateOf(languages[0]) }
-    
+
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded }
@@ -261,7 +261,7 @@ private fun LanguageSelectorCompact() {
         ) {
             Text(selectedLanguage.first)
         }
-        
+
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
@@ -316,8 +316,8 @@ private fun SleepTimerDialogRedesigned(
     onCancelTimer: () -> Unit
 ) {
     val presets = listOf(15, 30, 45, 60, 90, 120)
-    var customMinutes by remember { mutableStateOf(30f) }
-    
+    var customMinutes by remember { mutableFloatStateOf(30f) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("睡眠定時器") },
@@ -328,9 +328,9 @@ private fun SleepTimerDialogRedesigned(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // 快捷按鈕
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -345,9 +345,9 @@ private fun SleepTimerDialogRedesigned(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -361,9 +361,9 @@ private fun SleepTimerDialogRedesigned(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // 滑桿
                 Text(
                     text = "自訂時間: ${customMinutes.toInt()} 分鐘",
@@ -394,3 +394,5 @@ private fun SleepTimerDialogRedesigned(
         }
     )
 }
+
+

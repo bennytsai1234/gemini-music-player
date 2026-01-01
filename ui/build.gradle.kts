@@ -57,35 +57,35 @@ dependencies {
 
     // Lifecycle for Compose
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation(libs.androidx.appcompat)
 
     // Google Auth (For UI Intent handling)
     implementation(libs.play.services.auth)
-    
+
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
     // Android Core
     implementation(libs.androidx.core.ktx)
-    
+
     // SplashScreen
     implementation(libs.androidx.core.splashscreen)
 
     // ===== Testing Dependencies =====
     // JUnit
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
 
     // MockK for mocking
-    testImplementation("io.mockk:mockk:1.13.10")
+    testImplementation(libs.mockk)
 
     // Coroutines Test
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // Turbine for Flow testing
-    testImplementation("app.cash.turbine:turbine:1.1.0")
+    testImplementation(libs.turbine)
 
     // AndroidX Arch Testing (for InstantTaskExecutorRule)
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation(libs.androidx.arch.core.testing)
 }

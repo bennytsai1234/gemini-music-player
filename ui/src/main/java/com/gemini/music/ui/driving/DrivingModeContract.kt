@@ -50,3 +50,5 @@ sealed class DrivingModeUiEffect : UiEffect {
     object Vibrate : DrivingModeUiEffect()
     data class LaunchVoiceSearch(val intent: Intent) : DrivingModeUiEffect()
 }
+
+

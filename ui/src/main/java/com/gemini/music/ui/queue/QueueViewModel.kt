@@ -53,3 +53,5 @@ data class QueueUiState(
     val currentSongIndex: Int = -1,
     val isPlaying: Boolean = false
 )
+
+

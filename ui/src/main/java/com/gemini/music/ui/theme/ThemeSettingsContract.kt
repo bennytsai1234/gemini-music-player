@@ -47,3 +47,5 @@ sealed class ThemeSettingsUiEffect : UiEffect {
     data class ShowMessage(val message: String) : ThemeSettingsUiEffect()
     object ThemeApplied : ThemeSettingsUiEffect()
 }
+
+

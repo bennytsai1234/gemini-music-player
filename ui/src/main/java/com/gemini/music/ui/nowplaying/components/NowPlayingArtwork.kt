@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -49,6 +50,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
 import kotlin.math.abs
@@ -89,8 +91,8 @@ fun HeroImage(
     )
 
     // Swipe offset animation for visual feedback
-    var swipeOffset by remember { mutableStateOf(0f) }
-    var verticalSwipeOffset by remember { mutableStateOf(0f) }
+    var swipeOffset by remember { mutableFloatStateOf(0f) }
+    var verticalSwipeOffset by remember { mutableFloatStateOf(0f) }
 
     val animatedOffset by animateFloatAsState(
         targetValue = swipeOffset,
@@ -193,6 +195,8 @@ fun HeroImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(artUri)
                     .crossfade(true)
+                    .allowHardware(false) // 必須禁用以獲取 Bitmap 用於 Palette
+                    .memoryCachePolicy(CachePolicy.ENABLED)
                     .build(),
                 contentDescription = "Album Art",
                 contentScale = ContentScale.Crop,
@@ -261,3 +265,5 @@ fun HeroImage(
         }
     }
 }
+
+

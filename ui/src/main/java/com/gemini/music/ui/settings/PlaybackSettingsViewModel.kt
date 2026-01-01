@@ -87,3 +87,5 @@ class PlaybackSettingsViewModel @Inject constructor(
         val FADE_DURATION_OPTIONS = listOf(5, 10, 15, 30, 45, 60) // seconds
     }
 }
+
+

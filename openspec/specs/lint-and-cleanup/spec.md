@@ -6,15 +6,17 @@ TBD - created by archiving change cleanup-workspace. Update Purpose after archiv
 ### Requirement: Workspace Hygiene
 > The repository workspace MUST remain clean and free of build artifacts, logs, or temporary files.
 
-#### Scenario: Cleanup Residual Files
-- **Given** building the project or running agents has created `build_log.txt` or `.kotlin/` artifacts in the root.
-- **When** the cleanup task is executed.
-- **Then** these non-essential files MUST be deleted or moved to a git-ignored location.
+#### Scenario: Root Directory Cleanliness
+- **Given** the project root directory
+- **When** analyzed for file structure
+- **Then** it MUST NOT contain temporary build logs (`.txt`, `.log`).
+- **And** it MUST NOT contain ad-hoc build scripts (`.bat`, `.sh`) that bypass the standard build system or workflow.
+- **And** it MUST contain `settings.gradle.kts` defining all active modules clearly.
 
-#### Scenario: Resource Audit
-- **Given** the project contains unused resources (drawables, layouts) or orphaned code.
-- **When** the audit and cleanup process is performed.
-- **Then** the unused files SHOULD be removed to reduce the application footprint.
+#### Scenario: Module Definition
+- **Given** `settings.gradle.kts`
+- **When** defining included modules
+- **Then** it MUST strictly list all active modules: `:app`, `:core:common`, `:core:designsystem`, `:data`, `:domain`, `:player`, `:ui`.
 
 ### Requirement: Centralized Configuration
 > All project-wide guidelines and agent instructions MUST be centralized in the `openspec/` directory.

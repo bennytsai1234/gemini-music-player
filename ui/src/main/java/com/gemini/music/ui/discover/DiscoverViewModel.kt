@@ -96,3 +96,5 @@ class DiscoverViewModel @Inject constructor(
         loadRecommendations()
     }
 }
+
+

@@ -72,3 +72,5 @@ class PlaylistDetailViewModel @Inject constructor(
         }
     }
 }
+
+

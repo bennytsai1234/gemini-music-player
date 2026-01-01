@@ -28,3 +28,5 @@ sealed interface BackupUiEffect : UiEffect {
     data class LaunchSignIn(val intent: android.content.Intent) : BackupUiEffect
     data class ShowToast(val message: String) : BackupUiEffect
 }
+
+
