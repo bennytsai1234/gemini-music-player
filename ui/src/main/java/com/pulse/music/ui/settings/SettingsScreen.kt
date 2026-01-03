@@ -1,0 +1,590 @@
+package com.pulse.music.ui.settings
+
+import android.content.Intent
+import android.media.audiofx.AudioEffect
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.clickable
+import androidx.core.net.toUri
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AlarmOff
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.pulse.music.core.designsystem.component.GeminiTopBarWithBack
+import com.pulse.music.domain.model.ScanStatus
+import com.pulse.music.domain.repository.UserPreferencesRepository
+import com.pulse.music.ui.R
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+        onBackClick: () -> Unit,
+        onInternalEqualizerClick: (Int) -> Unit,
+        viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val folderPickerLauncher =
+            rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.OpenDocumentTree()
+            ) { uri ->
+                uri?.let {
+                    val flags =
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    context.contentResolver.takePersistableUriPermission(it, flags)
+                    viewModel.addIncludedFolder(it.toString())
+                }
+            }
+
+    Scaffold(
+            topBar = {
+                GeminiTopBarWithBack(
+                        title = stringResource(R.string.settings),
+                        onBackClick = onBackClick
+                )
+            }
+    ) { padding ->
+        Column(
+                modifier =
+                        Modifier.fillMaxSize()
+                                .padding(padding)
+                                .verticalScroll(rememberScrollState())
+        ) {
+            // Language
+            ListItem(
+                    headlineContent = { Text(stringResource(R.string.language)) },
+                    leadingContent = { Icon(Icons.Rounded.Language, null) },
+                    trailingContent = { LanguageSelector() }
+            )
+
+            // Equalizer
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            ListItem(
+                    headlineContent = { Text("Use Internal Equalizer") },
+                    supportingContent = {
+                        Text("Use the built-in 5-band equalizer instead of system default")
+                    },
+                    trailingContent = {
+                        Switch(
+                                checked = uiState.useInternalEqualizer,
+                                onCheckedChange = viewModel::updateUseInternalEqualizer
+                        )
+                    }
+            )
+
+            ListItem(
+                    headlineContent = { Text(stringResource(R.string.equalizer)) },
+                    leadingContent = { Icon(Icons.Rounded.GraphicEq, null) },
+                    modifier =
+                            Modifier.clickable {
+                                if (uiState.useInternalEqualizer) {
+                                    onInternalEqualizerClick(uiState.audioSessionId)
+                                } else {
+                                    val intent =
+                                            Intent(
+                                                    AudioEffect
+                                                            .ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL
+                                            )
+                                    if (intent.resolveActivity(context.packageManager) != null) {
+                                        // We should pass the audio session ID if possible, but
+                                        // basic intent is fine for now
+                                        // To make it better, we could need the current session ID
+                                        // from repository or VM
+                                        context.startActivity(intent)
+                                    } else {
+                                        Toast.makeText(
+                                                        context,
+                                                        "No System Equalizer found",
+                                                        Toast.LENGTH_SHORT
+                                                )
+                                                .show()
+                                    }
+                                }
+                            }
+            )
+
+            // Last.fm Integration
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            LastFmSection()
+
+            // Cloud Backup
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            com.pulse.music.ui.settings.backup.BackupSection()
+
+            // Min Duration Slider
+            Text(
+                    text = stringResource(R.string.min_duration, uiState.minAudioDuration / 1000),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp)
+            )
+            Slider(
+                    value = uiState.minAudioDuration.toFloat(),
+                    onValueChange = { viewModel.updateMinAudioDuration(it.toLong()) },
+                    valueRange = 0f..60000f, // 0s to 60s
+                    steps = 11,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Text(
+                    text = stringResource(R.string.min_duration_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            // Scan Folders
+            Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                        text = stringResource(R.string.included_folders),
+                        style = MaterialTheme.typography.titleMedium
+                )
+                Button(onClick = { folderPickerLauncher.launch(null) }) {
+                    Icon(Icons.Rounded.FolderOpen, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.add_folder))
+                }
+            }
+
+            if (uiState.includedFolders.isEmpty()) {
+                Text(
+                        text = stringResource(R.string.scanning_default),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                LazyColumn(contentPadding = PaddingValues(16.dp), modifier = Modifier.weight(1f)) {
+                    items(uiState.includedFolders.toList()) { path ->
+                        ListItem(
+                                headlineContent = { Text(path) },
+                                trailingContent = {
+                                    IconButton(onClick = { viewModel.removeIncludedFolder(path) }) {
+                                        Icon(Icons.Rounded.Delete, contentDescription = "Remove")
+                                    }
+                                }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                    onClick = { viewModel.rescanLibrary() },
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) { Text(stringResource(R.string.rescan_library)) }
+        }
+    }
+
+    // Scan Progress Dialog
+    val scanStatus = uiState.scanStatus
+    if (scanStatus !is ScanStatus.Idle) {
+        AlertDialog(
+                onDismissRequest = {
+                    if (scanStatus !is ScanStatus.Scanning) {
+                        viewModel.resetScanStatus()
+                    }
+                },
+                title = {
+                    Text(
+                            text =
+                                    when (scanStatus) {
+                                        is ScanStatus.Scanning -> "Scanning Library..."
+                                        is ScanStatus.Completed -> "Scan Completed"
+                                        is ScanStatus.Failed -> "Scan Failed"
+                                        else -> ""
+                                    }
+                    )
+                },
+                text = {
+                    Column {
+                        when (scanStatus) {
+                            is ScanStatus.Scanning -> {
+                                val progress = scanStatus.progress
+                                val total = scanStatus.total
+                                val message = scanStatus.currentFile
+
+                                if (total > 0) {
+                                    LinearProgressIndicator(
+                                            progress = { progress.toFloat() / total },
+                                            modifier = Modifier.fillMaxWidth(),
+                                    )
+                                } else {
+                                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                Text(stringResource(R.string.scanning)) // Simplified for now
+                            }
+                            is ScanStatus.Completed -> {
+                                Text(
+                                        pluralStringResource(
+                                                R.plurals.scan_success_message,
+                                                scanStatus.totalAdded,
+                                                scanStatus.totalAdded
+                                        )
+                                )
+                            }
+                            is ScanStatus.Failed -> {
+                                Text(stringResource(R.string.scan_error_message, scanStatus.error))
+                            }
+                            else -> {}
+                        }
+                    }
+                },
+                confirmButton = {
+                    if (scanStatus !is ScanStatus.Scanning) {
+                        androidx.compose.material3.TextButton(
+                                onClick = { viewModel.resetScanStatus() }
+                        ) { Text("OK") }
+                    }
+                }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ThemeModeSelector(currentMode: String, onModeSelected: (String) -> Unit) {
+    val themeModes =
+            listOf(
+                    UserPreferencesRepository.THEME_SYSTEM,
+                    UserPreferencesRepository.THEME_LIGHT,
+                    UserPreferencesRepository.THEME_DARK
+            )
+    var expanded by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
+    Box(modifier = Modifier.width(150.dp)) {
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+            TextField(
+                    value = currentMode,
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable),
+                    colors =
+                            ExposedDropdownMenuDefaults.textFieldColors(
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    disabledIndicatorColor = Color.Transparent
+                            )
+            )
+
+            ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = {
+                        expanded = false
+                        focusManager.clearFocus()
+                    }
+            ) {
+                themeModes.forEach { mode ->
+                    DropdownMenuItem(
+                            text = { Text(mode) },
+                            onClick = {
+                                onModeSelected(mode)
+                                expanded = false
+                                focusManager.clearFocus()
+                            }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LanguageSelector() {
+    val currentLocales = AppCompatDelegate.getApplicationLocales()
+    val currentTag = if (!currentLocales.isEmpty) currentLocales[0]?.toLanguageTag() else "en-US"
+
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.width(150.dp)) {
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+            TextField(
+                    value = if (currentTag?.contains("zh") == true) "繁體中文" else "English",
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryEditable),
+                    colors =
+                            ExposedDropdownMenuDefaults.textFieldColors(
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    disabledIndicatorColor = Color.Transparent
+                            )
+            )
+
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                DropdownMenuItem(
+                        text = { Text("English") },
+                        onClick = {
+                            val appLocale = LocaleListCompat.forLanguageTags("en-US")
+                            AppCompatDelegate.setApplicationLocales(appLocale)
+                            expanded = false
+                        }
+                )
+                DropdownMenuItem(
+                        text = { Text("繁體中文") },
+                        onClick = {
+                            val appLocale = LocaleListCompat.forLanguageTags("zh-TW")
+                            AppCompatDelegate.setApplicationLocales(appLocale)
+                            expanded = false
+                        }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SleepTimerDialog(onDismiss: () -> Unit, onSetTimer: (Int) -> Unit, onCancelTimer: () -> Unit) {
+    AlertDialog(
+            onDismissRequest = onDismiss,
+            icon = { Icon(Icons.Rounded.Timer, null) },
+            title = { Text("Sleep Timer") },
+            text = {
+                Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                ) {
+                    val options = listOf(15, 30, 45, 60, 90, 120)
+                    options.chunked(3).forEach { rowOptions ->
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            rowOptions.forEach { minutes ->
+                                androidx.compose.material3.OutlinedButton(
+                                        onClick = { onSetTimer(minutes) }
+                                ) { Text("$minutes min") }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                            onClick = onCancelTimer,
+                            colors =
+                                    androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor =
+                                                    MaterialTheme.colorScheme.errorContainer,
+                                            contentColor =
+                                                    MaterialTheme.colorScheme.onErrorContainer
+                                    ),
+                            modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Rounded.AlarmOff, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Turn Off Timer")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = onDismiss) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+    )
+}
+
+@Composable
+fun LastFmSection(viewModel: LastFmSettingsViewModel = hiltViewModel()) {
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(text = "Last.fm Scrobbling", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+
+        if (uiState.isConnected) {
+            // Connected state
+            ListItem(
+                    headlineContent = { Text("已連接到 Last.fm") },
+                    supportingContent = { Text("用戶名: ${uiState.username ?: "載入中..."}") },
+                    leadingContent = {
+                        Icon(
+                                imageVector = Icons.Rounded.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+            )
+
+            // Pending scrobbles
+            if (uiState.pendingScrobbleCount > 0) {
+                ListItem(
+                        headlineContent = { Text("待同步 Scrobbles") },
+                        supportingContent = { Text("${uiState.pendingScrobbleCount} 筆記錄等待同步") },
+                        trailingContent = {
+                            Button(
+                                    onClick = { viewModel.syncPendingScrobbles() },
+                                    enabled = !uiState.isLoading
+                            ) {
+                                if (uiState.isLoading) {
+                                    androidx.compose.material3.CircularProgressIndicator(
+                                            modifier = Modifier.width(16.dp).height(16.dp),
+                                            strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text("同步")
+                                }
+                            }
+                        }
+                )
+            }
+
+            // Logout button
+            androidx.compose.material3.TextButton(
+                    onClick = { viewModel.logout() },
+                    modifier = Modifier.fillMaxWidth()
+            ) { Text("登出 Last.fm", color = MaterialTheme.colorScheme.error) }
+        } else {
+            // Not connected state
+            Text(
+                    text = "連接 Last.fm 帳戶以自動記錄您的播放歷史到 Last.fm。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(12.dp))
+
+            // Auth URL available - show confirm button
+            if (uiState.authUrl != null) {
+                Column {
+                    Text(
+                            text = "請在瀏覽器中完成授權後，點擊下方按鈕確認。",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        androidx.compose.material3.OutlinedButton(
+                                onClick = {
+                                    val intent =
+                                            Intent(Intent.ACTION_VIEW, uiState.authUrl?.toUri())
+                                    context.startActivity(intent)
+                                },
+                                modifier = Modifier.weight(1f)
+                        ) { Text("在瀏覽器中授權") }
+                        Button(
+                                onClick = { viewModel.completeAuthentication() },
+                                enabled = !uiState.isLoading,
+                                modifier = Modifier.weight(1f)
+                        ) {
+                            if (uiState.isLoading) {
+                                androidx.compose.material3.CircularProgressIndicator(
+                                        modifier = Modifier.width(16.dp).height(16.dp),
+                                        strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text("已完成授權")
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    androidx.compose.material3.TextButton(
+                            onClick = { viewModel.clearAuthState() },
+                            modifier = Modifier.fillMaxWidth()
+                    ) { Text("取消") }
+                }
+            } else {
+                // Start auth button
+                Button(
+                        onClick = { viewModel.startAuthentication() },
+                        enabled = !uiState.isLoading,
+                        modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (uiState.isLoading) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                                modifier = Modifier.width(16.dp).height(16.dp),
+                                strokeWidth = 2.dp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    Text("連接 Last.fm 帳戶")
+                }
+            }
+        }
+
+        // Error message
+        uiState.error?.let { error ->
+            Spacer(Modifier.height(8.dp))
+            Text(
+                    text = error,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+

@@ -59,7 +59,7 @@
 -keep class * implements com.google.gson.JsonDeserializer
 
 # 保留 API Response 模型
--keep class com.gemini.music.data.network.model.** { *; }
+-keep class com.pulse.music.data.network.model.** { *; }
 
 # -----------------------------------------------------------------------------
 # Room Database
@@ -69,7 +69,7 @@
 -dontwarn androidx.room.paging.**
 
 # 保留 Room 實體類別
--keep class com.gemini.music.data.database.** { *; }
+-keep class com.pulse.music.data.database.** { *; }
 
 # -----------------------------------------------------------------------------
 # Hilt / Dagger
@@ -121,7 +121,7 @@
 # Domain Layer Models (Pure Kotlin)
 # -----------------------------------------------------------------------------
 # 保留 Domain 模型，防止序列化問題
--keep class com.gemini.music.domain.model.** { *; }
+-keep class com.pulse.music.domain.model.** { *; }
 
 # -----------------------------------------------------------------------------
 # 避免警告

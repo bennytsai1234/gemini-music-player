@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gemini.music.core.designsystem"
+    namespace = "com.pulse.music.core.designsystem"
     compileSdk = 36
 
     defaultConfig {

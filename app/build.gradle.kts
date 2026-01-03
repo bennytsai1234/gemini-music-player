@@ -6,15 +6,15 @@ plugins {
 }
 
 android {
-    namespace = "com.gemini.music"
+    namespace = "com.pulse.music"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.gemini.music"
+        applicationId = "com.pulse.music"
         minSdk = 26
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.4.1"
+        versionCode = 14
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

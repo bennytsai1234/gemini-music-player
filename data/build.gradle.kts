@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gemini.music.data"
+    namespace = "com.pulse.music.data"
     compileSdk = 36
 
     defaultConfig {
