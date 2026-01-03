@@ -1,59 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    
+
     <!-- Background Gradient -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:startColor="#1A1625"
-                android:centerColor="#1E1B3A"
-                android:endColor="#0F172A"
+                android:startColor="#0A0E1A"
+                android:centerColor="#121832"
+                android:endColor="#1A1625"
                 android:type="linear"/>
         </shape>
     </item>
-    
-    <!-- Center Icon -->
+
+    <!-- Subtle Wave Pattern Decoration -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#0500F2FF"
+                android:centerColor="#00000000"
+                android:endColor="#05FF0080"
+                android:type="linear"/>
+        </shape>
+    </item>
+
+    <!-- Center Icon Container -->
     <item
-        android:width="120dp"
-        android:height="120dp"
+        android:width="140dp"
+        android:height="140dp"
         android:gravity="center">
-        
+
         <layer-list>
-            <!-- Glow Effect -->
+            <!-- Outer Glow Effect -->
             <item>
                 <shape android:shape="oval">
-                    <solid android:color="#4D6B46C1"/>
+                    <solid android:color="#1A00F2FF"/>
                     <size android:width="140dp" android:height="140dp"/>
                 </shape>
             </item>
-            
-            <!-- Icon Container -->
+
+            <!-- Inner Glow -->
+            <item
+                android:left="10dp"
+                android:top="10dp"
+                android:right="10dp"
+                android:bottom="10dp">
+                <shape android:shape="oval">
+                    <solid android:color="#260066FF"/>
+                    <size android:width="120dp" android:height="120dp"/>
+                </shape>
+            </item>
+
+            <!-- Icon Background -->
             <item android:gravity="center">
                 <vector
-                    android:width="120dp"
-                    android:height="120dp"
-                    android:viewportWidth="24"
-                    android:viewportHeight="24">
-                    
-                    <!-- Waveform -->
+                    android:width="100dp"
+                    android:height="100dp"
+                    android:viewportWidth="100"
+                    android:viewportHeight="100">
+
+                    <!-- Pulse Wave -->
                     <path
-                        android:fillColor="#FFFFFF"
-                        android:fillAlpha="0.3"
-                        android:pathData="M4,12 L4,12 L5,10 L6,14 L7,8 L8,16 L9,11 L10,13 L11,9 L12,15 L13,10 L14,14 L15,8 L16,16 L17,11 L18,13 L19,9 L20,12 L20,12"
-                        android:strokeWidth="1.5"
+                        android:fillColor="#00000000"
                         android:strokeColor="#FFFFFF"
-                        android:strokeAlpha="0.5"/>
-                    
-                    <!-- Play Button -->
+                        android:strokeWidth="3"
+                        android:strokeLineCap="round"
+                        android:strokeLineJoin="round"
+                        android:pathData="M10,50 L20,50 L25,35 L32,65 L40,30 L48,62 L50,50 L55,40 L62,58 L70,42 L78,55 L85,50 L90,50"/>
+
+                    <!-- Play Button Circle -->
+                    <path
+                        android:fillColor="#0066FF"
+                        android:pathData="M50,72m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0"/>
+
+                    <!-- Play Triangle -->
                     <path
                         android:fillColor="#FFFFFF"
-                        android:pathData="M8,5v14l11,-7z"/>
-                        
-                    <!-- Accent -->
+                        android:pathData="M47,68 L47,76 L55,72 Z"/>
+
+                    <!-- Accent Dot -->
                     <path
-                        android:fillColor="#FFD700"
-                        android:pathData="M19,4 a1.5,1.5 0 1,1 0,3 a1.5,1.5 0 1,1 0,-3"/>
+                        android:fillColor="#FF0080"
+                        android:pathData="M75,35 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0"/>
                 </vector>
             </item>
         </layer-list>

@@ -29,14 +29,14 @@ import com.google.api.client.http.javanet.NetHttpTransport
 class GoogleDriveService @Inject constructor(
     @ApplicationContext private val context: Context
 ) : GoogleAuthProvider {
-    
+
     private val jsonFactory = GsonFactory.getDefaultInstance()
     private val transport = NetHttpTransport()
-    
+
     // 備份檔案名稱
     private val BACKUP_FILE_NAME = "gemini_music_backup.json"
     private val MIME_TYPE_JSON = "application/json"
-    
+
     override fun getSignInIntent(): android.content.Intent {
         return getSignInClient().signInIntent
     }
@@ -48,35 +48,35 @@ class GoogleDriveService @Inject constructor(
             .build()
         return GoogleSignIn.getClient(context, signInOptions)
     }
-    
+
     fun getLastSignedInAccount(): GoogleSignInAccount? {
         return GoogleSignIn.getLastSignedInAccount(context)
     }
-    
+
     private fun getDriveService(account: GoogleSignInAccount): Drive {
         val credential = GoogleAccountCredential.usingOAuth2(
             context, Collections.singleton(DriveScopes.DRIVE_FILE)
         )
         credential.selectedAccount = account.account
-        
+
         return Drive.Builder(transport, jsonFactory, credential)
-            .setApplicationName("Gemini Music Player")
+            .setApplicationName("Pulse")
             .build()
     }
-    
+
     suspend fun uploadBackup(account: GoogleSignInAccount, jsonContent: String): BackupResult = withContext(Dispatchers.IO) {
         try {
             val service = getDriveService(account)
-            
+
             // 1. 查找舊備份
             val fileList = service.files().list()
                 .setQ("name = '$BACKUP_FILE_NAME' and trashed = false")
                 .setSpaces("drive")
                 .setFields("files(id, name)")
                 .execute()
-            
+
             val content = ByteArrayContent.fromString(MIME_TYPE_JSON, jsonContent)
-            
+
             if (fileList.files.isNotEmpty()) {
                 // 更新現有檔案
                 val fileId = fileList.files[0].id
@@ -87,34 +87,34 @@ class GoogleDriveService @Inject constructor(
                 fileMetadata.name = BACKUP_FILE_NAME
                 fileMetadata.mimeType = MIME_TYPE_JSON
                 // fileMetadata.parents = listOf("appDataFolder") // Use appDataFolder for hidden backup
-                
+
                 service.files().create(fileMetadata, content).execute()
             }
-            
+
             BackupResult.Success
         } catch (e: Exception) {
             e.printStackTrace()
             BackupResult.Error(e.message ?: "Upload failed", e)
         }
     }
-    
+
     suspend fun downloadBackup(account: GoogleSignInAccount): Pair<String?, RestoreResult> = withContext(Dispatchers.IO) {
         try {
             val service = getDriveService(account)
-            
+
             val fileList = service.files().list()
                 .setQ("name = '$BACKUP_FILE_NAME' and trashed = false")
                 .setSpaces("drive")
                 .setFields("files(id, name)")
                 .execute()
-            
+
             if (fileList.files.isEmpty()) {
                 return@withContext null to RestoreResult.Error("找不到備份檔案")
             }
-            
+
             val fileId = fileList.files[0].id
             val inputStream = service.files().get(fileId).executeMediaAsInputStream()
-            
+
             val content = BufferedReader(InputStreamReader(inputStream)).use { it.readText() }
             content to RestoreResult.Success(0) // Count will be updated by repository
         } catch (e: Exception) {

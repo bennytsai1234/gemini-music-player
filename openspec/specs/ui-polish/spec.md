@@ -28,7 +28,7 @@ The Karaoke Lyrics view MUST keep the currently playing line vertically centered
 #### Scenario: App Icon
 - **Given** the device launcher.
 - **When** the user views the app icon.
-- **Then** it MUST display a unique, high-quality Adaptive Icon representing the "Gemini Music" brand (not the default Android robot).
+- **Then** it MUST display a unique, high-quality Adaptive Icon representing the "Pulse" brand (not the default Android robot).
 - **And** it MUST support dynamic theming or standard adaptive layers (background + foreground).
 
 #### Scenario: Animated Splash Screen

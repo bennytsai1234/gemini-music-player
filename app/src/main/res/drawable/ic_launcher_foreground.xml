@@ -8,7 +8,7 @@
     <!-- Subtle Glow Layer -->
     <path
         android:pathData="M54,54m-35,0a35,35 0,1 1,70 0a35,35 0,1 1,-70 0"
-        android:fillAlpha="0.2">
+        android:fillAlpha="0.15">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:centerX="54"
@@ -21,33 +21,41 @@
         </aapt:attr>
     </path>
 
-    <!-- Swirl Part 1 (The outer arc) -->
+    <!-- Pulse Wave - Main Visual Element -->
     <path
-        android:fillType="evenOdd"
-        android:pathData="M54,20 C35.2,20 20,35.2 20,54 C20,72.8 35.2,88 54,88 C62,88 69.3,85.2 75,80.5 L68,73.5 C64,76.3 59.2,78 54,78 C40.7,78 30,67.3 30,54 C30,40.7 40.7,30 54,30 L54,20 Z">
-        <aapt:attr name="android:fillColor">
+        android:pathData="M20,54 L28,54 L32,38 L38,70 L44,34 L50,66 L54,54 L58,42 L64,62 L70,46 L76,58 L80,54 L88,54"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000">
+        <aapt:attr name="android:strokeColor">
             <gradient
                 android:startX="20"
-                android:startY="20"
-                android:endX="75"
-                android:endY="88"
+                android:startY="54"
+                android:endX="88"
+                android:endY="54"
                 android:type="linear">
                 <item android:color="#FF00F2FF" android:offset="0.0" />
-                <item android:color="#FF0066FF" android:offset="1.0" />
+                <item android:color="#FF0066FF" android:offset="0.5" />
+                <item android:color="#FFFF0080" android:offset="1.0" />
             </gradient>
         </aapt:attr>
     </path>
 
-    <!-- Swirl Part 2 (The inner spiral) -->
+    <!-- Secondary Pulse Wave (Faded) -->
     <path
-        android:fillType="evenOdd"
-        android:pathData="M54,35 C43.5,35 35,43.5 35,54 C35,64.5 43.5,73 54,73 C58,73 61.6,71.7 64.5,69.5 L58,63 C56.8,63.6 55.4,64 54,64 C48.5,64 44,59.5 44,54 C44,48.5 48.5,44 54,44 L54,35 Z">
-        <aapt:attr name="android:fillColor">
+        android:pathData="M24,54 L30,54 L34,44 L40,64 L46,40 L52,60 L56,54 L60,48 L66,58 L72,50 L78,56 L84,54"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:strokeAlpha="0.3">
+        <aapt:attr name="android:strokeColor">
             <gradient
-                android:startX="35"
-                android:startY="35"
-                android:endX="64.5"
-                android:endY="73"
+                android:startX="24"
+                android:startY="54"
+                android:endX="84"
+                android:endY="54"
                 android:type="linear">
                 <item android:color="#FF00D4FF" android:offset="0.0" />
                 <item android:color="#FF00A2FF" android:offset="1.0" />
@@ -55,16 +63,37 @@
         </aapt:attr>
     </path>
 
-    <!-- The Music Note (Floating in the center) -->
+    <!-- Play Button Circle Background -->
     <path
-        android:pathData="M60,30 L60,55 C60,60.5 55.5,65 50,65 C44.5,65 40,60.5 40,55 C40,49.5 44.5,45 50,45 C52,45 53.8,45.6 55.3,46.6 L55.3,30 L65,30 L65,35 L60.3,35 L60.3,30 Z"
+        android:pathData="M54,72m-12,0a12,12 0,1 1,24 0a12,12 0,1 1,-24 0"
+        android:fillAlpha="0.9">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="54"
+                android:centerY="72"
+                android:gradientRadius="12"
+                android:type="radial">
+                <item android:color="#FF0066FF" android:offset="0.0" />
+                <item android:color="#FF004499" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Play Button Triangle -->
+    <path
+        android:pathData="M50,67 L50,77 L60,72 Z"
         android:fillColor="#FFFFFFFF"/>
+
+    <!-- Accent Dot -->
+    <path
+        android:pathData="M78,38 m-3,0 a3,3 0 1,1 6,0 a3,3 0 1,1 -6,0"
+        android:fillColor="#FFFF0080"/>
 
     <!-- Shine Overlay -->
     <path
         android:pathData="M54,25 C38,25 25,38 25,54"
-        android:strokeWidth="1"
-        android:strokeColor="#AAFFFFFF"
+        android:strokeWidth="0.8"
+        android:strokeColor="#55FFFFFF"
         android:strokeLineCap="round"/>
 
 </vector>

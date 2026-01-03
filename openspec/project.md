@@ -1,7 +1,7 @@
 # Project Context
 
 ## Purpose
-Gemini Music Player is a modern, premium Android music playback application focusing on user experience, aesthetic excellence, and robust architecture.
+Pulse is a modern, premium Android music playback application focusing on user experience, aesthetic excellence, and robust architecture.
 
 ## Tech Stack
 - **Language**: Kotlin (Target JVM 17)
@@ -57,3 +57,9 @@ Gemini Music Player is a modern, premium Android music playback application focu
 - **Kotlin Coroutines**: Concurrency
 - **Jetpack Compose**: UI Toolkit
 - **Gradle**: Build Tool
+
+## Brand Identity
+- **English Name**: Pulse
+- **Chinese Name**: 脈動
+- **Brand Concept**: Music is the pulse of life - rhythm, heartbeat, and energy
+- **Primary Colors**: Cyan (#00F2FF) to Blue (#0066FF) gradient with Magenta (#FF0080) accent

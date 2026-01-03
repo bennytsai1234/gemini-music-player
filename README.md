@@ -1,4 +1,4 @@
-# 🎵 Gemini Music Player
+# 🎵 Pulse
 
 <div align="center">
 
@@ -67,9 +67,9 @@
 ### 模組結構
 
 ```
-gemini-music-player/
+pulse/
 ├── app/                 # 應用程式入口與 DI 設定
-├── core/                
+├── core/
 │   ├── common/          # 共用工具與擴展函數
 │   └── designsystem/    # 設計系統元件
 ├── data/                # 資料層實作
@@ -131,8 +131,8 @@ graph TD
 
 ```bash
 # 1. 複製專案
-git clone https://github.com/bennytsai1234/gemini-music-player.git
-cd gemini-music-player
+git clone https://github.com/bennytsai1234/pulse.git
+cd pulse
 
 # 2. 建構 Debug APK
 ./gradlew assembleDebug
@@ -142,7 +142,7 @@ cd gemini-music-player
 ```
 
 ### 從 Release 下載
-前往 [Releases](https://github.com/bennytsai1234/gemini-music-player/releases) 頁面下載最新版本 APK。
+前往 [Releases](https://github.com/bennytsai1234/pulse/releases) 頁面下載最新版本 APK。
 
 ---
 
@@ -203,8 +203,8 @@ cd gemini-music-player
 
 <div align="center">
 
-**Made with ❤️ by Gemini**
+**Made with ❤️ by Pulse Team**
 
-[⬆ 回到頂端](#-gemini-music-player)
+[⬆ 回到頂端](#-pulse)
 
 </div>

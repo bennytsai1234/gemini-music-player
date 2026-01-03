@@ -218,7 +218,7 @@ fun HomeScreenRedesigned(
 
                 // Title
                 Text(
-                    text = "Gemini Music",
+                    text = "Pulse",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground,

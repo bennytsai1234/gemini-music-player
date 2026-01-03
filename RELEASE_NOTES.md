@@ -1,4 +1,18 @@
-# 🎵 Gemini Music Player v1.4.1
+# 🎵 Pulse v2.0.0
+
+## 🎨 品牌重塑 (Rebranding)
+- **全新品牌名稱**：正式更名為「**Pulse**」(脈動)，告別 Gemini Music。
+- **全新 App 圖示**：採用「脈搏波形 + 播放按鈕」設計概念，展現音樂的律動與生命力。
+- **全新啟動動畫**：模擬心跳脈動效果，包含波形繪製、縮放脈動和光暈擴散動畫。
+- **品牌色彩系統**：青藍 (#00F2FF → #0066FF) 漸層配合洋紅 (#FF0080) 強調色。
+
+## 📦 發布資訊
+- **版本**：v2.0.0 (Build 14)
+- **構建類型**：Signed Release
+
+---
+
+# 🎵 Pulse v1.4.1 (formerly Gemini Music)
 
 ## 🚑 緊急修復 (Hotfix)
 - **啟動崩潰修復**：修正了 Splash Screen 主題配置錯誤導致的 `IllegalStateException` 閃退問題。確保留在 Splash 結束後正確切換回 `AppCompat` 主題。
@@ -6,10 +20,10 @@
 
 ---
 
-# 🎵 Gemini Music Player v1.4.0
+# 🎵 Pulse v1.4.0 (formerly Gemini Music)
 
 ## 🎨 全新品牌視覺 (Rebranding)
-- **全新 App 圖示**：採用現代化的 "Gemini Music" 雙音符設計，支援 Adaptive Icon 與深色模式漸層背景。
+- **全新 App 圖示**：採用現代化的雙音符設計，支援 Adaptive Icon 與深色模式漸層背景。
 - **動態啟動畫面**：新增 Android 12+ 原生 Splash Screen 動畫，帶來更流暢的啟動體驗。
 
 ## 🧹 架構與代碼品質
@@ -24,7 +38,7 @@
 
 ---
 
-# 🎵 Gemini Music Player v1.3.3
+# 🎵 Pulse v1.3.3 (formerly Gemini Music)
 
 ## 🐛 Bug 修復
 
@@ -36,7 +50,7 @@
 - **修復字母索引被遮擋**：修正了歌曲列表右側 A-Z 快速滾動器底部字母（特別是 Z 和 #）被 Mini Player 遮蓋的問題，優化了底部間距配置。
 
 ### 導航一致性
-- **統一 TopBar 設計**：將所有頁面的 TopBar 統一使用 `CenterAlignedTopAppBar`，確保返回按鈕與首頁選單按鈕位置完全一致，不再有「額頭」偏移問題。
+- **統一 TopBar 設計**：將所有頁面的 TopBar 統一使用 `CenterAlignedTopAppBar`，確保返回按鈕與首頁選單按鈕位置完全一致。
 
 ## 📦 發布資訊
 - **版本**：v1.3.3 (Build 11)
@@ -44,7 +58,7 @@
 
 ---
 
-# 🎵 Gemini Music Player v1.3.2
+# 🎵 Pulse v1.3.2 (formerly Gemini Music)
 
 ## 🔧 架構與 UI 元件優化
 - **導航欄重構**：統一將帶有返回按鈕的頁面標題列遷移至 `GeminiTopBarWithBack`，確保全應用導航體驗一致。
@@ -57,10 +71,10 @@
 
 ---
 
-# 🎵 Gemini Music Player v1.3.0
+# 🎵 Pulse v1.3.0 (formerly Gemini Music)
 
 ## 🎨 視覺與體驗優化
-- **全新的 Gemini 空狀態**：所有主要頁面（首頁、歌單、專輯）現在擁有更具質感、帶有引導操作的空狀態視圖。
+- **全新空狀態設計**：所有主要頁面（首頁、歌單、專輯）現在擁有更具質感、帶有引導操作的空狀態視圖。
 - **歌詞自動捲動優化**：智慧偵測使用者手勢，當手動捲動歌詞時自動暫停跟隨，避免操作衝突。
 - **下滑縮小手勢**：現在可以在播放介面的封面區域透過「向下滑動」直接縮小播放器。
 - **精確手勢追蹤**：優化了封面滑動手勢的像素級追蹤，提供 1:1 的流暢感。

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Gemini Music"
+rootProject.name = "Pulse"
 include(":app", ":core:common", ":core:designsystem", ":data", ":domain", ":player", ":ui")
