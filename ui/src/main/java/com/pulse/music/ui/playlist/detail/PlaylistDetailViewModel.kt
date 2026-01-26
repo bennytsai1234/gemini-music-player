@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pulse.music.domain.model.Song
 import com.pulse.music.domain.repository.MusicRepository
+import com.pulse.music.domain.usecase.playlist.ExportPlaylistUseCase
 import com.pulse.music.domain.usecase.PlaySongUseCase
 import com.pulse.music.ui.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +25,7 @@ data class PlaylistDetailUiState(
 @HiltViewModel
 class PlaylistDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val exportPlaylistUseCase: ExportPlaylistUseCase,
     private val musicRepository: MusicRepository,
     private val playSongUseCase: PlaySongUseCase
 ) : ViewModel() {
@@ -69,6 +71,12 @@ class PlaylistDetailViewModel @Inject constructor(
         if (fromIndex == toIndex) return
         viewModelScope.launch {
             musicRepository.moveSongInPlaylist(playlistId, fromIndex, toIndex)
+        }
+    }
+
+    fun exportPlaylist(uri: String) {
+        viewModelScope.launch {
+            exportPlaylistUseCase(playlistId, uri)
         }
     }
 }

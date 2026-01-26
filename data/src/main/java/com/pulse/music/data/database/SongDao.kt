@@ -60,5 +60,8 @@ interface SongDao {
 
     @Query("SELECT * FROM songs WHERE title LIKE '%' || :query || '%' OR artist LIKE '%' || :query || '%' ORDER BY title ASC LIMIT :limit OFFSET :offset")
     suspend fun searchSongsPaged(query: String, limit: Int, offset: Int): List<SongEntity>
+    @Query("SELECT * FROM songs WHERE dataPath = :path OR contentUri = :path LIMIT 1")
+    suspend fun getSongByPath(path: String): SongEntity?
+
 }
 

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,6 +42,9 @@ import com.pulse.music.domain.model.Song
 import com.pulse.music.ui.component.SongListItem
 import kotlinx.coroutines.launch
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistDetailScreen(
@@ -51,6 +55,10 @@ fun PlaylistDetailScreen(
 
     var showMenu by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("audio/x-mpegurl"),
+        onResult = { uri -> uri?.let { viewModel.exportPlaylist(it.toString()) } }
+    )
     var isReorderMode by remember { mutableStateOf(false) }
 
     if (showRenameDialog) {
@@ -91,6 +99,16 @@ fun PlaylistDetailScreen(
                                         },
                                         leadingIcon = {
                                             Icon(Icons.Rounded.Edit, contentDescription = null)
+                                        }
+                                )
+                                DropdownMenuItem(
+                                        text = { Text("Export Playlist") },
+                                        onClick = {
+                                            showMenu = false
+                                            exportLauncher.launch("${uiState.playlist?.name ?: "playlist"}.m3u")
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Rounded.FileUpload, contentDescription = null)
                                         }
                                 )
                             }
@@ -482,5 +500,3 @@ fun RenamePlaylistDialog(currentName: String, onDismiss: () -> Unit, onConfirm: 
             dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
-
-

@@ -102,6 +102,26 @@ abstract class DataModule {
     abstract fun bindCrossfadeSettingsRepository(
         crossfadeSettingsRepositoryImpl: com.pulse.music.data.repository.CrossfadeSettingsRepositoryImpl
     ): com.pulse.music.domain.repository.CrossfadeSettingsRepository
+
+    @Binds
+    abstract fun bindSmartPlaylistRepository(
+        smartPlaylistRepositoryImpl: com.pulse.music.data.repository.SmartPlaylistRepositoryImpl
+    ): com.pulse.music.domain.repository.SmartPlaylistRepository
+
+    @Binds
+    abstract fun bindBlacklistRepository(
+        blacklistRepositoryImpl: com.pulse.music.data.repository.BlacklistRepositoryImpl
+    ): com.pulse.music.domain.repository.BlacklistRepository
+
+    @Binds
+    abstract fun bindSmbRepository(
+        smbRepositoryImpl: com.pulse.music.data.repository.SmbRepositoryImpl
+    ): com.pulse.music.domain.repository.SmbRepository
+
+    @Binds
+    abstract fun bindABLoopRepository(
+        abLoopRepositoryImpl: com.pulse.music.data.repository.ABLoopRepositoryImpl
+    ): com.pulse.music.domain.repository.ABLoopRepository
 }
 
 

@@ -70,6 +70,7 @@ class NowPlayingViewModel @Inject constructor(
     private val skipToNextUseCase: SkipToNextUseCase,
     private val skipToPreviousUseCase: SkipToPreviousUseCase,
     private val toggleShuffleUseCase: ToggleShuffleUseCase,
+    private val smartShuffleUseCase: com.pulse.music.domain.usecase.player.SmartShuffleUseCase,
     private val cycleRepeatModeUseCase: CycleRepeatModeUseCase,
     private val playQueueItemUseCase: PlayQueueItemUseCase,
     private val removeQueueItemUseCase: RemoveQueueItemUseCase,
@@ -192,6 +193,9 @@ class NowPlayingViewModel @Inject constructor(
             is NowPlayingEvent.SkipNext -> skipToNextUseCase()
             is NowPlayingEvent.SkipPrevious -> skipToPreviousUseCase()
             is NowPlayingEvent.ToggleShuffle -> toggleShuffleUseCase()
+            is NowPlayingEvent.SmartShuffle -> {
+                viewModelScope.launch { smartShuffleUseCase() }
+            }
             is NowPlayingEvent.ToggleRepeat -> cycleRepeatModeUseCase()
             is NowPlayingEvent.UpdatePalette -> extractColors(event.bitmap)
             is NowPlayingEvent.PlayQueueItem -> playQueueItemUseCase(event.index)
@@ -281,6 +285,7 @@ sealed class NowPlayingEvent {
     data object SkipNext : NowPlayingEvent()
     data object SkipPrevious : NowPlayingEvent()
     data object ToggleShuffle : NowPlayingEvent()
+    data object SmartShuffle : NowPlayingEvent()
     data object ToggleRepeat : NowPlayingEvent()
     data object ToggleFavorite : NowPlayingEvent()
     data object SeekForward10s : NowPlayingEvent()

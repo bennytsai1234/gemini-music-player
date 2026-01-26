@@ -87,6 +87,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         preferences[PLAYBACK_SPEED] ?: 1.0f
     }
 
+    override val playbackPitch: Flow<Float> = dataStore.data.map { preferences ->
+        preferences[PLAYBACK_PITCH] ?: 1.0f
+    }
+
     override val crossfadeDuration: Flow<Int> = dataStore.data.map { preferences ->
         preferences[CROSSFADE_DURATION] ?: 0
     }
@@ -143,6 +147,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     override val excludedFolders: Flow<Set<String>> = dataStore.data.map { preferences ->
         preferences[EXCLUDED_FOLDERS] ?: emptySet()
+    }
+
+    override val smbServers: Flow<Set<String>> = dataStore.data.map { preferences ->
+        preferences[SMB_SERVERS] ?: emptySet()
     }
 
     override suspend fun setMinAudioDuration(durationMs: Long) {
@@ -233,6 +241,12 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setPlaybackPitch(pitch: Float) {
+        dataStore.edit { preferences ->
+            preferences[PLAYBACK_PITCH] = pitch.coerceIn(0.5f, 2.0f)
+        }
+    }
+
     override suspend fun setCrossfadeDuration(seconds: Int) {
         dataStore.edit { preferences ->
             preferences[CROSSFADE_DURATION] = seconds.coerceIn(0, 12)
@@ -319,6 +333,12 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setSmbServers(servers: Set<String>) {
+        dataStore.edit { preferences ->
+            preferences[SMB_SERVERS] = servers
+        }
+    }
+
     companion object {
         private val MIN_AUDIO_DURATION = longPreferencesKey("min_audio_duration")
         private val INCLUDED_FOLDERS = stringSetPreferencesKey("included_folders")
@@ -338,6 +358,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
         // Playback
         private val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
+        private val PLAYBACK_PITCH = floatPreferencesKey("playback_pitch")
         private val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         private val SLEEP_TIMER_FADE_OUT = booleanPreferencesKey("sleep_timer_fade_out")
         private val SLEEP_TIMER_FADE_DURATION = intPreferencesKey("sleep_timer_fade_duration")
@@ -361,6 +382,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         
         // Library
         private val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
+        
+        // SMB
+        private val SMB_SERVERS = stringSetPreferencesKey("smb_servers")
     }
 }
 

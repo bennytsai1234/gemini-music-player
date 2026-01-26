@@ -83,6 +83,9 @@ interface PlaybackHistoryDao {
     
     @Query("DELETE FROM playback_history")
     suspend fun clearAll()
+
+    @Query("SELECT * FROM playback_history ORDER BY playedAt DESC")
+    fun getAllHistory(): Flow<List<PlaybackHistoryEntity>>
 }
 
 /**

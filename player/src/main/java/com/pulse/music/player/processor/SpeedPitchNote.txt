@@ -1,0 +1,34 @@
+package com.pulse.music.player.processor
+
+import androidx.media3.common.audio.AudioProcessor
+import androidx.media3.common.audio.SonicAudioProcessor
+
+/**
+ * SonicAudioProcessor subclass or wrapper if needed.
+ * Currently using SonicAudioProcessor directly in PlayerModule is preferred
+ * if we just need speed/pitch.
+ *
+ * But if we need to expose it to a controller, we might wrap it.
+ * For now, we will use SonicAudioProcessor directly in the RenderersFactory chain
+ * if it wasn't already there.
+ *
+ * DefaultRenderersFactory ALREADY adds SonicAudioProcessor if enableAudioTrackPlaybackParams is true.
+ * We just enabled it in PlayerModule!
+ *
+ * So we just need to use player.setPlaybackParameters().
+ *
+ * However, the task says "high-quality time stretching". Sonic IS the standard.
+ *
+ * If we need PITCH control separate from SPEED, Sonic supports it.
+ * ExoPlayer exposes setPlaybackParameters(PlaybackParameters(speed, pitch)).
+ *
+ * So this task is mostly about exposing the API in MusicController.
+ *
+ * But wait, "Pulse Ultimate" plan mentions "SonicAudioProcessor" specifically.
+ *
+ * If we want to ensure it's used, we passed `enableAudioTrackPlaybackParams = true` to DefaultRenderersFactory.
+ * This enables Sonic.
+ *
+ * So the implementation is just updating the UI/Controller to support pitch.
+ */
+// No file needed if we use standard ExoPlayer API.

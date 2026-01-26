@@ -9,4 +9,6 @@ object PlayerConstants {
     
     // Download Service
     const val DOWNLOAD_CHANNEL_ID = "download_channel"
+
+    const val CROSSFADE_MIN_MEMORY_THRESHOLD_BYTES = 30 * 1024 * 1024L
 }

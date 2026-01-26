@@ -21,4 +21,7 @@ interface FavoriteDao {
     @Query("SELECT * FROM songs INNER JOIN favorites ON songs.id = favorites.songId ORDER BY favorites.dateAdded DESC")
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     fun getFavoriteSongs(): Flow<List<SongEntity>>
+
+    @Query("SELECT * FROM favorites")
+    fun getAllFavorites(): Flow<List<FavoriteEntity>>
 }

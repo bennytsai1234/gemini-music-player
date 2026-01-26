@@ -53,6 +53,7 @@ fun HomeScreenRedesigned(
     onDiscoverClick: () -> Unit = {},
     onStatsClick: () -> Unit = {},
     onFoldersClick: () -> Unit = {},
+    onSmbClick: () -> Unit = {},
     onDrivingModeClick: () -> Unit = {},
     onPlaybackSettingsClick: () -> Unit = {}
 ) {
@@ -187,6 +188,14 @@ fun HomeScreenRedesigned(
                             onClick = {
                                 showMenu = false
                                 onFoldersClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("網路儲存 (SMB)") },
+                            leadingIcon = { Icon(Icons.Rounded.Computer, null) },
+                            onClick = {
+                                showMenu = false
+                                onSmbClick()
                             }
                         )
                         DropdownMenuItem(

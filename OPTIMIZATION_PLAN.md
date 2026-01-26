@@ -1,25 +1,21 @@
-# Refactoring & Optimization Plan: "Pulse Ultimate"
+# Refactoring & Optimization Plan: "Pulse Network & Polish"
 
-## 1. Architectural Improvements
-- **Deduplication**: Move `Song.toMediaItem` / `MediaItem.toSong` mappers to `core/common` or a dedicated `mapper` module.
-- **Error Handling**: Replace direct `Toast` in Service with `SharedFlow<PlayerError>` in `MusicController` for UI-driven error handling.
-- **Configurability**: Move hardcoded thresholds (e.g., Crossfade 30MB check) to `PlayerConfig` or `Domain` constants.
+## 1. Network & Connectivity (P1)
+- [x] **SMB (Samba) Support**: Native SMBv2/v3 support for NAS streaming (Data/Domain/UI implemented).
+- [ ] **WebDAV Resume Support**: Allow resuming streams from last position.
+- [ ] **Auto-Download Favorites**: Offline cache for starred songs.
+- [ ] **Wi-Fi Only Mode**: Setting to restrict streaming/downloading.
 
-## 2. Player Engine Enhancements
-- **Gapless & Crossfade Harmony**: Ensure `DualPlayerManager` gracefully handles gapless metadata when crossfade is off.
-- **Audio Quality**:
-    - Implement **ReplayGain** / Loudness Normalization.
-    - Add **Pitch/Speed** control with high-quality time stretching (`SonicAudioProcessor`).
-- **Resilience**:
-    - Better network error recovery for streaming (if applicable in future).
-    - Robust handling of corrupt local files (skip and blacklist).
+## 2. Player Polish (P2)
+- [x] **A-B Repeat**: Domain logic implemented (UI pending).
+- [ ] **Balance Control**: Left/Right audio balance.
+- [ ] **Bluetooth Auto-Resume**: Configurable auto-play.
 
-## 3. UI/UX Polish (Pending Agent Report)
-- **Visuals**: Dynamic theming engine (Monet) refinement.
-- **Animations**: Shared element transitions between List and Player.
-- **Performance**: Optimize `LazyColumn` item keys and image loading (Coil).
+## 3. UI/UX (P2)
+- [ ] **Grid/List Toggle**: View options for Albums/Artists.
+- [ ] **Widgets**: 4x1 and 4x2 Homescreen widgets.
+- [ ] **Screen Rotation Lock**: Per-app rotation setting.
 
-## 4. Feature Additions (The "Best" Factors)
-- **Smart Playlists**: "Most Played", "Never Played", "Recently Added" (Dynamic SQL generation).
-- **Lyrics**: Synced lyrics support (LRC parser).
-- **Tag Editor**: Built-in ID3 tag editor.
+## 4. Maintenance (Ongoing)
+- [ ] **Unit Tests**: Add tests for new Repositories (Blacklist, Backup).
+- [ ] **Performance**: Profile list scrolling with large datasets.

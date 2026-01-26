@@ -17,14 +17,20 @@ import com.pulse.music.domain.model.ScrobbleEntry
 import com.pulse.music.domain.model.Song
 import com.pulse.music.domain.repository.MusicController
 import com.pulse.music.domain.repository.ScrobbleRepository
-import com.pulse.music.player.mapper.toMediaItem
-import com.pulse.music.player.mapper.toSong
+import com.pulse.music.domain.repository.UserPreferencesRepository
+import com.pulse.music.domain.model.PlayerError
+import com.pulse.music.core.common.mapper.toMediaItem
+import com.pulse.music.core.common.mapper.toSong
+import com.pulse.music.player.service.PulseAudioService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,7 +40,8 @@ import javax.inject.Singleton
 @Singleton
 class MusicServiceConnection @Inject constructor(
     @ApplicationContext context: Context,
-    private val scrobbleRepository: ScrobbleRepository
+    private val scrobbleRepository: ScrobbleRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : MusicController {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -44,6 +51,9 @@ class MusicServiceConnection @Inject constructor(
     // 暴露給 UI 的狀態
     private val _musicState = MutableStateFlow(MusicState())
     override val musicState: StateFlow<MusicState> = _musicState.asStateFlow()
+
+    private val _errorEvents = MutableSharedFlow<PlayerError>()
+    override val errorEvents: SharedFlow<PlayerError> = _errorEvents.asSharedFlow()
 
     // Scrobbling 追蹤
     private var currentPlayingSong: Song? = null
@@ -97,7 +107,8 @@ class MusicServiceConnection @Inject constructor(
                     if (playStartTime > 0) {
                         accumulatedPlayTime += System.currentTimeMillis() - playStartTime
                         playStartTime = 0L
-}
+                    }
+                }
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -132,6 +143,12 @@ class MusicServiceConnection @Inject constructor(
 
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 updateQueue()
+            }
+
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                scope.launch {
+                    _errorEvents.emit(PlayerError.PlaybackFailed(error.localizedMessage ?: "Unknown Error"))
+                }
             }
         })
 
@@ -285,5 +302,16 @@ class MusicServiceConnection @Inject constructor(
         )
         mediaController?.sendCustomCommand(command, Bundle.EMPTY)
     }
-}
+
+    override fun setPlaybackSpeed(speed: Float) {
+        scope.launch {
+            userPreferencesRepository.setPlaybackSpeed(speed)
+        }
+    }
+
+    override fun setPlaybackPitch(pitch: Float) {
+        scope.launch {
+            userPreferencesRepository.setPlaybackPitch(pitch)
+        }
+    }
 }

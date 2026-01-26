@@ -6,8 +6,11 @@ import com.pulse.music.domain.model.backup.BackupResult
 import com.pulse.music.domain.model.backup.RestoreResult
 import com.pulse.music.domain.usecase.backup.GetBackupStatusUseCase
 import com.pulse.music.domain.usecase.backup.ManageBackupSessionUseCase
-import com.pulse.music.domain.usecase.backup.PerformBackupUseCase
+import com.pulse.music.domain.usecase.backup.PerformCloudBackupUseCase
+import com.pulse.music.domain.usecase.backup.RestoreCloudBackupUseCase
 import com.pulse.music.domain.usecase.backup.RestoreBackupUseCase
+import android.net.Uri
+import kotlinx.coroutines.Dispatchers
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -16,11 +19,14 @@ import com.pulse.music.core.common.auth.GoogleAuthProvider
 
 @HiltViewModel
 class BackupSettingsViewModel @Inject constructor(
-    private val performBackupUseCase: PerformBackupUseCase,
+    private val performCloudBackupUseCase: PerformCloudBackupUseCase,
+    private val restoreCloudBackupUseCase: RestoreCloudBackupUseCase,
+    private val exportBackupUseCase: com.pulse.music.domain.usecase.backup.ExportBackupUseCase,
     private val restoreBackupUseCase: RestoreBackupUseCase,
     private val getBackupStatusUseCase: GetBackupStatusUseCase,
     private val manageBackupSessionUseCase: ManageBackupSessionUseCase,
-    private val googleAuthProvider: GoogleAuthProvider
+    private val googleAuthProvider: GoogleAuthProvider,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : BaseViewModel<BackupUiState, BackupUiEvent, BackupUiEffect>(BackupUiState()) {
 
     init {
@@ -59,10 +65,16 @@ class BackupSettingsViewModel @Inject constructor(
                 }
             }
             is BackupUiEvent.Backup -> {
-                performBackup()
+                performCloudBackup()
             }
             is BackupUiEvent.Restore -> {
-                performRestore()
+                performCloudRestore()
+            }
+            is BackupUiEvent.ExportLocal -> {
+                exportLocalBackup(event.uri)
+            }
+            is BackupUiEvent.ImportLocal -> {
+                importLocalBackup(event.uri)
             }
             is BackupUiEvent.AuthenticateResult -> {
                 if (event.success) {
@@ -83,11 +95,11 @@ class BackupSettingsViewModel @Inject constructor(
         }
     }
 
-    private fun performBackup() {
+    private fun performCloudBackup() {
         viewModelScope.launch {
             setState { copy(isBackingUp = true, error = null) }
             
-            when (val result = performBackupUseCase()) {
+            when (val result = performCloudBackupUseCase()) {
                 is BackupResult.Success -> {
                     val time = System.currentTimeMillis()
                     setState { 
@@ -105,23 +117,69 @@ class BackupSettingsViewModel @Inject constructor(
         }
     }
 
-    private fun performRestore() {
+    private fun performCloudRestore() {
         viewModelScope.launch {
             setState { copy(isRestoring = true, error = null) }
             
-            when (val result = restoreBackupUseCase()) {
-                is RestoreResult.Success -> {
-                    setState { 
-                        copy(
-                            isRestoring = false, 
-                            successMessage = "成功還原 ${result.itemsRestored} 個項目" 
-                        ) 
+            val result = restoreCloudBackupUseCase()
+            if (result.errors.isEmpty()) {
+                setState { 
+                    copy(
+                        isRestoring = false, 
+                        successMessage = "成功還原 ${result.playlistsRestored} 個清單, ${result.favoritesRestored} 個最愛" 
+                    ) 
+                }
+            } else {
+                setState { copy(isRestoring = false, error = result.errors.firstOrNull()) }
+            }
+        }
+    }
+
+    private fun exportLocalBackup(uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            setState { copy(isBackingUp = true, error = null) }
+            try {
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    exportBackupUseCase(output)
+                }
+                val time = System.currentTimeMillis()
+                setState { 
+                    copy(
+                        isBackingUp = false, 
+                        successMessage = "已匯出備份至檔案",
+                        lastBackupTime = time
+                    ) 
+                }
+            } catch (e: Exception) {
+                setState { copy(isBackingUp = false, error = "匯出失敗: ${e.message}") }
+            }
+        }
+    }
+
+    private fun importLocalBackup(uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            setState { copy(isRestoring = true, error = null) }
+            try {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    val result = restoreBackupUseCase(input)
+                    if (result.errors.isEmpty()) {
+                        setState { 
+                            copy(
+                                isRestoring = false, 
+                                successMessage = "成功還原 ${result.playlistsRestored} 個清單, ${result.favoritesRestored} 個最愛" 
+                            ) 
+                        }
+                    } else {
+                        setState { 
+                            copy(
+                                isRestoring = false, 
+                                error = "還原完成但有錯誤: ${result.errors.firstOrNull()}"
+                            ) 
+                        }
                     }
-                    // 可能需要重整某些 UI 或數據
                 }
-                is RestoreResult.Error -> {
-                    setState { copy(isRestoring = false, error = result.message) }
-                }
+            } catch (e: Exception) {
+                setState { copy(isRestoring = false, error = "還原失敗: ${e.message}") }
             }
         }
     }

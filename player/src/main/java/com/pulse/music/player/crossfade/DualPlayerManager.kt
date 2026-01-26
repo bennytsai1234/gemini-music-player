@@ -6,6 +6,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.pulse.music.core.common.PlayerConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -156,6 +157,6 @@ class DualPlayerManager @Inject constructor(
         val availableMemory = maxMemory - usedMemory
 
         // 需要至少 30MB 可用記憶體才啟用雙播放器
-        return availableMemory > 30 * 1024 * 1024
+        return availableMemory > PlayerConstants.CROSSFADE_MIN_MEMORY_THRESHOLD_BYTES
     }
 }

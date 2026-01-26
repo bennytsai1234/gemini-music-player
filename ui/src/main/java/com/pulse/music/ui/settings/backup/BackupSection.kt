@@ -22,12 +22,30 @@ import com.google.android.gms.common.api.ApiException
 import java.text.SimpleDateFormat
 import java.util.*
 
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.Storage
+
 @Composable
 fun BackupSection(
     viewModel: BackupSettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
+        val context = LocalContext.current
+        
+    // Local Export Launcher
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { viewModel.onEvent(BackupUiEvent.ExportLocal(it)) }
+    }
+
+    // Local Import Launcher
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { viewModel.onEvent(BackupUiEvent.ImportLocal(it)) }
+    }
     
     // Google Sign-In Launcher
     val signInLauncher = rememberLauncherForActivityResult(
@@ -68,6 +86,52 @@ fun BackupSection(
         )
         Spacer(modifier = Modifier.height(8.dp))
         
+        // Local Backup Section
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "本機備份 (匯出/匯入)",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { 
+                            val fileName = "Pulse_Backup_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())}.json"
+                            exportLauncher.launch(fileName) 
+                        },
+                        enabled = !uiState.isBackingUp && !uiState.isRestoring,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Rounded.FileUpload, null)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("匯出")
+                    }
+                    
+                    OutlinedButton(
+                        onClick = { importLauncher.launch(arrayOf("application/json")) },
+                        enabled = !uiState.isBackingUp && !uiState.isRestoring,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Rounded.FileDownload, null)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("匯入")
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Cloud Backup Section
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)

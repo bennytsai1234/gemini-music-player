@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -122,6 +123,10 @@ fun NowPlayingScreen(
             onEditLyrics = {
                 showMoreOptions = false
                 uiState.song?.id?.let { onEditLyricsClick(it) }
+            },
+            onSmartShuffle = {
+                showMoreOptions = false
+                viewModel.onEvent(NowPlayingEvent.SmartShuffle)
             }
         )
     }
@@ -405,7 +410,8 @@ private fun OptionsBottomSheet(
     onEqualizer: () -> Unit,
     onSleepTimer: () -> Unit,
     onEditTags: () -> Unit,
-    onEditLyrics: () -> Unit
+    onEditLyrics: () -> Unit,
+    onSmartShuffle: () -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -461,6 +467,12 @@ private fun OptionsBottomSheet(
                 icon = Icons.Rounded.Description,
                 text = "Edit Lyrics",
                 onClick = onEditLyrics
+            )
+
+            OptionItem(
+                icon = Icons.Rounded.Shuffle,
+                text = "Smart Shuffle (Weighted)",
+                onClick = onSmartShuffle
             )
 
             Spacer(modifier = Modifier.height(32.dp))

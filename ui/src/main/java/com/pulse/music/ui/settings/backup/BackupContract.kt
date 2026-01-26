@@ -22,6 +22,8 @@ sealed interface BackupUiEvent : UiEvent {
     data object ClearError : BackupUiEvent
     data object ClearSuccess : BackupUiEvent
     data class AuthenticateResult(val success: Boolean) : BackupUiEvent // 來自 Activity Result
+    data class ExportLocal(val uri: android.net.Uri) : BackupUiEvent
+    data class ImportLocal(val uri: android.net.Uri) : BackupUiEvent
 }
 
 sealed interface BackupUiEffect : UiEffect {

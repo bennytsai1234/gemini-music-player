@@ -30,6 +30,9 @@ import com.pulse.music.ui.discover.DiscoverScreen
 import com.pulse.music.ui.lyrics.LyricsEditorScreen
 import com.pulse.music.ui.driving.DrivingModeScreen
 import com.pulse.music.ui.settings.crossfade.CrossfadeSettingsScreen
+import com.pulse.music.ui.settings.blacklist.BlacklistSettingsScreen
+
+import com.pulse.music.ui.smb.SmbBrowserScreen
 
 /**
  * Safe popBackStack that checks if we can actually navigate back
@@ -95,6 +98,8 @@ sealed class Screen(val route: String) {
     }
     data object DrivingMode : Screen("driving_mode")
     data object CrossfadeSettings : Screen("crossfade_settings")
+    data object BlacklistSettings : Screen("blacklist_settings")
+    data object Smb : Screen("smb")
 }
 
 /**
@@ -161,6 +166,9 @@ fun MusicNavigation(navController: NavHostController) {
                             onFoldersClick = {
                                 navController.navigate(Screen.Folders.route)
                             },
+                            onSmbClick = {
+                                navController.navigate(Screen.Smb.route)
+                            },
                             onDrivingModeClick = {
                                 navController.navigate(Screen.DrivingMode.route)
                             },
@@ -176,6 +184,9 @@ fun MusicNavigation(navController: NavHostController) {
                             onBackClick = { navController.safePopBackStack() },
                             onInternalEqualizerClick = { sessionId ->
                                 navController.navigate(Screen.Equalizer.createRoute(sessionId))
+                            },
+                            onBlacklistClick = {
+                                navController.navigate(Screen.BlacklistSettings.route)
                             }
                         )
                     }
@@ -311,6 +322,15 @@ fun MusicNavigation(navController: NavHostController) {
                     }
                 }
 
+                // Blacklist Settings Screen
+                composable(route = Screen.BlacklistSettings.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        BlacklistSettingsScreen(
+                            onBackClick = { navController.safePopBackStack() }
+                        )
+                    }
+                }
+
                 // Folder Browser Screen
                 composable(route = Screen.Folders.route) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
@@ -348,6 +368,15 @@ fun MusicNavigation(navController: NavHostController) {
                     CompositionLocalProvider(LocalAnimatedContentScope provides this) {
                         DrivingModeScreen(
                             onNavigateBack = { navController.safePopBackStack() }
+                        )
+                    }
+                }
+
+                // SMB Browser Screen
+                composable(route = Screen.Smb.route) {
+                    CompositionLocalProvider(LocalAnimatedContentScope provides this) {
+                        SmbBrowserScreen(
+                            onBackClick = { navController.safePopBackStack() }
                         )
                     }
                 }

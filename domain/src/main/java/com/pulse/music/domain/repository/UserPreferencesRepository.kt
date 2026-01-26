@@ -21,6 +21,7 @@ interface UserPreferencesRepository {
 
     // Playback Settings
     val playbackSpeed: Flow<Float>
+    val playbackPitch: Flow<Float>
     val crossfadeDuration: Flow<Int> // seconds
     val sleepTimerFadeOut: Flow<Boolean>
     val sleepTimerFadeDuration: Flow<Int> // seconds
@@ -49,6 +50,7 @@ interface UserPreferencesRepository {
 
     // Playback Settings
     suspend fun setPlaybackSpeed(speed: Float)
+    suspend fun setPlaybackPitch(pitch: Float)
     suspend fun setCrossfadeDuration(seconds: Int)
     suspend fun setSleepTimerFadeOut(enabled: Boolean)
     suspend fun setSleepTimerFadeDuration(seconds: Int)
@@ -75,6 +77,9 @@ interface UserPreferencesRepository {
     // Library Settings
     val excludedFolders: Flow<Set<String>>
     
+    // SMB Settings
+    val smbServers: Flow<Set<String>>
+
     suspend fun setConnectTimeout(timeout: Long)
     suspend fun setReadTimeout(timeout: Long)
     suspend fun setUserAgent(userAgent: String)
@@ -83,6 +88,7 @@ interface UserPreferencesRepository {
     suspend fun setRotationLocked(locked: Boolean)
     
     suspend fun setExcludedFolders(folders: Set<String>)
+    suspend fun setSmbServers(servers: Set<String>)
 
     companion object {
         const val THEME_SYSTEM = "SYSTEM"

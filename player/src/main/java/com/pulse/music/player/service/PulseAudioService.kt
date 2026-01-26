@@ -13,11 +13,14 @@ import androidx.media3.session.MediaLibraryService.LibraryParams
 import androidx.media3.common.util.UnstableApi
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
-import com.pulse.music.player.mapper.toMediaItem
+import com.pulse.music.core.common.mapper.toMediaItem
 import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.media3.session.MediaSession
 
 
 /**
@@ -43,7 +46,7 @@ class PulseAudioService : MediaLibraryService() {
     lateinit var crossfadeController: com.pulse.music.player.crossfade.CrossfadeController
 
     @Inject
-    lateinit var audioEffectController: com.pulse.music.player.controller.AudioEffectController
+    lateinit var audioEffectController: com.pulse.music.domain.repository.AudioEffectController
 
     @Inject
     lateinit var equalizerController: com.pulse.music.player.controller.EqualizerController
@@ -70,6 +73,7 @@ class PulseAudioService : MediaLibraryService() {
                 .add(androidx.media3.session.SessionCommand(com.pulse.music.core.common.PlayerConstants.ACTION_SET_SLEEP_TIMER, Bundle.EMPTY))
                 .add(androidx.media3.session.SessionCommand(com.pulse.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER, Bundle.EMPTY))
                 .add(androidx.media3.session.SessionCommand(com.pulse.music.core.common.PlayerConstants.ACTION_GET_AUDIO_SESSION_ID, Bundle.EMPTY))
+                .add(androidx.media3.session.SessionCommand("com.pulse.music.action.SET_PITCH", Bundle.EMPTY))
                 .build()
             return MediaSession.ConnectionResult.accept(sessionCommands, connectionResult.availablePlayerCommands)
         }
@@ -101,6 +105,14 @@ class PulseAudioService : MediaLibraryService() {
                 }
                 com.pulse.music.core.common.PlayerConstants.ACTION_CANCEL_SLEEP_TIMER -> {
                     cancelSleepTimer()
+                    return com.google.common.util.concurrent.Futures.immediateFuture(
+                        androidx.media3.session.SessionResult(androidx.media3.session.SessionResult.RESULT_SUCCESS)
+                    )
+                }
+                "com.pulse.music.action.SET_PITCH" -> {
+                    val pitch = args.getFloat("PITCH", 1.0f)
+                    val params = player.playbackParameters
+                    player.playbackParameters = androidx.media3.common.PlaybackParameters(params.speed, pitch)
                     return com.google.common.util.concurrent.Futures.immediateFuture(
                         androidx.media3.session.SessionResult(androidx.media3.session.SessionResult.RESULT_SUCCESS)
                     )
@@ -307,6 +319,16 @@ class PulseAudioService : MediaLibraryService() {
                   player.setPlaybackSpeed(speed)
              }
         }
+        
+        // Listen to Playback Pitch settings
+        serviceScope.launch {
+             userPreferencesRepository.playbackPitch.collect { pitch ->
+                  val params = player.playbackParameters
+                  if (params.pitch != pitch) {
+                      player.playbackParameters = androidx.media3.common.PlaybackParameters(params.speed, pitch)
+                  }
+             }
+        }
         // 建立 Activity PendingIntent，點擊通知欄時跳轉回 App
         val openActivityIntent = PendingIntent.getActivity(
             this,
@@ -383,11 +405,6 @@ class PulseAudioService : MediaLibraryService() {
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 android.util.Log.e("PulseAudioService", "Player Error: ${error.message}", error)
-                
-                // Show localized error if possible or generic
-                kotlinx.coroutines.MainScope().launch {
-                    android.widget.Toast.makeText(applicationContext, "Playback Error: ${error.errorCodeName}", android.widget.Toast.LENGTH_SHORT).show()
-                }
 
                 // Attempt recovery logic
                 // If it's a transient network error or source error, we might skip.

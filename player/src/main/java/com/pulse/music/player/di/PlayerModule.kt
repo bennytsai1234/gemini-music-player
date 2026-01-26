@@ -21,9 +21,15 @@ import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.common.audio.AudioProcessor
 import com.google.common.collect.ImmutableList
 
+import com.pulse.music.player.processor.ReplayGainProcessor
+
 @Module
 @InstallIn(SingletonComponent::class)
 object PlayerModule {
+
+    @Provides
+    @Singleton
+    fun provideReplayGainProcessor(): ReplayGainProcessor = ReplayGainProcessor()
 
     @Provides
     @Singleton
@@ -52,9 +58,23 @@ object PlayerModule {
     @Provides
     @Singleton
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-    fun provideRenderersFactory(@ApplicationContext context: Context): RenderersFactory {
-        return DefaultRenderersFactory(context)
-            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+    fun provideRenderersFactory(
+        @ApplicationContext context: Context,
+        replayGainProcessor: ReplayGainProcessor
+    ): RenderersFactory {
+        return object : DefaultRenderersFactory(context) {
+            override fun buildAudioSink(
+                context: Context,
+                enableFloatOutput: Boolean,
+                enableAudioTrackPlaybackParams: Boolean
+            ): AudioSink? {
+                return DefaultAudioSink.Builder(context)
+                    .setEnableFloatOutput(enableFloatOutput)
+                    .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+                    .setAudioProcessors(arrayOf(replayGainProcessor))
+                    .build()
+            }
+        }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
     }
 
     @Provides

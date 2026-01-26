@@ -69,12 +69,14 @@ import com.pulse.music.core.designsystem.component.PulseTopBarWithBack
 import com.pulse.music.domain.model.ScanStatus
 import com.pulse.music.domain.repository.UserPreferencesRepository
 import com.pulse.music.ui.R
+import androidx.compose.material.icons.rounded.Block
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
         onBackClick: () -> Unit,
         onInternalEqualizerClick: (Int) -> Unit,
+        onBlacklistClick: () -> Unit,
         viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -206,6 +208,14 @@ fun SettingsScreen(
                     Text(stringResource(R.string.add_folder))
                 }
             }
+            
+            // Blacklist
+            ListItem(
+                headlineContent = { Text("Blacklist") },
+                supportingContent = { Text("Manage blocked folders") },
+                leadingContent = { Icon(Icons.Rounded.Block, null) },
+                modifier = Modifier.clickable { onBlacklistClick() }
+            )
 
             if (uiState.includedFolders.isEmpty()) {
                 Text(

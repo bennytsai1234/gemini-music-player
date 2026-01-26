@@ -85,6 +85,10 @@ dependencies {
     }
     implementation("com.google.http-client:google-http-client-android:1.43.3")
 
+    // SMB (Samba)
+    implementation(libs.smbj)
+    implementation(libs.slf4j.android)
+
     // Media3 Database & Datasource (For Downloads)
     implementation(libs.androidx.media3.database)
     implementation(libs.androidx.media3.datasource)

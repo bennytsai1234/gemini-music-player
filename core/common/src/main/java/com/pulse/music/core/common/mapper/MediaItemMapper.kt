@@ -1,4 +1,4 @@
-package com.pulse.music.player.mapper
+package com.pulse.music.core.common.mapper
 
 import android.os.Bundle
 import androidx.media3.common.MediaItem

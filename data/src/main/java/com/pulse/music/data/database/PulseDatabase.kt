@@ -16,9 +16,10 @@ import androidx.room.RoomDatabase
         ScrobbleEntity::class,
         CustomLyricsEntity::class,
         AlbumEntity::class,
-        ArtistEntity::class
+        ArtistEntity::class,
+        BlacklistEntity::class
     ], 
-    version = 10, 
+    version = 11, 
     exportSchema = false
 )
 abstract class PulseDatabase : RoomDatabase() {
@@ -33,6 +34,7 @@ abstract class PulseDatabase : RoomDatabase() {
     abstract fun customLyricsDao(): CustomLyricsDao
     abstract fun albumDao(): AlbumDao
     abstract fun artistDao(): ArtistDao
+    abstract fun blacklistDao(): BlacklistDao
 }
 
 

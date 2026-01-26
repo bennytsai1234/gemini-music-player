@@ -1,5 +1,7 @@
 package com.pulse.music.ui.playlist.list
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -7,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -31,6 +34,11 @@ fun PlaylistListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri -> uri?.let { viewModel.importPlaylist(it.toString()) } }
+    )
+
     if (uiState.showCreateDialog) {
         CreatePlaylistDialog(
             onDismiss = { viewModel.dismissDialog() },
@@ -52,7 +60,12 @@ fun PlaylistListScreen(
         topBar = {
             PulseTopBarWithBack(
                 title = "播放清單",
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                actions = {
+                    IconButton(onClick = { importLauncher.launch(arrayOf("audio/x-mpegurl", "application/vnd.apple.mpegurl", "audio/mpegurl")) }) {
+                        Icon(Icons.Rounded.FileDownload, contentDescription = "Import Playlist")
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -117,5 +130,3 @@ private fun PlaylistGridItem(
         onClick = onClick
     )
 }
-
-

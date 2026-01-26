@@ -1,47 +1,39 @@
 package com.pulse.music.domain.repository
 
 import com.pulse.music.domain.model.backup.BackupResult
+import com.pulse.music.domain.model.backup.PulseBackup
 import com.pulse.music.domain.model.backup.RestoreResult
 import kotlinx.coroutines.flow.Flow
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * 雲端備份儲存庫介面。
+ * 備份儲存庫介面。
  * 負責處理備份數據的導入導出與雲端同步。
  */
 interface BackupRepository {
     
     /**
-     * 觸發備份流程。
-     * 將會讀取所有需要備份的本地數據 (Playlists, Favorites, Settings)，
-     * 打包成 JSON 並上傳到雲端。
+     * 建立完整的備份物件 (In-Memory)
      */
-    suspend fun performBackup(): BackupResult
-    
+    suspend fun createBackup(): PulseBackup
+
     /**
-     * 從雲端還原數據。
-     * 將會下載備份檔，解析並覆蓋/合併到本地數據庫。
+     * 將備份物件還原至資料庫
+     * @param backup 備份資料
+     * @param merge 若為 true，則保留現有資料並合併；若為 false，則覆蓋 (未實作覆蓋，通常建議合併)
      */
-    suspend fun performRestore(backupId: String): RestoreResult
-    
-    /**
-     * 登入雲端服務 (如 Google Drive)。
-     */
+    suspend fun restoreBackup(backup: PulseBackup, merge: Boolean = true): RestoreResult
+
+    // --- File I/O (Local / SAF) ---
+    suspend fun exportBackupToStream(backup: PulseBackup, outputStream: OutputStream)
+    suspend fun importBackupFromStream(inputStream: InputStream): PulseBackup
+
+    // --- Cloud (Google Drive) - Legacy/Future ---
+    suspend fun performCloudBackup(): BackupResult
+    suspend fun performCloudRestore(backupId: String): RestoreResult
     suspend fun signIn(): Boolean
-    
-    /**
-     * 登出雲端服務。
-     */
     suspend fun signOut()
-    
-    /**
-     * 檢查是否已登入。
-     */
     fun isSignedIn(): Flow<Boolean>
-    
-    /**
-     * 獲取最近的備份時間。
-     */
     suspend fun getLastBackupTime(): Long?
 }

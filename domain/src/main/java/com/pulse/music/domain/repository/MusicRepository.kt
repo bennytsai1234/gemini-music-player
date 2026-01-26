@@ -73,5 +73,8 @@ interface MusicRepository {
     // --- Tag Editing ---
     suspend fun getSongTags(songId: Long): SongTags?
     suspend fun updateSongTags(tags: SongTags): Boolean
+    // --- M3U Import/Export ---
+    suspend fun importPlaylist(uri: String): Result<Long>
+    suspend fun exportPlaylist(playlistId: Long, uri: String): Result<Unit>
 }
 

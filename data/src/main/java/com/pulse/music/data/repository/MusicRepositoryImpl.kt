@@ -35,7 +35,9 @@ class MusicRepositoryImpl @Inject constructor(
     private val songDao: SongDao,
     private val playlistDao: PlaylistDao,
     private val favoriteDao: com.pulse.music.data.database.FavoriteDao,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val blacklistDao: com.pulse.music.data.database.BlacklistDao,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val contentResolver: android.content.ContentResolver
 ) : MusicRepository {
 
     override fun getSongs(): Flow<List<Song>> {
@@ -45,8 +47,6 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override fun getGenres(): Flow<List<Genre>> {
-        // Since we don't have a Genre table yet, we aggregate from songs.
-        // This is inefficient for large libraries but works for now.
         return getSongs().map { songs ->
             songs.asSequence()
                 .mapNotNull { it.genre }
@@ -132,18 +132,27 @@ class MusicRepositoryImpl @Inject constructor(
 
             val songsFromSystem = localAudioSource.loadMusic(minDuration, includedFolders)
 
-            val total = songsFromSystem.size
+            val blacklist = blacklistDao.getAllSync()
+            val blacklistedPaths = blacklist.map { it.path }.toSet()
+            val blacklistedFolders = blacklist.filter { it.isFolder }.map { it.path }
+
+            val filteredSongs = songsFromSystem.filter { song ->
+                if (blacklistedPaths.contains(song.dataPath)) return@filter false
+                val isInsideBlacklistedFolder = blacklistedFolders.any { folderPath ->
+                    val folderWithSeparator = if (folderPath.endsWith("/")) folderPath else "$folderPath/"
+                    song.dataPath.startsWith(folderWithSeparator)
+                }
+                !isInsideBlacklistedFolder
+            }
+
+            val total = filteredSongs.size
             emit(ScanStatus.Scanning(total, total, "Processing $total songs..."))
-
-            songDao.updateMusicLibrary(songsFromSystem.map { it.asEntity() })
-
+            songDao.updateMusicLibrary(filteredSongs.map { it.asEntity() })
             emit(ScanStatus.Completed(total))
         } catch (e: Exception) {
             emit(ScanStatus.Failed(e.message ?: "Unknown scanning error"))
         }
     }.flowOn(Dispatchers.IO)
-
-    // --- Playlist Implementation ---
 
     override fun getPlaylists(): Flow<List<Playlist>> {
         return playlistDao.getAllPlaylists().map { entities ->
@@ -199,9 +208,7 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addSongsToPlaylist(playlistId: Long, songIds: List<Long>) {
-        // Find existing max order to append
         var nextOrder = playlistDao.getNextSortOrder(playlistId)
-
         val crossRefs = songIds.map { songId ->
             com.pulse.music.data.database.PlaylistSongCrossRef(
                 playlistId = playlistId,
@@ -209,9 +216,6 @@ class MusicRepositoryImpl @Inject constructor(
                 sortOrder = nextOrder++
             )
         }
-        // Assuming implement insertPlaylistSongCrossRefs (plural) in DAO or loop insert
-        // Since DAO might not have plural insert, we loop for now or add it to DAO later.
-        // For efficiency, list insert is better. Check DAO.
         crossRefs.forEach { playlistDao.insertPlaylistSongCrossRef(it) }
     }
 
@@ -221,15 +225,10 @@ class MusicRepositoryImpl @Inject constructor(
 
     override suspend fun moveSongInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int) {
         if (fromIndex == toIndex) return
-
         val sortOrders = playlistDao.getSongsSortOrderSync(playlistId).toMutableList()
         if (fromIndex !in sortOrders.indices || toIndex !in sortOrders.indices) return
-
-        // Move the item in the list
         val item = sortOrders.removeAt(fromIndex)
         sortOrders.add(toIndex, item)
-
-        // Update all sort orders based on new positions
         sortOrders.forEachIndexed { index, songSortOrder ->
             playlistDao.updateSongPosition(playlistId, songSortOrder.songId, index)
         }
@@ -238,8 +237,6 @@ class MusicRepositoryImpl @Inject constructor(
     override suspend fun renamePlaylist(playlistId: Long, name: String) {
         playlistDao.updatePlaylistName(playlistId, name)
     }
-
-    // --- Favorites Implementation ---
 
     override fun getFavoriteSongs(): Flow<List<Song>> {
         return favoriteDao.getFavoriteSongs().map { entities ->
@@ -261,11 +258,7 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteSong(song: Song) {
-        // 1. Delete from Storage (MediaStore)
-        // This might throw RecoverableSecurityException which should be handled by UI
         localAudioSource.deleteSong(song)
-
-        // 2. If successful (no exception), delete from local DB
         songDao.deleteSong(id = song.id)
     }
 
@@ -276,8 +269,6 @@ class MusicRepositoryImpl @Inject constructor(
         return null
     }
 
-    // --- Tag Editing Implementation ---
-
     override suspend fun getSongTags(songId: Long): SongTags? = withContext(Dispatchers.IO) {
         val song = songDao.getSongSync(songId)
         song?.let { tagEditorSource.readTags(it.dataPath, songId) }
@@ -286,7 +277,6 @@ class MusicRepositoryImpl @Inject constructor(
     override suspend fun updateSongTags(tags: SongTags): Boolean = withContext(Dispatchers.IO) {
         val success = tagEditorSource.writeTags(tags)
         if (success) {
-            // Update the database with the new tags
             val existingSong = songDao.getSongSync(tags.songId)
             existingSong?.let {
                 val updatedEntity = it.copy(
@@ -300,5 +290,43 @@ class MusicRepositoryImpl @Inject constructor(
             }
         }
         success
+    }
+
+    override suspend fun importPlaylist(uri: String): Result<Long> = withContext(Dispatchers.IO) {
+        try {
+            val inputStream = contentResolver.openInputStream(android.net.Uri.parse(uri)) ?: return@withContext Result.failure(Exception("Failed to open input stream"))
+            val entries = com.pulse.music.core.common.util.M3UParser.parse(inputStream)
+            if (entries.isEmpty()) return@withContext Result.failure(Exception("Playlist is empty"))
+            val playlistName = android.net.Uri.parse(uri).lastPathSegment?.substringBeforeLast(".") ?: "Imported Playlist"
+            val playlistId = createPlaylist(playlistName)
+            val songIds = entries.mapNotNull { entry -> 
+                entry.uri?.let { path -> songDao.getSongByPath(path)?.id } 
+            }
+            if (songIds.isNotEmpty()) {
+                addSongsToPlaylist(playlistId, songIds)
+            }
+            Result.success(playlistId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun exportPlaylist(playlistId: Long, uri: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val songs = getSongsForPlaylist(playlistId).first()
+            val outputStream = contentResolver.openOutputStream(android.net.Uri.parse(uri)) ?: return@withContext Result.failure(Exception("Failed to open output stream"))
+            val entries = songs.map { 
+                com.pulse.music.core.common.util.M3UParser.M3UEntry(
+                    uri = it.dataPath,
+                    duration = (it.duration / 1000).toInt(),
+                    title = it.title,
+                    artist = it.artist
+                )
+            }
+            com.pulse.music.core.common.util.M3UParser.write(outputStream, entries)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

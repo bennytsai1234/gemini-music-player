@@ -81,6 +81,11 @@ object DatabaseModule {
     fun providePlaybackHistoryDao(database: PulseDatabase): com.pulse.music.data.database.PlaybackHistoryDao {
         return database.playbackHistoryDao()
     }
+
+    @Provides
+    fun provideBlacklistDao(database: PulseDatabase): com.pulse.music.data.database.BlacklistDao {
+        return database.blacklistDao()
+    }
 }
 
 
